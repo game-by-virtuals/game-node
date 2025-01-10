@@ -8,10 +8,26 @@ npm install @virtuals-protocol/game
 
 ## Overview
 
-This library enables the creation of AI agents, in which actions are defined by the creator/developer. These agents can be used:
+Currently, this SDK allows you to develop your agents powered by the GAME architecture in its most fullest and most flexible form.
 
-- Worker Mode: to autonomously execute tasks through interaction with the agent. User interaction and tasks is required for the agent to execute tasks. For example, "Bring me some fruits and then go sit on the chair".
-- Agent Mode: to autonomously function in an open-ended manner by just providing a general goal. The agent independently and continously decides tasks for itself in an open-ended manner, and attempts to complete them.
+![New SDK visual](docs/imgs/new_sdk_visual.png)
+The SDK is made up of 3 main components (Agent, Worker, function), each with configurable arguments.
+
+Agent (a.k.a. [high level planner](https://whitepaper.virtuals.io/developer-documents/game-framework/game-overview#high-level-planner-hlp-context))
+- Takes in a <b>Goal</b>
+  - Drives the agents behaviour through the high level plan which influences the thinking and creation of tasks that would contribute towards this goal
+- Takes in a <b>Description</b>
+  - Combination of what was previously known as World Info + Agent Description
+  - This include a description of the "world" the agent lives in, and the personality and background of the agent
+
+Worker (a.k.a. [low-level planner](https://whitepaper.virtuals.io/developer-documents/game-framework/game-overview#low-level-planner-llp-context)) 
+- Takes in a <b>Description</b>
+  - Used to control which workers are called by the agent, based on the high-level plan and tasks created to contribute to the goal
+
+Function
+- Takes in a <b>Description</b>
+  - Used to control which functions are called by the workers, based on each worker's low-level plan
+  - This can be any executable
 
 ## Core Features
 
