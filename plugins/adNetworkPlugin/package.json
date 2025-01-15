@@ -1,0 +1,30 @@
+{
+  "name": "@virtuals-protocol/ad-network-plugin",
+  "version": "0.1.1",
+  "description": "",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsup": "tsup src/index.ts src/example.ts --dts --format cjs,esm --out-dir dist"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.4",
+    "@virtuals-protocol/game-twitter-plugin": "^0.1.1",
+    "tsup": "^8.3.5"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/game-by-virtuals/game-node"
+  }
+}
