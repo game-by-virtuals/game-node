@@ -170,6 +170,46 @@ class GameAgent implements IGameAgent {
       );
     }
   }
+
+  save(): Record<string, any> {
+		return {
+			agentId: this.agentId,
+			mapId: this.mapId,
+			gameActionResult: this.gameActionResult,
+		}
+	}
+
+	async initWorkers() {
+		this.workers.forEach((worker) => {
+			worker.setAgentId(this.agentId || '')
+			worker.setLogger(this.log.bind(this))
+			worker.setGameClient(this.gameClient)
+		})
+	}
+
+	static async load(
+		apiKey: string,
+		name: string,
+		goal: string,
+		description: string,
+		savedState: Record<string, any>,
+		workers: GameWorker[]
+	): Promise<GameAgent> {
+		const agent = new GameAgent(apiKey, {
+			name: name,
+			goal: goal,
+			description: description,
+			workers,
+		})
+
+		agent.agentId = savedState.agentId
+		agent.mapId = savedState.mapId
+		agent.gameActionResult = savedState.gameActionResult
+
+
+		return agent
+	}
+
 }
 
 export default GameAgent;
