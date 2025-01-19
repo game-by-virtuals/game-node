@@ -142,7 +142,7 @@ class TwitterPlugin {
 
           logger(`Replying [${args.tweet_id}]: ${args.reply}`);
 
-          await this.twitterClient.v2.reply(args.tweet_id, args.reply);
+          await this.twitterClient.v2.reply(args.reply, args.tweet_id);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
