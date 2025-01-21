@@ -1,42 +1,39 @@
 # Twitter Plugin for Virtuals Game
 
-This plugin allows you to integrate Twitter functionalities into your Virtuals Game. With this plugin, you can post tweets, reply to tweets, like tweets, and more.
+This plugin allows you to integrate Telegram functionalities into your Virtuals Game.
 
 ## Installation
 
 To install the plugin, use npm or yarn:
 
 ```bash
-npm install @virtuals-protocol/game-twitter-plugin
+npm install @virtuals-protocol/game-telegram-plugin
 ```
 
 or
 
 ```bash
-yarn add @virtuals-protocol/game-twitter-plugin
+yarn add @virtuals-protocol/game-telegram-plugin
 ```
 
 ## Usage
 
 ### Importing the Plugin
 
-First, import the `TwitterPlugin` class from the plugin:
+First, import the `TelegramPlugin` class from the plugin:
 
 ```typescript
-import TwitterPlugin from "@virtuals-protocol/game-twitter-plugin";
+import TelegramPlugin from "@virtuals-protocol/game-telegram-plugin";
 ```
 
 ### Creating a Worker
 
-Create a worker with the necessary Twitter credentials:
+Create a worker with the necessary Telegram credentials:
 
 ```typescript
-const twitterPlugin = new TwitterPlugin({
+const telegramPlugin = new TelegramPlugin({
   credentials: {
-    apiKey: "your_api_key",
-    apiSecretKey: "your_api_secret_key",
-    accessToken: "your_access_token",
-    accessTokenSecret: "your_access_token_secret",
+    botToken: "<BOT_TOKEN>",
   },
 });
 ```
@@ -48,11 +45,13 @@ Create an agent and add the worker to it:
 ```typescript
 import { GameAgent } from "@virtuals-protocol/game";
 
-const agent = new GameAgent("API_KEY", {
-  name: "Twitter Bot",
-  goal: "Increase engagement and grow follower count",
-  description: "A bot that can post tweets, reply to tweets, and like tweets",
-  workers: [twitterPlugin.getWorker()],
+const agent = new GameAgent("<API_TOKEN>", {
+  name: "Telegram Bot",
+  goal: "Auto reply message",
+  description: "A bot that can post send message and pinned message",
+  workers: [
+    telegramPlugin.getWorker(),
+  ],
 });
 ```
 
@@ -64,23 +63,25 @@ Initialize and run the agent:
 (async () => {
   await agent.init();
 
-  while (true) {
-    await agent.step({
-      verbose: true,
-    });
-  }
+  const agentTgWorker = agent.getWorkerById(telegramPlugin.getWorker().id);
+  const task = "PROMPT";
+
+  await agentTgWorker.runTask(task, {
+    verbose: true, // Optional: Set to true to log each step
+  });
 })();
 ```
 
 ## Available Functions
 
-The `TwitterPlugin` provides several functions that can be used by the agent:
+The `TelegramPlugin` provides several functions that can be used by the agent:
 
-- `searchTweetsFunction`: Search for tweets based on a query.
-- `replyTweetFunction`: Reply to a tweet.
-- `postTweetFunction`: Post a new tweet.
-- `likeTweetFunction`: Like a tweet.
-- `quoteTweetFunction`: Quote a tweet with your own commentary.
+- `sendMessageFunction`: Send message.
+- `sendMediaFunction`: Send media.
+- `createPollFunction`: Create poll.
+- `pinnedMessageFunction`: Pinned message.
+- `unPinnedMessageFunction`: Unpinned message.
+- `deleteMessageFunction`: Delete message.
 
 ## License
 
