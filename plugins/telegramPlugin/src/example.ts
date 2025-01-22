@@ -17,30 +17,32 @@ telegramPlugin.onPollAnswer((pollAnswer) => {
   // You can process the poll answer as needed
 });
 
-//Create an agent with the worker
+/**
+ * Create a new agent with the Telegram plugin
+ * The agent will be able to send messages and pin messages
+ */
 const agent = new GameAgent("<API_TOKEN>", {
   name: "Telegram Bot",
   goal: "Auto reply message",
-  description: "A bot that can post send message and pinned message",
+  description: "This agent will auto reply to messages",
   workers: [
     telegramPlugin.getWorker({
       // Define the functions that the worker can perform, by default it will use the all functions defined in the plugin
       functions: [
         telegramPlugin.sendMessageFunction,
         telegramPlugin.pinnedMessageFunction,
+        telegramPlugin.createPollFunction,
+        telegramPlugin.sendMediaFunction,
+        telegramPlugin.deleteMessageFunction,
       ],
     }),
   ],
 });
 
-// const test = telegramPlugin.sendMessageFunction;
-// const log = test.executable({
-//   chat_id: "811200161",
-//   text: "hi, bot what your name",
-// }, (msg) => {
-// console.log(msg)
-// });
-// console.log(log)
+/**
+ * Initialize the agent and start listening for messages
+ * The agent will automatically reply to messages 
+ */
 (async () => {
   agent.setLogger((agent, message) => {
     console.log(`-----[${agent.name}]-----`);
@@ -49,11 +51,12 @@ const agent = new GameAgent("<API_TOKEN>", {
   });
 
   await agent.init();
-  const agentTgWorker = agent.getWorkerById(telegramPlugin.getWorker().id);
-  const task = "PROMPT";
+  telegramPlugin.onMessage(async (msg) => {
+    const agentTgWorker = agent.getWorkerById(telegramPlugin.getWorker().id);
+    const task = "Reply to chat id: " + msg.chat.id + " and the incoming is message: " + msg.text + " and the message id is: " + msg.message_id;
 
-  await agentTgWorker.runTask(task, {
-    verbose: true, // Optional: Set to true to log each step
+    await agentTgWorker.runTask(task, {
+      verbose: true, // Optional: Set to true to log each step
+    });
   });
-  // You can process the message as needed
 })();

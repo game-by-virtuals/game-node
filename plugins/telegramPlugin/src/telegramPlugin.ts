@@ -62,6 +62,10 @@ class TelegramPlugin {
         });
     }
 
+    /**
+     * Function to send a text message to a chat.
+     * Requires the chat_id and text to send the message.
+     */
     get sendMessageFunction() {
         return new GameFunction({
             name: "send_message",
@@ -98,6 +102,11 @@ class TelegramPlugin {
         });
     }
 
+    /**
+     * Function to send media (photo, document, video, audio) to a chat.
+     * Requires the chat_id, media_type, and media to send the media content.
+     * Optionally, a caption can be added to provide context or explanation.
+     */
     get sendMediaFunction() {
         return new GameFunction({
             name: "send_media",
@@ -146,6 +155,11 @@ class TelegramPlugin {
         });
     }
 
+    /**
+     * Function to create a poll in a chat.
+     * Requires the chat_id, question, and options to create the poll.
+     * Optionally, is_anonymous can be set to true to make poll responses anonymous.
+     */
     get createPollFunction() {
         return new GameFunction({
             name: "create_poll",
@@ -159,6 +173,7 @@ class TelegramPlugin {
             executable: async (args, logger) => {
                 try {
                     if (!args.chat_id || !args.question || !args.options) {
+                        logger(`Error: chat_id, question, and options are required.`);
                         return new ExecutableGameFunctionResponse(
                             ExecutableGameFunctionStatus.Failed,
                             "chat_id, question, and options are required."
@@ -169,6 +184,7 @@ class TelegramPlugin {
 
                     // Ensure options are in a correct format (an array of strings)
                     if (!Array.isArray(args.options) || args.options.length < 2) {
+                        logger(`Error: Options must be an array with at least two items.`);
                         return new ExecutableGameFunctionResponse(
                             ExecutableGameFunctionStatus.Failed,
                             "Options must be an array with at least two items."
@@ -191,6 +207,7 @@ class TelegramPlugin {
                         `Poll created successfully. Poll ID: ${poll.poll?.id}`
                     );
                 } catch (e: any) {
+                    logger(`Error: ${e.message}`);
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Failed,
                         `Failed to create poll: ${e.message}`
@@ -200,6 +217,11 @@ class TelegramPlugin {
         });
     }
 
+    /**
+     * Function to pin a message in a chat.
+     * Requires the chat_id and message_id to identify the message to pin.
+     * Optionally, disable_notification can be set to true to avoid sending a notification about the pinned message.
+     */
     get pinnedMessageFunction() {
         return new GameFunction({
             name: "pinned_message",
@@ -235,6 +257,7 @@ class TelegramPlugin {
                         "Message pinned successfully."
                     );
                 } catch (e: any) {
+                    logger(`Error: ${e.message}`);
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Failed,
                         `Failed to pin message: ${e.message}`
@@ -244,6 +267,10 @@ class TelegramPlugin {
         });
     }
 
+    /**
+     * Function to unpin a message from a chat.
+     * Requires the chat_id and message_id to identify the message to unpin.
+     */
     get unPinnedMessageFunction() {
         return new GameFunction({
             name: "unpinned_message",
@@ -278,6 +305,7 @@ class TelegramPlugin {
                         "Message pinned successfully."
                     );
                 } catch (e: any) {
+                    logger(`Error: ${e.message}`);
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Failed,
                         `Failed to pin message: ${e.message}`
@@ -287,6 +315,10 @@ class TelegramPlugin {
         });
     }
 
+    /**
+     * Function to delete a message from a chat.
+     * Requires the chat_id and message_id to identify the message to delete.
+     */
     get deleteMessageFunction() {
         return new GameFunction({
             name: "delete_message",
@@ -315,6 +347,7 @@ class TelegramPlugin {
                         "Messages deleted successfully."
                     );
                 } catch (e: any) {
+                    logger(`Error: ${e.message}`);
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Failed,
                         `Failed to delete message(s): ${e.message}`
