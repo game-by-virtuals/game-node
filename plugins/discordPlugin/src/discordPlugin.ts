@@ -50,20 +50,13 @@ class DiscordPlugin {
         }).catch((error: unknown) => {
             console.error("Failed to log in Discord client:", error);
         });
-
-        this.discordClient.on('messageCreate', (message: any) => {
-            if (message.guild) {
-                console.log(`Guild Name: ${message.guild.name}, Guild ID: ${message.guild.id}`);
-            } else {
-                console.log('This message is not from a guild (e.g., DM).');
-            }
-        });
-
-        // Add ready event handler
-        this.discordClient.once("ready", () => {
-            console.log(`${this.name} is ready and connected to Discord!`);
-        });
     }
+
+    // Method to register a custom message handler
+    public onMessage(handler: (msg: any) => void) {
+        this.discordClient.on('messageCreate', handler);
+    }
+
 
     public getWorker(data?: {
         functions?: GameFunction<any>[];
