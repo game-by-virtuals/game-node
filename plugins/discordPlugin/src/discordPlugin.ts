@@ -43,7 +43,6 @@ class DiscordPlugin {
         });
 
         // Login the Discord client
-
         console.log(`Discord client logging in as ${this.name}...`);
         this.discordClient.login(options.credentials.botToken).then(() => {
             console.log(`Discord client logged in successfully as ${this.name}.`);
@@ -76,6 +75,12 @@ class DiscordPlugin {
         });
     }
 
+    /**
+     * Function to send a message to a Discord channel.
+     * Required args: channel_id, content
+     * @returns ExecutableGameFunctionResponse with status Done if the message was sent successfully.
+     * @returns ExecutableGameFunctionResponse with status Failed if an error occurred while sending the message.
+     */
     get sendMessageFunction() {
         return new GameFunction({
             name: "send_message",
@@ -123,6 +128,14 @@ class DiscordPlugin {
         });
     }
 
+    /**
+     * Function to add a reaction to a message in a Discord channel.
+     * First fetch the channel using the channel_id. Then fetch the message using the message_id from the channel.
+     * Eventually, react to the message using the emoji.
+     * Required args: channel_id, message_id, emoji
+     * @returns ExecutableGameFunctionResponse with status Done if the reaction was added successfully.
+     * @returns ExecutableGameFunctionResponse with status Failed if an error occurred while adding the reaction.
+     */
     get addReactionFunction() {
         return new GameFunction({
             name: "add_reaction",
@@ -183,6 +196,14 @@ class DiscordPlugin {
         });
     }
 
+    /**
+     * Function to pin a message in a Discord channel.
+     * Required args: channel_id, message_id
+     * First fetch the channel using the channel_id. Then fetch the message using the message_id from the channel.
+     * Eventually, pin the message.
+     * @returns ExecutableGameFunctionResponse with status Done if the message was pinned successfully.
+     * @returns ExecutableGameFunctionResponse with status Failed if an error occurred while pinning the message.
+     */
     get pinMessageFunction() {
         return new GameFunction({
             name: "pin_message",
@@ -240,6 +261,14 @@ class DiscordPlugin {
         });
     }
 
+    /**
+     * Function to delete a message in a Discord channel.
+     * Required args: channel_id, message_id
+     * First fetch the channel using the channel_id. Then fetch the message using the message_id from the channel.
+     * Eventually, delete the message.
+     * @returns ExecutableGameFunctionResponse with status Done if the message was deleted successfully.
+     * @returns ExecutableGameFunctionResponse with status Failed if an error occurred while deleting the message.
+     */
     get deleteMessageFunction() {
         return new GameFunction({
             name: "delete_message",
