@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "../",  // Look up one directory to include everything
+    "outDir": "./dist"
+  },
+  "include": [
+    "./**/*",           // Include all example files
+    "../plugins/**/example.ts"  // Include plugin examples
+  ]
+} 

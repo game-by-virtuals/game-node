@@ -15,9 +15,10 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.3",
-    "tsup": "^8.3.5",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.2"
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "@virtuals-protocol/game-twitter-plugin": "^0.1.1"
   },
   "dependencies": {
     "axios": "^1.7.9"
