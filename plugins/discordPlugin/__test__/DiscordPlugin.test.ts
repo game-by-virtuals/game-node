@@ -14,6 +14,8 @@ jest.mock('discord.js', () => ({
       }),
       catch: jest.fn()
     })),
+    on: jest.fn().mockImplementation(() => {}),
+    once: jest.fn().mockImplementation(() => {}),
     // Mock the channels property
     channels: {
       fetch: jest.fn().mockResolvedValue({
