@@ -2,6 +2,7 @@ import { GameAgent } from "@virtuals-protocol/game";
 import TelegramPlugin from "./telegramPlugin";
 
 // Create a worker with the functions
+// Replace <BOT_TOKEN> with your Telegram bot token
 const telegramPlugin = new TelegramPlugin({
   credentials: {
     botToken: "<BOT_TOKEN>",
@@ -20,6 +21,7 @@ telegramPlugin.onPollAnswer((pollAnswer) => {
 /**
  * Create a new agent with the Telegram plugin
  * The agent will be able to send messages and pin messages
+ * Replace <API_TOKEN> with your API token
  */
 const agent = new GameAgent("<API_TOKEN>", {
   name: "Telegram Bot",
@@ -31,6 +33,7 @@ const agent = new GameAgent("<API_TOKEN>", {
       functions: [
         telegramPlugin.sendMessageFunction,
         telegramPlugin.pinnedMessageFunction,
+        telegramPlugin.unPinnedMessageFunction,
         telegramPlugin.createPollFunction,
         telegramPlugin.sendMediaFunction,
         telegramPlugin.deleteMessageFunction,

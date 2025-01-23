@@ -167,7 +167,7 @@ class TelegramPlugin {
             args: [
                 { name: "chat_id", description: "Chat where the poll will be created", type: "string" },
                 { name: "question", description: "Main poll question. Should be clear and specific.", type: "string" },
-                { name: "options", description: "List of answer options. Make options clear and mutually exclusive.", type: "array" },
+                { name: "options", description: "List of answer options. Make options clear and mutually exclusive.", type: "string" },
                 { name: "is_anonymous", description: "Whether poll responses are anonymous. Consider privacy and group dynamics.", type: "boolean" }
             ] as const,
             executable: async (args, logger) => {
@@ -182,8 +182,11 @@ class TelegramPlugin {
 
                     logger(`Creating poll in chat: ${args.chat_id}`);
 
+                    // Parse the options string into an array
+                    const options = args.options.split(",").map((option: string) => option.trim());
+
                     // Ensure options are in a correct format (an array of strings)
-                    if (!Array.isArray(args.options) || args.options.length < 2) {
+                    if (!Array.isArray(options) ||options.length < 2) {
                         logger(`Error: Options must be an array with at least two items.`);
                         return new ExecutableGameFunctionResponse(
                             ExecutableGameFunctionStatus.Failed,
@@ -195,7 +198,7 @@ class TelegramPlugin {
                     const poll = await this.telegramClient.sendPoll(
                         args.chat_id,
                         args.question,
-                        args.options,
+                        options,
                         {
                             is_anonymous: Boolean(args.is_anonymous),
                         }
@@ -289,7 +292,7 @@ class TelegramPlugin {
                         );
                     }
 
-                    logger(`Pinning message with ID: ${args.message_id} in chat: ${args.chat_id}`);
+                    logger(`Unpinning message with ID: ${args.message_id} in chat: ${args.chat_id}`);
 
                     // Pin the message using the Telegram Bot API
                     await this.telegramClient.unpinChatMessage(
@@ -299,10 +302,10 @@ class TelegramPlugin {
                         }
                     );
 
-                    logger("Message pinned successfully.");
+                    logger("Message unpinned successfully.");
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        "Message pinned successfully."
+                        "Message unpinned successfully."
                     );
                 } catch (e: any) {
                     logger(`Error: ${e.message}`);
