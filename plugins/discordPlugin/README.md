@@ -1,42 +1,39 @@
-# Twitter Plugin for Virtuals Game
+# Discord Plugin for Virtuals Game
 
-This plugin allows you to integrate Twitter functionalities into your Virtuals Game. With this plugin, you can post tweets, reply to tweets, like tweets, and more.
+This plugin allows you to integrate Discord functionalities into your Virtuals Game. With this plugin, you can send message, pin message, add reaction and delete message in Discord.
 
 ## Installation
 
 To install the plugin, use npm or yarn:
 
 ```bash
-npm install @virtuals-protocol/game-twitter-plugin
+npm install @virtuals-protocol/game-discord-plugin
 ```
 
 or
 
 ```bash
-yarn add @virtuals-protocol/game-twitter-plugin
+yarn add @virtuals-protocol/game-discord-plugin
 ```
 
 ## Usage
 
 ### Importing the Plugin
 
-First, import the `TwitterPlugin` class from the plugin:
+First, import the `DiscordPlugin` class from the plugin:
 
 ```typescript
-import TwitterPlugin from "@virtuals-protocol/game-twitter-plugin";
+import DiscordPlugin from "@virtuals-protocol/game-discord-plugin";
 ```
 
 ### Creating a Worker
 
-Create a worker with the necessary Twitter credentials:
+Create a worker with the necessary DiscordPlugin credentials:
 
 ```typescript
-const twitterPlugin = new TwitterPlugin({
+const discordPlugin = new DiscordPlugin({
   credentials: {
-    apiKey: "your_api_key",
-    apiSecretKey: "your_api_secret_key",
-    accessToken: "your_access_token",
-    accessTokenSecret: "your_access_token_secret",
+    botToken: "<BOT TOKEN>"
   },
 });
 ```
@@ -48,11 +45,21 @@ Create an agent and add the worker to it:
 ```typescript
 import { GameAgent } from "@virtuals-protocol/game";
 
-const agent = new GameAgent("API_KEY", {
-  name: "Twitter Bot",
-  goal: "Increase engagement and grow follower count",
-  description: "A bot that can post tweets, reply to tweets, and like tweets",
-  workers: [twitterPlugin.getWorker()],
+const agent = new GameAgent("<API_KEY>", {
+  name: "Discord Bot",
+  goal: "increase engagement and grow follower count",
+  description: "A bot that can reply message, add reaction, pin message and delete message in Discord.",
+  workers: [
+    discordPlugin.getWorker({
+      // Define the functions that the worker can perform, by default it will use the all functions defined in the plugin
+      functions: [
+        discordPlugin.sendMessageFunction,
+        discordPlugin.addReactionFunction,
+        discordPlugin.pinMessageFunction,
+        discordPlugin.deleteMessageFunction,
+      ],
+    }),
+  ],
 });
 ```
 
@@ -74,13 +81,12 @@ Initialize and run the agent:
 
 ## Available Functions
 
-The `TwitterPlugin` provides several functions that can be used by the agent:
+The `DiscordPlugin` provides several functions that can be used by the agent:
 
-- `searchTweetsFunction`: Search for tweets based on a query.
-- `replyTweetFunction`: Reply to a tweet.
-- `postTweetFunction`: Post a new tweet.
-- `likeTweetFunction`: Like a tweet.
-- `quoteTweetFunction`: Quote a tweet with your own commentary.
+- `sendMessageFunction`: Send a message in discord
+- `addReactionFunction`: Add a reaction in discord message.
+- `pinMessageFunction`: Pin a message in discord message.
+- `deleteMessageFunction`: Delete a message in discord.
 
 ## License
 

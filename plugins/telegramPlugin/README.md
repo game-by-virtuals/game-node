@@ -1,4 +1,4 @@
-# Twitter Plugin for Virtuals Game
+# Telegram Plugin for Virtuals Game
 
 This plugin allows you to integrate Telegram functionalities into your Virtuals Game.
 
