@@ -37,15 +37,20 @@ function ensoRoute(params: IEnsoFunctionParams) {
     args: [
       {
         name: "tokenIn",
-        description: "Token to swap from",
+        type: "string",
+        description:
+          "Token to swap from. Use 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for native token",
       },
       {
         name: "tokenOut",
-        description: "Token to swap from",
+        type: "string",
+        description:
+          "Token to swap to. Use 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for native token",
       },
       {
         name: "amountIn",
-        description: "Token to swap from",
+        type: "string",
+        description: "Amount of tokenIn to swap in wei",
       },
     ] as const,
     executable: async ({ tokenIn, tokenOut, amountIn }, logger) => {
