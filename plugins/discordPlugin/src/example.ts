@@ -10,8 +10,8 @@ const discordPlugin = new DiscordPlugin({
 
 const agent = new GameAgent("<API_KEY>", {
   name: "Discord Bot",
-  goal: "increase engagement and grow follower count",
-  description: "A bot that can post tweets, reply to tweets, and like tweets",
+  goal: "A bot that will auto reply messages",
+  description: "This agent will auto reply to messages, add reactions, pin messages, and delete messages",
   workers: [
     discordPlugin.getWorker({
       // Define the functions that the worker can perform, by default it will use the all functions defined in the plugin
@@ -21,12 +21,6 @@ const agent = new GameAgent("<API_KEY>", {
         discordPlugin.pinMessageFunction,
         discordPlugin.deleteMessageFunction,
       ],
-      // Define the environment variables that the worker can access, by default it will use the metrics defined in the plugin
-      // getEnvironment: async () => ({
-      //   ...(await twitterPlugin.getMetrics()),
-      //   username: "virtualsprotocol",
-      //   token_price: "$100.00",
-      // }),
     }),
   ],
 });

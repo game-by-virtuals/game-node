@@ -88,6 +88,16 @@ The `DiscordPlugin` provides several functions that can be used by the agent:
 - `pinMessageFunction`: Pin a message in discord message.
 - `deleteMessageFunction`: Delete a message in discord.
 
+## Event Handlers
+The plugin also supports custom handlers for the following Discord events:
+### Handling Incoming Messages
+To handle incoming messages, use the `onMessage` method to listen on:
+```typescript
+discordPlugin.onMessage((msg) => {
+  console.log("Received message:", msg);
+});
+```
+
 ## License
 
 This project is licensed under the MIT License.
