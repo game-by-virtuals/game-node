@@ -83,6 +83,23 @@ The `TelegramPlugin` provides several functions that can be used by the agent:
 - `unPinnedMessageFunction`: Unpinned message.
 - `deleteMessageFunction`: Delete message.
 
+## Event Handlers
+The plugin also supports custom handlers for the following Telegram events:
+### Handling Incoming Messages
+To handle incoming messages, use the `onMessage` method to listen on:
+```typescript
+telegramPlugin.onMessage((msg) => {
+  console.log("Received message:", msg);
+});
+```
+### Handling Poll Answers
+To handle poll answers, use the `onPollAnswer` method:
+```typescript
+telegramPlugin.onPollAnswer((pollAnswer) => {
+  console.log("Received poll answer:", pollAnswer);
+});
+```
+
 ## License
 
 This project is licensed under the MIT License.
