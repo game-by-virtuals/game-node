@@ -8,29 +8,23 @@ import {
 import {
   Address,
   Chain,
-  getContract,
-  PublicClient,
-  Transport,
+  Client,
+  HttpTransport,
+  parseUnits,
   WalletClient,
 } from "viem";
 import { ENSO_ETH, ENSO_SUPPORTED_CHAINS, ERC20_ABI_MIN } from "./constants";
 import { buildRoutePath } from "./utils";
 
-interface IEnsoWorkerParams<
-  T extends Transport = Transport,
-  C extends Chain = Chain,
-> {
+interface IEnsoWorkerParams {
   apiKey: string;
-  wallet: WalletClient<T, C>;
-  publicClient: PublicClient<T, C>;
+  wallet: WalletClient<HttpTransport, Chain>;
+  publicClient: Client;
 }
 
-interface IEnsoFunctionParams<
-  T extends Transport = Transport,
-  C extends Chain = Chain,
-> {
-  wallet: WalletClient<T, C>;
-  publicClient: PublicClient<T, C>;
+interface IEnsoFunctionParams<> {
+  wallet: WalletClient<HttpTransport, Chain>;
+  publicClient: Client;
   ensoClient: EnsoClient;
 }
 
@@ -72,7 +66,7 @@ function ensoRoute(params: IEnsoFunctionParams) {
       {
         name: "amountIn",
         type: "string",
-        description: "Amount of tokenIn to swap in wei",
+        description: "Amount of tokenIn in precision of token",
       },
     ] as const,
     executable: async ({ tokenIn, tokenOut, amountIn }, logger) => {
@@ -122,6 +116,9 @@ function ensoRoute(params: IEnsoFunctionParams) {
           );
         }
         const tokenInData = tokenInRes.data[0];
+
+        const amountInWei = parseUnits(amountIn, tokenInData.decimals);
+
         const routeParams: RouteParams = {
           chainId,
           tokenIn: tokenIn as Address,
