@@ -92,7 +92,7 @@ import { GameAgent } from "@virtuals-protocol/game";
 
 const agent = new GameAgent(process.env.GAME_API_KEY ?? "", {
    name: "Enso Actions Agent",
-   goal: "Withdraw 1 0x5ee5bf7ae06d1be5997a1a72006fe6c607ec6de8 (aEthWBTC) for 0x2260fac5e5542a773aa44fbcfedf7c193bc2c599 (USDC)",
+   goal: "Swap 100 0xdac17f958d2ee523a2206206994597c13d831ec7 (USDT) for 0x2260fac5e5542a773aa44fbcfedf7c193bc2c599 (WBTC)",
    description:
     "An agent that finds the best route between tokens and executes it",
    workers: [ensoActionsWorker],
@@ -106,7 +106,7 @@ import { GameAgent } from "@virtuals-protocol/game";
 
 const agent = new GameAgent(process.env.GAME_API_KEY ?? "", {
    name: "Enso Actions Agent",
-   goal: "",
+   goal: "Withdraw 1 0x5ee5bf7ae06d1be5997a1a72006fe6c607ec6de8 (aEthWBTC) for 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48 (USDC)",
    description:
     "An agent that finds the best route between tokens and executes it",
    workers: [ensoActionsWorker],
