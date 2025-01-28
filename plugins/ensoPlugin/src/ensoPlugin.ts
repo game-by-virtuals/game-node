@@ -5,16 +5,17 @@ import {
   GameFunction,
   GameWorker,
 } from "@virtuals-protocol/game";
-import { Address, WalletClient } from "viem";
-import { ENSO_ETH, ENSO_SUPPORTED_CHAINS } from "./constants";
+import { Address, Chain, Transport, WalletClient } from "viem";
+import { ENSO_ETH, ENSO_SUPPORTED_CHAINS, ERC20_ABI_MIN } from "./constants";
+import { buildRoutePath } from "./utils";
 
 interface IEnsoWorkerParams {
   apiKey: string;
-  wallet: WalletClient;
+  wallet: WalletClient<Transport, Chain>;
 }
 
 interface IEnsoFunctionParams {
-  wallet: WalletClient;
+  wallet: WalletClient<Transport, Chain>;
   ensoClient: EnsoClient;
 }
 
@@ -86,6 +87,20 @@ function ensoRoute(params: IEnsoFunctionParams) {
       const [sender] = await params.wallet.getAddresses();
 
       try {
+        const tokenInRes = await params.ensoClient.getTokenData({
+          chainId,
+          address: tokenIn as Address,
+        });
+        if (
+          tokenInRes.data.length === 0 ||
+          typeof tokenInRes.data[0].decimals !== "number"
+        ) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            `Token ${tokenIn} is not supported`,
+          );
+        }
+        const tokenInData = tokenInRes.data[0];
         const routeParams: RouteParams = {
           chainId,
           tokenIn: tokenIn as Address,
@@ -98,19 +113,35 @@ function ensoRoute(params: IEnsoFunctionParams) {
 
         logger(`Fetching the best route...`);
         const routeData = await params.ensoClient.getRouterData(routeParams);
+        logger(
+          `Successfully found the best route:\n  ${buildRoutePath(routeData.route)}`,
+        );
 
-        logger(`Successfully found the best route`);
-        // TODO:
-        // 1. Approve if tokenIn !== ETH
-        // 2. Execute transaction
         if (tokenIn.toLowerCase() !== ENSO_ETH) {
-          // NOTE: Do approval
+          logger(`Approving ${tokenInData.symbol}...`);
+          await params.wallet.writeContract({
+            address: tokenIn as Address,
+            abi: ERC20_ABI_MIN,
+            functionName: "approve",
+            args: [routeData.tx.to as Address, BigInt(amountIn)],
+            account: sender,
+          });
+
+          logger(`Approve successful`);
         }
+
+        logger(`Executing route...`);
+        const tx = await params.wallet.sendTransaction({
+          account: sender,
+          data: routeData.tx.data as Address,
+          to: routeData.tx.to,
+          value: BigInt(routeData.tx.value),
+        });
 
         // NOTE : Execute trade
         return new ExecutableGameFunctionResponse(
           ExecutableGameFunctionStatus.Done,
-          "Success",
+          `Route executed succesfully, hash: ${tx}`,
         );
       } catch (err) {
         return new ExecutableGameFunctionResponse(
