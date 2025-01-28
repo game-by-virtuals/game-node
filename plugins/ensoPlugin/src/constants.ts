@@ -1,5 +1,15 @@
-export const ENSO_SUPPORTED_CHAINS = new Set<number>([
-  1, 10, 56, 100, 137, 324, 8453, 42161, 43114, 59144, 80000, 11155111,
+export const ENSO_SUPPORTED_CHAINS = new Map<number, string>([
+  [1, "ethereum"],
+  [10, "optimism"],
+  [56, "bnb chain"],
+  [100, "gnosis"],
+  [137, "polygon"],
+  [324, "zksync"],
+  [8453, "base"],
+  [42161, "arbitrum"],
+  [43114, "avalanche"],
+  [59144, "linea"],
+  [11155111, "sepolia"],
 ]);
 
 export const ENSO_ETH = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as const;

@@ -8,6 +8,7 @@ import {
 import {
   Address,
   Chain,
+  formatUnits,
   HttpTransport,
   parseUnits,
   PublicClient,
@@ -30,6 +31,8 @@ interface IEnsoFunctionParams {
 
 export async function getEnsoWorker(params: IEnsoWorkerParams) {
   const ensoClient = new EnsoClient({ apiKey: params.apiKey });
+  const chainId = await params.publicClient.getChainId();
+
   return new GameWorker({
     id: "enso_worker",
     name: "Enso worker",
@@ -42,6 +45,12 @@ export async function getEnsoWorker(params: IEnsoWorkerParams) {
         publicClient: params.publicClient,
       }),
     ],
+    getEnvironment: async () => {
+      return {
+        chainId,
+        networkName: ENSO_SUPPORTED_CHAINS.get(chainId),
+      };
+    },
   });
 }
 
@@ -49,24 +58,24 @@ function ensoRoute(params: IEnsoFunctionParams) {
   return new GameFunction({
     name: "enso_route",
     description:
-      "Find the best route from a token to another token and execute it",
+      "Find the best route from a token to another token on specified blockchain network in environment and execute it",
     args: [
       {
         name: "tokenIn",
         type: "string",
         description:
-          "Token to swap from. Use 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for native token",
+          "Token to swap from. Use 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for native token. Make sure that the address is for the correct blockchain network",
       },
       {
         name: "tokenOut",
         type: "string",
         description:
-          "Token to swap to. Use 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for native token",
+          "Token to swap to. Use 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for native token. Make sure that the address is for the correct blockchain network",
       },
       {
         name: "amountIn",
         type: "string",
-        description: "Amount of tokenIn in precision of token",
+        description: "Amount of tokenIn in formatted structure",
       },
     ] as const,
     executable: async ({ tokenIn, tokenOut, amountIn }, logger) => {
@@ -102,9 +111,16 @@ function ensoRoute(params: IEnsoFunctionParams) {
       const [sender] = await params.wallet.getAddresses();
 
       try {
+        if (!params.wallet.account) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            `Wallet account is missing`,
+          );
+        }
         const tokenInRes = await params.ensoClient.getTokenData({
           chainId,
           address: tokenIn as Address,
+          includeMetadata: true,
         });
         if (
           tokenInRes.data.length === 0 ||
@@ -116,8 +132,8 @@ function ensoRoute(params: IEnsoFunctionParams) {
           );
         }
         const tokenInData = tokenInRes.data[0];
-
         const amountInWei = parseUnits(amountIn, tokenInData.decimals);
+
         const routeParams: RouteParams = {
           chainId,
           tokenIn: tokenIn as Address,
@@ -131,18 +147,21 @@ function ensoRoute(params: IEnsoFunctionParams) {
         logger(`Fetching the best route...`);
         const routeData = await params.ensoClient.getRouterData(routeParams);
         logger(
-          `Successfully found the best route:\n  ${buildRoutePath(routeData.route)}`,
+          `Successfully found the best route:\n\n${buildRoutePath(routeData.route)}\n`,
         );
 
         if (tokenIn.toLowerCase() !== ENSO_ETH) {
           logger(`Approving ${tokenInData.symbol}...`);
-          const { request } = await params.publicClient.simulateContract({
-            address: tokenIn as Address,
-            abi: ERC20_ABI_MIN,
-            functionName: "approve",
-            args: [routeData.tx.to as Address, BigInt(amountIn)],
-            account: sender,
-          });
+          const { request, result } =
+            await params.publicClient.simulateContract({
+              address: tokenIn as Address,
+              abi: ERC20_ABI_MIN,
+              functionName: "approve",
+              args: [routeData.tx.to as Address, BigInt(amountInWei)],
+              account: params.wallet.account,
+            });
+
+          logger(`Approve simulation done, result: ${result}`);
 
           const txHash = await params.wallet.writeContract(request);
           logger(`Approve transaction submitted: ${txHash}`);
@@ -155,7 +174,7 @@ function ensoRoute(params: IEnsoFunctionParams) {
 
         logger(`Executing route...`);
         const txHash = await params.wallet.sendTransaction({
-          account: sender,
+          account: params.wallet.account,
           data: routeData.tx.data as Address,
           to: routeData.tx.to,
           value: BigInt(routeData.tx.value),
@@ -167,7 +186,6 @@ function ensoRoute(params: IEnsoFunctionParams) {
           hash: txHash,
         });
 
-        // NOTE : Execute trade
         return new ExecutableGameFunctionResponse(
           ExecutableGameFunctionStatus.Done,
           `Route executed succesfully, hash: ${txHash}`,
