@@ -19,7 +19,7 @@
     "@ensofinance/sdk": "^1.0.10",
     "@virtuals-protocol/game": "^0.1.4",
     "tsup": "^8.3.5",
-    "viem": "^2.22.13"
+    "viem": "^2.22.16"
   },
   "files": [
     "dist"

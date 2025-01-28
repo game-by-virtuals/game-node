@@ -52,6 +52,8 @@ import { getEnsoWorker } from "@virtuals-protocol/game-enso-plugin";
 
 3. Setup up a wallet and public clients
 
+Make sure to use the correct chain from `viem/chains`
+
 Example for Base
 
 ```typescript
@@ -85,7 +87,7 @@ const ensoActionsWorker = await getEnsoWorker({
 
 5. Create an agent and add Enso worker to it:
 
-Swap example:
+Swap example on Ethereum:
 
 ```typescript
 import { GameAgent } from "@virtuals-protocol/game";
@@ -99,7 +101,7 @@ const agent = new GameAgent(process.env.GAME_API_KEY ?? "", {
 });
 ```
 
-Withdraw from Aave example:
+Withdraw from Aave example on Ethereum:
 
 ```typescript
 import { GameAgent } from "@virtuals-protocol/game";
