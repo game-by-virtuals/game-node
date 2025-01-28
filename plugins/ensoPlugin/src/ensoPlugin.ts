@@ -5,17 +5,32 @@ import {
   GameFunction,
   GameWorker,
 } from "@virtuals-protocol/game";
-import { Address, Chain, Transport, WalletClient } from "viem";
+import {
+  Address,
+  Chain,
+  getContract,
+  PublicClient,
+  Transport,
+  WalletClient,
+} from "viem";
 import { ENSO_ETH, ENSO_SUPPORTED_CHAINS, ERC20_ABI_MIN } from "./constants";
 import { buildRoutePath } from "./utils";
 
-interface IEnsoWorkerParams {
+interface IEnsoWorkerParams<
+  T extends Transport = Transport,
+  C extends Chain = Chain,
+> {
   apiKey: string;
-  wallet: WalletClient<Transport, Chain>;
+  wallet: WalletClient<T, C>;
+  publicClient: PublicClient<T, C>;
 }
 
-interface IEnsoFunctionParams {
-  wallet: WalletClient<Transport, Chain>;
+interface IEnsoFunctionParams<
+  T extends Transport = Transport,
+  C extends Chain = Chain,
+> {
+  wallet: WalletClient<T, C>;
+  publicClient: PublicClient<T, C>;
   ensoClient: EnsoClient;
 }
 
@@ -26,7 +41,13 @@ export async function getEnsoWorker(params: IEnsoWorkerParams) {
     name: "Enso worker",
     description:
       "Worker that finds the best route from token to token and executes it",
-    functions: [ensoRoute({ ensoClient, wallet: params.wallet })],
+    functions: [
+      ensoRoute({
+        ensoClient,
+        wallet: params.wallet,
+        publicClient: params.publicClient,
+      }),
+    ],
   });
 }
 
@@ -119,7 +140,7 @@ function ensoRoute(params: IEnsoFunctionParams) {
 
         if (tokenIn.toLowerCase() !== ENSO_ETH) {
           logger(`Approving ${tokenInData.symbol}...`);
-          await params.wallet.writeContract({
+          const { request } = await params.publicClient.simulateContract({
             address: tokenIn as Address,
             abi: ERC20_ABI_MIN,
             functionName: "approve",
@@ -127,21 +148,33 @@ function ensoRoute(params: IEnsoFunctionParams) {
             account: sender,
           });
 
+          const txHash = await params.wallet.writeContract(request);
+          logger(`Approve transaction submitted: ${txHash}`);
+
+          await params.publicClient.waitForTransactionReceipt({
+            hash: txHash,
+          });
           logger(`Approve successful`);
         }
 
         logger(`Executing route...`);
-        const tx = await params.wallet.sendTransaction({
+        const txHash = await params.wallet.sendTransaction({
           account: sender,
           data: routeData.tx.data as Address,
           to: routeData.tx.to,
           value: BigInt(routeData.tx.value),
         });
 
+        logger(`Route execution submitted: ${txHash}`);
+
+        await params.publicClient.waitForTransactionReceipt({
+          hash: txHash,
+        });
+
         // NOTE : Execute trade
         return new ExecutableGameFunctionResponse(
           ExecutableGameFunctionStatus.Done,
-          `Route executed succesfully, hash: ${tx}`,
+          `Route executed succesfully, hash: ${txHash}`,
         );
       } catch (err) {
         return new ExecutableGameFunctionResponse(

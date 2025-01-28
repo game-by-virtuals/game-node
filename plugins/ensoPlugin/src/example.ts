@@ -1,12 +1,17 @@
 import { GameAgent } from "@virtuals-protocol/game";
 import { getEnsoWorker } from ".";
 import { base } from "viem/chains";
-import { createWalletClient, http } from "viem";
+import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 const account = privateKeyToAccount(
   process.env.WALLET_PRIVATE_KEY as `0x${string}`,
 );
+
+const publicClient = createPublicClient({
+  transport: http(process.env.RPC_PROVIDER_URL),
+  chain: base,
+});
 
 const walletClient = createWalletClient({
   account: account,
@@ -17,6 +22,7 @@ const walletClient = createWalletClient({
 (async () => {
   const ensoActionsWorker = await getEnsoWorker({
     wallet: walletClient,
+    publicClient,
     apiKey: process.env.ENSO_API_KEY || "1e02632d-6feb-4a75-a157-documentation",
   });
 
