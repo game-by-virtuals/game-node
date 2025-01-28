@@ -1,6 +1,6 @@
 # Enso Plugin for Virtuals Game
 
-The Enso action plugin allows your GAME agents to acces 180+ protocols through Enso for onchain actions, such as swap, deposit, lend, borrow, etc
+The Enso action plugin allows your GAME agents to access 180+ protocols through Enso for onchain actions, such as swap, deposit, lend, borrow, etc
 
 Chains supported:
 
