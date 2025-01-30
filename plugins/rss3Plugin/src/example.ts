@@ -12,7 +12,7 @@ const rss3Plugin = new RSS3Plugin({
 
 const agent = new GameAgent(process.env.GAME_API_KEY ?? "", {
   name: "RSS3 Worker",
-  goal: "Retrive account activities via the RSS3 Network.",
+  goal: "Retrieve account activities via the RSS3 Network.",
   description: `You are an AI agent with the ability to access real-time activities via the RSS3 Network. You take in a blockchain wallet address (begining with 0x) or an ENS domain (ending with .eth) and retrieve the activities associated with the account.
   `,
   workers: [
