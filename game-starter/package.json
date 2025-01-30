@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "plugin": "node dist/plugins/example.js",
+    "start": "node dist/game-starter/src/index.js",
     "dev": "ts-node src/index.ts",
     "watch": "tsc --watch"
   },
@@ -21,6 +20,8 @@
   "dependencies": {
     "@types/dotenv": "^6.1.1",
     "@virtuals-protocol/game": "^0.1.7",
-    "dotenv": "^16.4.7"
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "node-telegram-bot-api": "^0.66.0"
   }
 }

@@ -3,6 +3,7 @@ import {
     ExecutableGameFunctionResponse,
     ExecutableGameFunctionStatus,
 } from "@virtuals-protocol/game";
+import axios from 'axios';
 
 export const helloFunction = new GameFunction({
     name: "hello",
@@ -110,6 +111,54 @@ export const replyToTweetFunction = new GameFunction({
             return new ExecutableGameFunctionResponse(
                 ExecutableGameFunctionStatus.Failed,
                 "Failed to reply to tweet"
+            );
+        }
+    },
+});
+
+export const getKanyeQuote = new GameFunction({
+    name: "get_kanye_west_quote",
+    description: "get a quote from kanye west",
+    args: [] as const,
+    executable: async (args, logger) => {
+        try {
+            const response = await axios.get('https://api.kanye.rest/');
+            const quote = response.data.quote;
+
+            logger(`Retrieved Kanye quote: ${quote}`);
+
+            return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Done,
+                quote
+            );
+        } catch (e) {
+            return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                "Failed to get Kanye quote"
+            );
+        }
+    },
+});
+
+export const getRonSwansonQuote = new GameFunction({
+    name: "get_ron_swanson_quote",
+    description: "get a quote from Ron Swanson",
+    args: [] as const,
+    executable: async (args, logger) => {
+        try {
+            const response = await axios.get('https://ron-swanson-quotes.herokuapp.com/v2/quotes');
+            const quote = response.data[0];
+
+            logger(`Retrieved Ron Swanson quote: ${quote}`);
+
+            return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Done,
+                quote
+            );
+        } catch (e) {
+            return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                "Failed to get Ron Swanson quote"
             );
         }
     },
