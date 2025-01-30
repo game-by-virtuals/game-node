@@ -84,21 +84,14 @@ const agent = new GameAgent(GAME_API_KEY, {
   const task3 =
     "Download a file from the S3 bucket at key `hello/world` to the a file at `./test.txt`";
 
-  while (true) {
-    // Run the agent step
-    await agent.step({
-      verbose: true,
-    });
-
-    // Run the tasks
-    await agentS3Worker.runTask(task1, {
-      verbose: true,
-    });
-    await agentS3Worker.runTask(task2, {
-      verbose: true,
-    });
-    await agentS3Worker.runTask(task3, {
-      verbose: true,
-    });
-  }
+  // Run the tasks
+  await agentS3Worker.runTask(task1, {
+    verbose: true,
+  });
+  await agentS3Worker.runTask(task2, {
+    verbose: true,
+  });
+  await agentS3Worker.runTask(task3, {
+    verbose: true,
+  });
 })();
