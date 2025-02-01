@@ -1,0 +1,13 @@
+{
+  "name": "examples",
+  "private": true,
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.6",
+    "twitter-api-v2": "^1.15.0",
+    "@virtuals-protocol/game-twitter-plugin": "^0.1.1"
+  },
+  "scripts": {
+    "start": "ts-node -P ./tsconfig.json",
+    "build": "tsc -p ./tsconfig.json"
+  }
+} 
