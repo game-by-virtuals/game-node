@@ -1,4 +1,10 @@
 import {
+  AgentKit,
+  cdpApiActionProvider,
+  cdpWalletActionProvider,
+  wethActionProvider,
+} from "@coinbase/agentkit";
+import {
   GameWorker,
   GameFunction,
   ExecutableGameFunctionResponse,
@@ -6,15 +12,13 @@ import {
 } from "@virtuals-protocol/game";
 import TwitterApi from "twitter-api-v2";
 
-interface ITwitterPluginOptions {
+interface ICdpAgentKitPluginOptions {
   id?: string;
   name?: string;
   description?: string;
   credentials: {
-    apiKey: string;
-    apiSecretKey: string;
-    accessToken: string;
-    accessTokenSecret: string;
+    cdpApiKeyName: string;
+    cdpApiKeyPrivate: string;
   };
 }
 
@@ -22,21 +26,35 @@ class TwitterPlugin {
   private id: string;
   private name: string;
   private description: string;
-  private twitterClient: TwitterApi;
+  private agentKit: AgentKit | null = null;
 
-  constructor(options: ITwitterPluginOptions) {
+  constructor(options: ICdpAgentKitPluginOptions) {
     this.id = options.id || "twitter_worker";
     this.name = options.name || "Twitter Worker";
     this.description =
       options.description ||
       "A worker that will execute tasks within the Twitter Social Platforms. It is capable of posting, reply, quote and like tweets.";
+    this.initAgentKit(options.credentials);
+  }
 
-    this.twitterClient = new TwitterApi({
-      appKey: options.credentials.apiKey,
-      appSecret: options.credentials.apiSecretKey,
-      accessToken: options.credentials.accessToken,
-      accessSecret: options.credentials.accessTokenSecret,
+  private async initAgentKit(
+    credentials: ICdpAgentKitPluginOptions["credentials"]
+  ) {
+    // Initialize AgentKit
+    const agentkit = await AgentKit.from({
+      actionProviders: [
+        cdpApiActionProvider({
+          apiKeyName: credentials.cdpApiKeyName,
+          apiKeyPrivateKey: credentials.cdpApiKeyPrivate.replace(/\\n/g, "\n"),
+        }),
+        cdpWalletActionProvider({
+          apiKeyName: credentials.cdpApiKeyName,
+          apiKeyPrivateKey: credentials.cdpApiKeyPrivate.replace(/\\n/g, "\n"),
+        }),
+        wethActionProvider(),
+      ],
     });
+    this.agentKit = agentkit;
   }
 
   public getWorker(data?: {
@@ -48,7 +66,7 @@ class TwitterPlugin {
       name: this.name,
       description: this.description,
       functions: data?.functions || [
-        this.searchTweetsFunction,
+        this.registerBaseNameFunction,
         this.replyTweetFunction,
         this.postTweetFunction,
         this.likeTweetFunction,
@@ -59,37 +77,30 @@ class TwitterPlugin {
   }
 
   public async getMetrics() {
-    const result = await this.twitterClient.v2.me({
-      "user.fields": ["public_metrics"],
-    });
-
     return {
-      followers: result.data.public_metrics?.followers_count ?? 0,
-      following: result.data.public_metrics?.following_count ?? 0,
-      tweets: result.data.public_metrics?.tweet_count ?? 0,
+      followers: 0,
+      following: 0,
+      tweets: 0,
     };
   }
 
-  get searchTweetsFunction() {
+  get registerBaseNameFunction() {
     return new GameFunction({
-      name: "search_tweets",
-      description: "Search tweets",
-      args: [{ name: "query", description: "The search query" }] as const,
+      name: "register_base_name",
+      description: "Register a base name",
+      args: [{ name: "base_name", description: "The base name" }] as const,
       executable: async (args, logger) => {
         try {
-          if (!args.query) {
+          if (!args.base_name) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
               "Query is required"
             );
           }
 
-          logger(`Searching for: ${args.query}`);
+          logger(`Registering base name: ${args.base_name}`);
 
-          const tweets = await this.twitterClient.v2.search(args.query, {
-            max_results: 10,
-            "tweet.fields": ["public_metrics"],
-          });
+          const actions = await this.agentKit?.getActions();
 
           const feedbackMessage =
             "Tweets found:\n" +

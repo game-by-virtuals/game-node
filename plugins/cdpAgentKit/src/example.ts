@@ -1,5 +1,5 @@
 import { GameAgent } from "@virtuals-protocol/game";
-import TwitterPlugin from "./twitterPlugin";
+import TwitterPlugin from "./cdpAgentKitPlugin";
 
 // Create a worker with the functions
 const twitterPlugin = new TwitterPlugin({

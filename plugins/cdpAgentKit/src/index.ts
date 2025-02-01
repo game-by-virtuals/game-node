@@ -1,3 +1,3 @@
-import TwitterPlugin from "./twitterPlugin";
+import TwitterPlugin from "./cdpAgentKitPlugin";
 
 export default TwitterPlugin;
