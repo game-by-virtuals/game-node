@@ -1,0 +1,42 @@
+{
+  "name": "@virtuals-protocol/game-echochambers-plugin",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "license": "MIT",
+  "author": {
+    "name": "SavageOps",
+    "url": "https://x.com/savageapi"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "example": "ts-node src/example.ts",
+    "example:mock": "ts-node src/example_mock.ts",
+    "example:2": "ts-node src/example_2.ts",
+    "example:dev": "nodemon --exec ts-node src/example.ts",
+    "example:2:dev": "nodemon --exec ts-node src/example_2.ts",
+    "prepublish": "npm run build"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.4",
+    "axios": "^1.6.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tsup": "^8.0.1",
+    "ts-node": "^10.9.2",
+    "nodemon": "^3.0.2"
+  },
+  "peerDependencies": {
+    "@virtuals-protocol/game": "^0.1.4"
+  },
+  "keywords": [
+    "virtuals",
+    "game",
+    "protocol",
+    "echochambers",
+    "plugin"
+  ]
+}
