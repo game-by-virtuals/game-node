@@ -5,8 +5,6 @@ import {
   ExecutableGameFunctionStatus,
 } from "@virtuals-protocol/game";
 import TwitterApi from "twitter-api-v2";
-import { getTweet } from "./tweet/get-tweet";
-import { EvalClient } from "eval-engine-sdk";
 
 interface ITwitterPluginOptions {
   id?: string;
@@ -18,17 +16,13 @@ interface ITwitterPluginOptions {
     accessToken: string;
     accessTokenSecret: string;
   };
-  thresholdScore?: number;
-  evalClient: EvalClient;
 }
 
-class TwitterEvalEnginePlugin {
+class TwitterPlugin {
   private id: string;
   private name: string;
   private description: string;
   private twitterClient: TwitterApi;
-  private thresholdScore: number;
-  private evalClient: EvalClient;
 
   constructor(options: ITwitterPluginOptions) {
     this.id = options.id || "twitter_worker";
@@ -43,9 +37,6 @@ class TwitterEvalEnginePlugin {
       accessToken: options.credentials.accessToken,
       accessSecret: options.credentials.accessTokenSecret,
     });
-    const thresholdScore = options.thresholdScore || 0;
-    this.thresholdScore = Math.min(Math.max(thresholdScore, 0), 100);
-    this.evalClient = options.evalClient;
   }
 
   public getWorker(data?: {
@@ -149,31 +140,9 @@ class TwitterEvalEnginePlugin {
             );
           }
 
-          const tweet = await getTweet(args.tweet_id);
-          if (!tweet) {
-            return new ExecutableGameFunctionResponse(
-              ExecutableGameFunctionStatus.Failed,
-              "Tweet not found"
-            );
-          }
-          const inputTweet = tweet.text;
-          const txHash = await this.evalClient.signEvaluateTweetRequest(
-            inputTweet,
-            args.reply
-          );
-          const result = await this.evalClient.submitEvaluateTweetRequest(
-            txHash
-          );
-
-          logger(JSON.stringify(result))
-          if (result.final_score < this.thresholdScore) {
-            return new ExecutableGameFunctionResponse(
-              ExecutableGameFunctionStatus.Failed,
-              "Reply score is too low"
-            );
-          }
           logger(`Replying [${args.tweet_id}]: ${args.reply}`);
-          await this.twitterClient.v2.reply(args.tweet_id, args.reply);
+
+          await this.twitterClient.v2.reply(args.reply, args.tweet_id);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -298,4 +267,4 @@ class TwitterEvalEnginePlugin {
   }
 }
 
-export default TwitterEvalEnginePlugin;
+export default TwitterPlugin;
