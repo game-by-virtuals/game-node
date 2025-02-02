@@ -1,13 +1,13 @@
 import { GameAgent } from "@virtuals-protocol/game";
 import BountyPlugin from "./bountyPlugin";
-
 // Create a worker with the functions
+// AlS
 const bountyPlugin = new BountyPlugin({
   credentials: {
-    apiKey: "p6hvwTP0rI0VyEjYvTWXt7Uzn",
-    apiSecretKey: "Vdnz2AxjUDHkyFLxwGDp5c5TmTx0typmorh0j65LTU8qdOGSI3",
-    accessToken: "1294477764074979328-pp8Ao3G92ySkuLcBDOgnl3PyvH103P",
-    accessTokenSecret: "9bRqbJGMYD7uAw70DUsoeQvqbuxFW4GRvcpldINZXpcYt",
+    apiKey: "dUAmkQKDC2r5TLnB66h1c78J4",
+    apiSecretKey: "VBhvqAOTnlNO6C01NpZa6lOa1WZ5vGAYfKdrKyyNRCxzFdsAcf",
+    accessToken: "1565717307397050368-SdgCqgrhli6Zgomu4IUS7HyB5ciRlB",
+    accessTokenSecret: "KdYawwdrUCTDYt3tFyv4cE1P6UkqXR96uTA0j5f2Aqw2V",
   },
 });
 

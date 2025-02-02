@@ -126,7 +126,8 @@ class BountyPlugin {
           logger(`Posting tweet: ${tweet}`);
           const tweetResponse = await this.twitterClient.v2.tweet(tweet);
           const tweetId = tweetResponse.data.id;
-          const bountyResponse = await fetch(`${API_URL}/bounty`, {
+          logger(`Tweet posted: ${tweetId}`);
+          const bountyResponse = await fetch(`${API_URL}/tweet`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -137,13 +138,14 @@ class BountyPlugin {
             }),
           });
           const bountyData = await bountyResponse.json();
-          logger(`Bounty responded: ${bountyData}`);
+          logger(`Bounty responded: ${JSON.stringify(bountyData)}`);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
             "Bounty responded"
           );
         } catch (e) {
+          logger(`Failed to respond to bounty: ${e}`);
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             "Failed to respond to bounty"
@@ -182,9 +184,10 @@ class BountyPlugin {
             "Bounty responded"
           );
         } catch (e) {
+          logger(`Failed to check my tweets for score: ${e}`);
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Failed to respond to bounty"
+            "Failed to check my tweets for score"
           );
         }
       },
