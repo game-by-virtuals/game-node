@@ -1,13 +1,13 @@
 import { GameAgent } from "@virtuals-protocol/game";
 import BountyPlugin from "./bountyPlugin";
 // Create a worker with the functions
-// AlS
+// Also make sure to set the environment variables in your .env file
 const bountyPlugin = new BountyPlugin({
   credentials: {
-    apiKey: "dUAmkQKDC2r5TLnB66h1c78J4",
-    apiSecretKey: "VBhvqAOTnlNO6C01NpZa6lOa1WZ5vGAYfKdrKyyNRCxzFdsAcf",
-    accessToken: "1565717307397050368-SdgCqgrhli6Zgomu4IUS7HyB5ciRlB",
-    accessTokenSecret: "KdYawwdrUCTDYt3tFyv4cE1P6UkqXR96uTA0j5f2Aqw2V",
+    apiKey: "TWITTER_API_KEY",
+    apiSecretKey: "TWITTER_API_SECRET_KEY",
+    accessToken: "TWITTER_ACCESS_TOKEN",
+    accessTokenSecret: "TWITTER_ACCESS_TOKEN_SECRET",
   },
 });
 
@@ -23,12 +23,6 @@ const agent = new GameAgent("apt-8d15c19aef39ba0618ea4dec1c8bc28b", {
         bountyPlugin.respondToBountiesFunction,
         bountyPlugin.checkMyTweetsForScoreFunction,
       ],
-      // Define the environment variables that the worker can access, by default it will use the metrics defined in the plugin
-      // getEnvironment: async () => ({
-      //   ...(await twitterPlugin.getMetrics()),
-      //   username: "virtualsprotocol",
-      //   token_price: "$100.00",
-      // }),
     }),
   ],
 });
