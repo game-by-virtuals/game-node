@@ -16,9 +16,9 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@coinbase/agentkit": "^0.1.0",
     "@virtuals-protocol/game": "^0.1.7",
-    "tsup": "^8.3.5"
+    "tsup": "^8.3.5",
+    "twitter-api-v2": "^1.19.0"
   },
   "files": [
     "dist"
