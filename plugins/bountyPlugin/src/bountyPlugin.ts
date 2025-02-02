@@ -39,6 +39,42 @@ class BountyPlugin {
     });
   }
 
+  public async getTweetResponse(description: string) {
+    try {
+      const response = await fetch("https://api.x.ai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:
+            "Bearer xai-GhGrBCPyyoeWZPbzoOzjXmQ99WQNtePnTMtlCITGmkP8BfzhOyKTwefrGC4qZwHXp6GH83oJMah1LKKm",
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a test assistant. You are given a bounty description and you need to respond to it with a good tweet that will get the most engagement.",
+            },
+            {
+              role: "user",
+              content: description,
+            },
+          ],
+          model: "grok-2-latest",
+          stream: false,
+          temperature: 0,
+        }),
+      });
+
+      const data = await response.json();
+      const generatedTweet = data.choices[0].message.content;
+
+      return generatedTweet;
+    } catch (error) {
+      return "Failed to generate tweet response";
+    }
+  }
+
   public getWorker(data?: {
     functions?: GameFunction<any>[];
     getEnvironment?: () => Promise<Record<string, any>>;
@@ -85,7 +121,8 @@ class BountyPlugin {
             );
           }
           const bounty = unfilledBounties[0];
-          const tweet = `description: ${bounty.description}\n\nvalue: ${bounty.value}`;
+          logger(`Getting tweet response for bounty: ${bounty.description}`);
+          const tweet = await this.getTweetResponse(bounty.description);
           logger(`Posting tweet: ${tweet}`);
           const tweetResponse = await this.twitterClient.v2.tweet(tweet);
           const tweetId = tweetResponse.data.id;
@@ -135,7 +172,9 @@ class BountyPlugin {
           });
           const checkAllData = await checkAllResponse.json();
           for (const bounty of checkAllData) {
-            logger(`Bounty ${bounty?.id} completed and claimed ${bounty.value}`);
+            logger(
+              `Bounty ${bounty?.id} completed and claimed ${bounty.value}`
+            );
           }
 
           return new ExecutableGameFunctionResponse(
