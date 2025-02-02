@@ -134,7 +134,7 @@ class BountyPlugin {
             },
             body: JSON.stringify({
               tweetId,
-              address: "0xFe6c635340835bbe4B26F6ed2c382FD327739f27",
+              address: "0xbbcBA2753398cC977C65399B92066Bb2ee968Ed0",
             }),
           });
           const bountyData = await bountyResponse.json();
@@ -169,10 +169,16 @@ class BountyPlugin {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              address: "0xFe6c635340835bbe4B26F6ed2c382FD327739f27",
+              address: "0xbbcBA2753398cC977C65399B92066Bb2ee968Ed0",
             }),
           });
           const checkAllData = await checkAllResponse.json();
+          if (checkAllData.length === 0) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "No bounties found"
+            );
+          }
           for (const bounty of checkAllData) {
             logger(
               `Bounty ${bounty?.id} completed and claimed ${bounty.value}`
