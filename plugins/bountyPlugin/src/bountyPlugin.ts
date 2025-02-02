@@ -87,7 +87,56 @@ class BountyPlugin {
           const bounty = unfilledBounties[0];
           const tweet = `description: ${bounty.description}\n\nvalue: ${bounty.value}`;
           logger(`Posting tweet: ${tweet}`);
-          await this.twitterClient.v2.tweet(tweet);
+          const tweetResponse = await this.twitterClient.v2.tweet(tweet);
+          const tweetId = tweetResponse.data.id;
+          const bountyResponse = await fetch(`${API_URL}/bounty`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              tweetId,
+              address: "0xFe6c635340835bbe4B26F6ed2c382FD327739f27",
+            }),
+          });
+          const bountyData = await bountyResponse.json();
+          logger(`Bounty responded: ${bountyData}`);
+
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Done,
+            "Bounty responded"
+          );
+        } catch (e) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Failed to respond to bounty"
+          );
+        }
+      },
+    });
+  }
+
+  get checkMyTweetsForScoreFunction() {
+    return new GameFunction({
+      name: "check_my_tweets_for_score",
+      description: "Check my tweets for score",
+      args: [] as const,
+      executable: async (args, logger) => {
+        try {
+          logger("Checking for completed bounties");
+          const checkAllResponse = await fetch(`${API_URL}/bounty/check-all`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              address: "0xFe6c635340835bbe4B26F6ed2c382FD327739f27",
+            }),
+          });
+          const checkAllData = await checkAllResponse.json();
+          for (const bounty of checkAllData) {
+            logger(`Bounty ${bounty?.id} completed and claimed ${bounty.value}`);
+          }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,

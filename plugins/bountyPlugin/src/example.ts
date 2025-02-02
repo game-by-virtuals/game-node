@@ -19,7 +19,10 @@ const agent = new GameAgent("apt-8d15c19aef39ba0618ea4dec1c8bc28b", {
   workers: [
     bountyPlugin.getWorker({
       // Define the functions that the worker can perform, by default it will use the all functions defined in the plugin
-      functions: [bountyPlugin.respondToBountiesFunction],
+      functions: [
+        bountyPlugin.respondToBountiesFunction,
+        bountyPlugin.checkMyTweetsForScoreFunction,
+      ],
       // Define the environment variables that the worker can access, by default it will use the metrics defined in the plugin
       // getEnvironment: async () => ({
       //   ...(await twitterPlugin.getMetrics()),
