@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "plugin": "node dist/plugins/example.js",
     "dev": "ts-node src/index.ts",
+    "demo": "ts-node demo/index.ts",
     "watch": "tsc --watch"
   },
   "keywords": [],
@@ -21,6 +22,7 @@
   "dependencies": {
     "@types/dotenv": "^6.1.1",
     "@virtuals-protocol/game": "^0.1.7",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "openai": "^4.81.0"
   }
 }
