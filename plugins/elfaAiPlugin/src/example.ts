@@ -31,24 +31,18 @@ const elfaAgent = new GameAgent("<AGENT_API_TOKEN>", {
     workers: [elfaWorker],
 });
 
-elfaAgent.setLogger((agent, message) => {
-    console.log(`-----[${agent.name}]-----`);
-    console.log(message);
-    console.log("\n");
-});
-
 (async () => {
-    try {
-        await elfaAgent.init();
-        const worker = elfaAgent.getWorkerById(elfaWorker.id);
-        if (!worker) {
-            throw new Error("Worker not found in the agent");
-        }
-        const taskDescription = "Ping the Elfa AI API";
-        console.log("Executing task:", taskDescription);
-        const result = await worker.runTask(taskDescription, { verbose: true });
-        console.log("Task result:", result);
-    } catch (error) {
-        console.error("Error executing task:", error);
+    elfaAgent.setLogger((agent, message) => {
+        console.log(`-----[${agent.name}]-----`);
+        console.log(message);
+        console.log("\n");
+    });
+    await elfaAgent.init();
+    const worker = elfaAgent.getWorkerById(elfaWorker.id);
+    if (!worker) {
+        throw new Error("Worker not found in the agent");
     }
+    const taskDescription = "get my api key status from the Elfa AI API";
+    console.log("Executing task:", taskDescription);
+    await worker.runTask(taskDescription, { verbose: true });
 })();

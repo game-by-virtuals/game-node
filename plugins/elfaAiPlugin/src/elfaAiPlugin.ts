@@ -124,7 +124,8 @@ class ElfaAiPlugin {
     get mentionsFunction() {
         return new GameFunction({
             name: "get_mentions",
-            description: "Retrieve mentions with smart engagement.",
+            description:
+                "Retrieve tweets by smart accounts with with smart engagement.",
             args: [
                 {
                     name: "limit",
@@ -172,7 +173,8 @@ class ElfaAiPlugin {
     get topMentionsFunction() {
         return new GameFunction({
             name: "top_mentions",
-            description: "Retrieve top mentions for a specified ticker.",
+            description:
+                "Retrieve tweets that mention a specified ticker ranked by view count.",
             args: [
                 {
                     name: "ticker",
@@ -239,7 +241,7 @@ class ElfaAiPlugin {
         return new GameFunction({
             name: "search_mentions",
             description:
-                "Search mentions by keywords within a specified date range.",
+                "Search and query tweets that mention keywords within a specified date range.",
             args: [
                 {
                     name: "keywords",
