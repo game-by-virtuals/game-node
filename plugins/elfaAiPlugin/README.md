@@ -1,6 +1,6 @@
 # Elfa AI Plugin for Virtuals Game
 
-Elfa AI is an AI x social product designed for crypto traders who struggle to keep up with rapidly changing trading opportunities. By cutting through the noise, Elfa curates actionable insights and signals from thousands of industry insiders, influencers, and smart traders. This plugin seamlessly integrates the Elfa AI API into your Virtuals Game environment, allowing your agents to access real‑time data and intelligence on crypto tokens, projects, and smart accounts.
+[Elfa AI](https://elfa.ai) is an AI x social product designed for crypto traders who struggle to keep up with rapidly changing trading opportunities. By cutting through the noise, Elfa curates actionable insights and signals from thousands of industry insiders, influencers, and smart traders. This plugin seamlessly integrates the Elfa AI API into your Virtuals Game environment, allowing your agents to access real‑time data and intelligence on crypto tokens, projects, and smart accounts.
 
 ## Available Functions
 
@@ -39,7 +39,7 @@ import ElfaAiPlugin from "@virtuals-protocol/game-elfa-ai-plugin";
 
 ### Creating a Worker
 
-Create a worker with the necessary Twitter credentials:
+Create a worker with the necessary Elfa AI credentials:
 
 ```typescript
 const elfaAiPlugin = new ElfaAiPlugin({
