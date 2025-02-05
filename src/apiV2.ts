@@ -61,7 +61,7 @@ class GameClientV2 implements IGameClient {
     agentState: Record<string, any>
   ): Promise<GameAction> {
     const payload: { [key in string]: any } = {
-      location: "default_location",
+      location: workers.length === 1 ? workers[0].id : "default_location",
       map_id: mapId,
       environment: environment,
       functions: workers.map((worker) => worker.functions.map((fn) => fn.toJSON())).flat(),
