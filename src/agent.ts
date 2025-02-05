@@ -103,7 +103,7 @@ class GameAgent implements IGameAgent {
     this.logActionStateIfVerbose(verbose, action);
 
     this.gameActionResult = null;
-    return await this.handleAction(action, worker, verbose);
+    return await this.handleAction(action, this.workers, verbose);
   }
 
   private logStateIfVerbose(
@@ -150,13 +150,13 @@ class GameAgent implements IGameAgent {
 
   private async handleAction(
     action: GameAction, 
-    worker: GameWorker,
+    workers: GameWorker[],
     verbose?: boolean
   ): Promise<boolean> {
     switch (action.action_type) {
       case ActionType.CallFunction:
       case ActionType.ContinueFunction:
-        return await this.handleFunctionAction(action, worker, verbose);
+        return await this.handleFunctionAction(action, workers, verbose);
       case ActionType.GoTo:
         return this.handleGoToAction(action, verbose);
       case ActionType.Wait:
@@ -168,7 +168,7 @@ class GameAgent implements IGameAgent {
 
   private async handleFunctionAction(
     action: GameAction,
-    worker: GameWorker, 
+    workers: GameWorker[], 
     verbose?: boolean
   ): Promise<boolean> {
     if (verbose) {
@@ -179,7 +179,8 @@ class GameAgent implements IGameAgent {
       );
     }
 
-    const fn = worker.functions.find(fn => fn.name === action.action_args.fn_name);
+    const functions = workers.flatMap(worker => worker.functions);
+    const fn = functions.find(fn => fn.name === action.action_args.fn_name);
     if (!fn) throw new Error("Function not found");
 
     const result = await fn.execute(
@@ -212,7 +213,7 @@ class GameAgent implements IGameAgent {
     }
 
     while (true) {
-      const action = await this.step(undefined, {
+      await this.step(undefined, {
         verbose: options?.verbose || false,
       });
 
