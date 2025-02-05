@@ -1,7 +1,7 @@
 import GameClient from "./api";
 import GameClientV2 from "./apiV2";
 import { ExecutableGameFunctionResponseJSON } from "./function";
-import { ActionType, IGameClient } from "./interface/GameClient";
+import { ActionType, GameAction, IGameClient } from "./interface/GameClient";
 import GameWorker from "./worker";
 
 interface IGameAgent {
@@ -19,7 +19,7 @@ class GameAgent implements IGameAgent {
   public workers: GameWorker[];
   public getAgentState?: () => Promise<Record<string, any>>;
 
-  private workerId: string;
+  private currentWorkerId: string;
   private gameClient: IGameClient;
 
   private agentId: string | null = null;
@@ -34,7 +34,7 @@ class GameAgent implements IGameAgent {
     this.gameClient = apiKey.startsWith("apt-")
       ? new GameClientV2(apiKey)
       : new GameClient(apiKey);
-    this.workerId = options.workers[0].id;
+    this.currentWorkerId = options.workers[0].id;
 
     this.name = options.name;
     this.goal = options.goal;
@@ -74,85 +74,136 @@ class GameAgent implements IGameAgent {
     return worker;
   }
 
-  async step(options?: { verbose: boolean }) {
+  async runTask(task: string, options?: { verbose: boolean }) {
+    if (!this.agentId || !this.mapId) {
+      throw new Error("Agent not initialized");
+    }
+
+    const submissionId = await this.gameClient.setTask(this.agentId, task);
+
+    while (true) {
+      const result = await this.step(submissionId, options);
+      if (!result) break;
+    }
+  }
+
+  async step(submissionId?: string, options?: { verbose: boolean }) {
     if (!this.agentId || !this.mapId) {
       throw new Error("Agent not initialized");
     }
 
     const { verbose } = options || {};
+    const worker = this.getWorkerById(this.currentWorkerId);
+    const environment = worker.getEnvironment ? await worker.getEnvironment() : {};
+    const agentState = await this.getAgentState?.() || {};
 
-    const worker = this.workers.find((worker) => worker.id === this.workerId);
+    this.logStateIfVerbose(verbose, environment, agentState);
 
-    if (!worker) {
-      throw new Error("Worker not found");
-    }
+    const action = await this.getNextAction(submissionId, environment, agentState);
+    this.logActionStateIfVerbose(verbose, action);
 
-    const environment = worker.getEnvironment
-      ? await worker.getEnvironment()
-      : {};
-    const agentState = this.getAgentState ? await this.getAgentState() : {};
+    this.gameActionResult = null;
+    return await this.handleAction(action, worker, verbose);
+  }
 
+  private logStateIfVerbose(
+    verbose: boolean | undefined, 
+    environment: Record<string, any>,
+    agentState: Record<string, any>
+  ) {
     if (verbose) {
       this.log(`Environment State: ${JSON.stringify(environment)}`);
       this.log(`Agent State: ${JSON.stringify(agentState)}`);
     }
+  }
 
-    const action = await this.gameClient.getAction(
-      this.agentId,
-      this.mapId,
-      worker,
+  private async getNextAction(
+    submissionId: string | undefined,
+    environment: Record<string, any>,
+    agentState: Record<string, any>
+  ): Promise<GameAction> {
+    if (submissionId) {
+      return await this.gameClient.getTaskAction(
+        this.agentId!,
+        submissionId,
+        this.workers,
+        this.gameActionResult,
+        environment
+      );
+    }
+    
+    return await this.gameClient.getAction(
+      this.agentId!,
+      this.mapId!,
+      this.workers,
       this.gameActionResult,
       environment,
       agentState
     );
+  }
 
-    options?.verbose &&
+  private logActionStateIfVerbose(verbose: boolean | undefined, action: GameAction) {
+    if (verbose) {
       this.log(`Action State: ${JSON.stringify(action.agent_state || {})}.`);
+    }
+  }
 
-    this.gameActionResult = null;
-
+  private async handleAction(
+    action: GameAction, 
+    worker: GameWorker,
+    verbose?: boolean
+  ): Promise<boolean> {
     switch (action.action_type) {
       case ActionType.CallFunction:
       case ActionType.ContinueFunction:
-        verbose &&
-          this.log(
-            `Performing function ${
-              action.action_args.fn_name
-            } with args ${JSON.stringify(action.action_args.args)}.`
-          );
-
-        const fn = worker.functions.find(
-          (fn) => fn.name === action.action_args.fn_name
-        );
-
-        if (!fn) {
-          throw new Error("Function not found");
-        }
-
-        const result = await fn.execute(
-          action.action_args.args,
-          (msg: string) => this.log(msg)
-        );
-
-        verbose &&
-          this.log(`Function status [${result.status}]: ${result.feedback}.`);
-
-        this.gameActionResult = result.toJSON(action.action_args.fn_id);
-
-        break;
+        return await this.handleFunctionAction(action, worker, verbose);
       case ActionType.GoTo:
-        this.workerId = action.action_args.location_id;
-
-        verbose && this.log(`Going to ${action.action_args.location_id}.`);
-        break;
+        return this.handleGoToAction(action, verbose);
       case ActionType.Wait:
-        verbose && this.log(`No actions to perform.`);
-        return action.action_type;
+        return this.handleWaitAction(verbose);
       default:
-        return ActionType.Unknown;
+        return false;
+    }
+  }
+
+  private async handleFunctionAction(
+    action: GameAction,
+    worker: GameWorker, 
+    verbose?: boolean
+  ): Promise<boolean> {
+    if (verbose) {
+      this.log(
+        `Performing function ${
+          action.action_args.fn_name
+        } with args ${JSON.stringify(action.action_args.args)}.`
+      );
     }
 
-    return action.action_type;
+    const fn = worker.functions.find(fn => fn.name === action.action_args.fn_name);
+    if (!fn) throw new Error("Function not found");
+
+    const result = await fn.execute(
+      action.action_args.args,
+      (msg: string) => this.log(msg)
+    );
+
+    if (verbose) {
+      this.log(`Function status [${result.status}]: ${result.feedback}.`);
+    }
+
+    this.gameActionResult = result.toJSON(action.action_args.fn_id);
+    return true;
+  }
+
+  private handleGoToAction(action: GameAction, verbose?: boolean): boolean {
+    this.currentWorkerId = action.action_args.location_id;
+    verbose && this.log(`Going to ${action.action_args.location_id}.`);
+    return true;
+  }
+
+  private handleWaitAction(verbose?: boolean): boolean {
+    verbose && this.log(`No actions to perform.`);
+    return false;
   }
 
   async run(heartbeatSeconds: number, options?: { verbose: boolean }) {
@@ -161,13 +212,9 @@ class GameAgent implements IGameAgent {
     }
 
     while (true) {
-      const action = await this.step({
+      const action = await this.step(undefined, {
         verbose: options?.verbose || false,
       });
-
-      if (action === ActionType.Wait || action === ActionType.Unknown) {
-        break;
-      }
 
       await new Promise((resolve) =>
         setTimeout(resolve, heartbeatSeconds * 1000)

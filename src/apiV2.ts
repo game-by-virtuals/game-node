@@ -55,16 +55,16 @@ class GameClientV2 implements IGameClient {
   async getAction(
     agentId: string,
     mapId: string,
-    worker: GameWorker,
+    workers: GameWorker[],
     gameActionResult: ExecutableGameFunctionResponseJSON | null,
     environment: Record<string, any>,
     agentState: Record<string, any>
   ): Promise<GameAction> {
     const payload: { [key in string]: any } = {
-      location: worker.id,
+      location: "default_location",
       map_id: mapId,
       environment: environment,
-      functions: worker.functions.map((fn) => fn.toJSON()),
+      functions: workers.map((worker) => worker.functions.map((fn) => fn.toJSON())).flat(),
       agent_state: agentState,
       version: "v2",
     };
@@ -82,6 +82,7 @@ class GameClientV2 implements IGameClient {
 
     return result.data.data;
   }
+  
   async setTask(agentId: string, task: string): Promise<string> {
     const result = await this.client.post<{ data: { submission_id: string } }>(
       `/agents/${agentId}/tasks`,
@@ -96,13 +97,13 @@ class GameClientV2 implements IGameClient {
   async getTaskAction(
     agentId: string,
     submissionId: string,
-    worker: GameWorker,
+    workers: GameWorker[],
     gameActionResult: ExecutableGameFunctionResponseJSON | null,
     environment: Record<string, any>
   ): Promise<GameAction> {
     const payload: Record<string, any> = {
       environment: environment,
-      functions: worker.functions.map((fn) => fn.toJSON()),
+      functions: workers.map((worker) => worker.functions.map((fn) => fn.toJSON())).flat(),
     };
 
     if (gameActionResult) {

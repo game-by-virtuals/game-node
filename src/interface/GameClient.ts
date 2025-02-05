@@ -49,7 +49,7 @@ export interface IGameClient {
   getAction(
     agentId: string,
     mapId: string,
-    worker: GameWorker,
+    workers: GameWorker[],
     gameActionResult: ExecutableGameFunctionResponseJSON | null,
     environment: Record<string, any>,
     agentState: Record<string, any>
@@ -58,7 +58,7 @@ export interface IGameClient {
   getTaskAction(
     agentId: string,
     submissionId: string,
-    worker: GameWorker,
+    workers: GameWorker[],
     gameActionResult: ExecutableGameFunctionResponseJSON | null,
     environment: Record<string, any>
   ): Promise<GameAction>;

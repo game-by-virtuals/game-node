@@ -63,7 +63,7 @@ class GameWorker implements IGameWorker {
     const action = await this.gameClient.getTaskAction(
       this.agentId,
       submissionId,
-      this,
+      [this],
       this.gameActionResult,
       environment
     );
