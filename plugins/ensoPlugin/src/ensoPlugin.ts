@@ -8,7 +8,6 @@ import {
 import {
   Address,
   Chain,
-  formatUnits,
   HttpTransport,
   parseUnits,
   PublicClient,
