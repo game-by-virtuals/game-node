@@ -13,6 +13,7 @@ Chains supported:
 - Base
 - Arbitrum
 - Avalanche
+- Berachain
 
 Example operations:
 

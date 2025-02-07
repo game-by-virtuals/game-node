@@ -9,6 +9,7 @@ export const ENSO_SUPPORTED_CHAINS = new Map<number, string>([
   [42161, "arbitrum"],
   [43114, "avalanche"],
   [59144, "linea"],
+  [80094, "berachain"],
 ]);
 
 export const ENSO_ETH = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as const;
