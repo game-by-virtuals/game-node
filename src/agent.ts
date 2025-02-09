@@ -9,7 +9,7 @@ interface IGameAgent {
   goal: string;
   description: string;
   workers: GameWorker[];
-  getAgentState?: () => Promise<Record<string, any>>;
+  getAgentState?: (functionResult?: any, currentState?: Record<string, any>) => Promise<Record<string, any>>;
 }
 
 class GameAgent implements IGameAgent {
@@ -17,7 +17,7 @@ class GameAgent implements IGameAgent {
   public goal: string;
   public description: string;
   public workers: GameWorker[];
-  public getAgentState?: () => Promise<Record<string, any>>;
+  public getStateFn?: (functionResult?: any, currentState?: Record<string, any>) => Promise<Record<string, any>>;
 
   private workerId: string;
   private gameClient: IGameClient;
@@ -40,7 +40,7 @@ class GameAgent implements IGameAgent {
     this.goal = options.goal;
     this.description = options.description;
     this.workers = options.workers;
-    this.getAgentState = options.getAgentState;
+    this.getStateFn = options.getAgentState;
   }
 
   async init() {
@@ -214,6 +214,13 @@ class GameAgent implements IGameAgent {
 		return agent
 	}
 
+  public async getAgentState(functionResult?: any, currentState?: Record<string, any>) {
+    return {
+      goal: this.goal,
+      description: this.description,
+      ...(this.getStateFn ? await this.getStateFn(functionResult, currentState) : {})
+    };
+  }
 }
 
 export default GameAgent;

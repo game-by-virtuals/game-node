@@ -9,7 +9,7 @@ interface IGameWorker {
   name: string;
   description: string;
   functions: GameFunctionBase[];
-  getEnvironment?: () => Promise<Record<string, any>>;
+  getEnvironment?: (functionResult?: any, currentState?: Record<string, any>) => Promise<Record<string, any>>;
 }
 
 class GameWorker implements IGameWorker {
@@ -17,7 +17,9 @@ class GameWorker implements IGameWorker {
   public name: string;
   public description: string;
   public functions: GameFunctionBase[];
-  public getEnvironment?: () => Promise<Record<string, any>>;
+
+  private instructions?: string;
+  private getStateFn?: (functionResult?: any, currentState?: Record<string, any>) => Promise<Record<string, any>>;
 
   private agentId: string | null = null;
   private logger: ((msg: string) => void) | null = null;
@@ -30,7 +32,7 @@ class GameWorker implements IGameWorker {
     this.name = options.name;
     this.description = options.description;
     this.functions = options.functions;
-    this.getEnvironment = options.getEnvironment;
+    this.getStateFn = options.getEnvironment;
   }
 
   setAgentId(agentId: string) {
@@ -121,6 +123,13 @@ class GameWorker implements IGameWorker {
         break;
       }
     }
+  }
+
+  public async getEnvironment(functionResult?: any, currentState?: Record<string, any>) {
+    return {
+      instructions: this.instructions,
+      ...(this.getStateFn ? await this.getStateFn(functionResult, currentState) : {})
+    };
   }
 }
 
