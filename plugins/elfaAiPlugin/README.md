@@ -29,6 +29,13 @@ yarn add @virtuals-protocol/game-elfa-ai-plugin
 
 ## Usage
 
+### Prerequisites
+
+Generate an API key from the Elfa AI dashboard.  
+
+- API Dashboard: [https://dev.elfa.ai](https://dev.elfa.ai)
+- API Documentation: [https://api-docs.elfa.ai/](https://api-docs.elfa.ai/)
+
 ### Importing the Plugin
 
 First, import the `ElfaAiPlugin` class from the plugin:
