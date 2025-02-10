@@ -5,6 +5,11 @@ import {
   GameFunction,
   GameWorker,
 } from "@virtuals-protocol/game";
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from the correct location
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const generateImageFunction = new GameFunction({
   name: "generate_image",
@@ -75,8 +80,8 @@ const telegramWorker = new GameWorker({
   functions: [generateImageFunction, replyMessageFunction],
 });
 
-const agent = new GameAgent("API_KEY", {
-  name: "Telegram Agent",
+const agent = new GameAgent(process.env.API_KEY!, {
+  name: "Telegram Bot",
   goal: "Interact with Telegram",
   description: "Telegram agent",
   workers: [telegramWorker],

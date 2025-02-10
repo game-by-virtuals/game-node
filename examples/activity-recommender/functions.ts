@@ -1,4 +1,14 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load environment variables
+config({ path: resolve(__dirname, '.env') });
+
+// Verify environment variables before imports
+if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is missing in .env file');
+}
+
 import {
     GameFunction,
     ExecutableGameFunctionResponse,
@@ -28,6 +38,18 @@ export const getStateFunction = new GameFunction({
                 "Failed to get state"
             );
         }
+    }
+});
+
+export const setStateFunction = new GameFunction({
+    name: "set_state",
+    description: "Set current agent state",
+    args: [] as const,
+    executable: async (args, logger) => {
+        return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Done,
+            "State set successfully"
+        );
     }
 });
 

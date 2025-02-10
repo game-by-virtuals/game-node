@@ -5,6 +5,11 @@ import {
   GameFunction,
   GameWorker,
 } from "@virtuals-protocol/game";
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from the correct location
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const postTweetFunction = new GameFunction({
   name: "post_tweet",
@@ -103,7 +108,7 @@ const postTweetWorker = new GameWorker({
 });
 
 // Create an agent with the worker
-const agent = new GameAgent("API_KEY", {
+const agent = new GameAgent(process.env.API_KEY!, {
   name: "Twitter Bot",
   goal: "Search and reply to tweets",
   description: "A bot that searches for tweets and replies to them",
