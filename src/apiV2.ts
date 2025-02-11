@@ -4,6 +4,7 @@ import {
   GameAction,
   GameAgent,
   IGameClient,
+  LLMModel,
   Map,
 } from "./interface/GameClient";
 import GameWorker from "./worker";
@@ -12,12 +13,13 @@ class GameClientV2 implements IGameClient {
   public client: Axios;
   private baseUrl = "https://sdk.game.virtuals.io/v2";
 
-  constructor(private apiKey: string) {
+  constructor(private apiKey: string, private llmModel: LLMModel) {
     this.client = axios.create({
       baseURL: this.baseUrl,
       headers: {
         "Content-Type": "application/json",
         "x-api-key": this.apiKey,
+        model_name: this.llmModel,
       },
     });
   }

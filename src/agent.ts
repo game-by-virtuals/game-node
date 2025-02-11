@@ -1,7 +1,7 @@
 import GameClient from "./api";
 import GameClientV2 from "./apiV2";
 import { ExecutableGameFunctionResponseJSON } from "./function";
-import { ActionType, IGameClient } from "./interface/GameClient";
+import { ActionType, IGameClient, LLMModel } from "./interface/GameClient";
 import GameWorker from "./worker";
 
 interface IGameAgent {
@@ -10,6 +10,7 @@ interface IGameAgent {
   description: string;
   workers: GameWorker[];
   getAgentState?: () => Promise<Record<string, any>>;
+  llmModel?: LLMModel;
 }
 
 class GameAgent implements IGameAgent {
@@ -31,9 +32,11 @@ class GameAgent implements IGameAgent {
   }
 
   constructor(apiKey: string, options: IGameAgent) {
+    const llmModel = options.llmModel || LLMModel.Llama_3_1_405b;
+
     this.gameClient = apiKey.startsWith("apt-")
-      ? new GameClientV2(apiKey)
-      : new GameClient(apiKey);
+      ? new GameClientV2(apiKey, llmModel)
+      : new GameClient(apiKey, llmModel);
     this.workerId = options.workers[0].id;
 
     this.name = options.name;
@@ -176,44 +179,42 @@ class GameAgent implements IGameAgent {
   }
 
   save(): Record<string, any> {
-		return {
-			agentId: this.agentId,
-			mapId: this.mapId,
-			gameActionResult: this.gameActionResult,
-		}
-	}
+    return {
+      agentId: this.agentId,
+      mapId: this.mapId,
+      gameActionResult: this.gameActionResult,
+    };
+  }
 
-	async initWorkers() {
-		this.workers.forEach((worker) => {
-			worker.setAgentId(this.agentId || '')
-			worker.setLogger(this.log.bind(this))
-			worker.setGameClient(this.gameClient)
-		})
-	}
+  async initWorkers() {
+    this.workers.forEach((worker) => {
+      worker.setAgentId(this.agentId || "");
+      worker.setLogger(this.log.bind(this));
+      worker.setGameClient(this.gameClient);
+    });
+  }
 
-	static async load(
-		apiKey: string,
-		name: string,
-		goal: string,
-		description: string,
-		savedState: Record<string, any>,
-		workers: GameWorker[]
-	): Promise<GameAgent> {
-		const agent = new GameAgent(apiKey, {
-			name: name,
-			goal: goal,
-			description: description,
-			workers,
-		})
+  static async load(
+    apiKey: string,
+    name: string,
+    goal: string,
+    description: string,
+    savedState: Record<string, any>,
+    workers: GameWorker[]
+  ): Promise<GameAgent> {
+    const agent = new GameAgent(apiKey, {
+      name: name,
+      goal: goal,
+      description: description,
+      workers,
+    });
 
-		agent.agentId = savedState.agentId
-		agent.mapId = savedState.mapId
-		agent.gameActionResult = savedState.gameActionResult
+    agent.agentId = savedState.agentId;
+    agent.mapId = savedState.mapId;
+    agent.gameActionResult = savedState.gameActionResult;
 
-
-		return agent
-	}
-
+    return agent;
+  }
 }
 
 export default GameAgent;
