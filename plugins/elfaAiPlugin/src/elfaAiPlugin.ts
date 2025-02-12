@@ -70,7 +70,7 @@ class ElfaAiPlugin {
                     });
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        response.data
+                        JSON.stringify(response.data)
                     );
                 } catch (error: any) {
                     return new ExecutableGameFunctionResponse(
@@ -103,7 +103,7 @@ class ElfaAiPlugin {
                     logger("Key status retrieved successfully.");
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        response.data
+                        JSON.stringify(response.data)
                     );
                 } catch (error: any) {
                     logger(`Error retrieving key status: ${error.message}`);
@@ -152,7 +152,7 @@ class ElfaAiPlugin {
                     logger("Mentions retrieved successfully.");
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        response.data
+                        JSON.stringify(response.data)
                     );
                 } catch (error: any) {
                     logger(`Error retrieving mentions: ${error.message}`);
@@ -219,7 +219,7 @@ class ElfaAiPlugin {
                     logger("Top mentions retrieved successfully.");
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        response.data
+                        JSON.stringify(response.data)
                     );
                 } catch (error: any) {
                     logger(`Error retrieving top mentions: ${error.message}`);
@@ -292,7 +292,7 @@ class ElfaAiPlugin {
                     logger("Search mentions retrieved successfully.");
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        response.data
+                        JSON.stringify(response.data)
                     );
                 } catch (error: any) {
                     logger(`Error searching mentions: ${error.message}`);
@@ -355,7 +355,7 @@ class ElfaAiPlugin {
                     logger("Trending tokens retrieved successfully.");
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        response.data
+                        JSON.stringify(response.data)
                     );
                 } catch (error: any) {
                     logger(
@@ -406,7 +406,7 @@ class ElfaAiPlugin {
                     logger("Account smart stats retrieved successfully.");
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        response.data
+                        JSON.stringify(response.data)
                     );
                 } catch (error: any) {
                     logger(
