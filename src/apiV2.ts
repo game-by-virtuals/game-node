@@ -13,7 +13,7 @@ class GameClientV2 implements IGameClient {
   public client: Axios;
   private baseUrl = "https://sdk.game.virtuals.io/v2";
 
-  constructor(private apiKey: string, private llmModel: LLMModel) {
+  constructor(private apiKey: string, private llmModel: LLMModel | string) {
     this.client = axios.create({
       baseURL: this.baseUrl,
       headers: {

@@ -13,7 +13,7 @@ class GameClient implements IGameClient {
   public client: Axios | null = null;
   private runnerUrl = "https://game.virtuals.io";
 
-  constructor(private apiKey: string, private llmModel: LLMModel) {}
+  constructor(private apiKey: string, private llmModel: LLMModel | string) {}
 
   async init() {
     const accessToken = await this.getAccessToken();

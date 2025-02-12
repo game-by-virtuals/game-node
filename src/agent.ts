@@ -10,7 +10,7 @@ interface IGameAgent {
   description: string;
   workers: GameWorker[];
   getAgentState?: () => Promise<Record<string, any>>;
-  llmModel?: LLMModel;
+  llmModel?: LLMModel | string;
 }
 
 class GameAgent implements IGameAgent {
@@ -32,7 +32,7 @@ class GameAgent implements IGameAgent {
   }
 
   constructor(apiKey: string, options: IGameAgent) {
-    const llmModel = options.llmModel || LLMModel.Llama_3_1_405b;
+    const llmModel = options.llmModel || LLMModel.Llama_3_1_405B_Instruct;
 
     this.gameClient = apiKey.startsWith("apt-")
       ? new GameClientV2(apiKey, llmModel)

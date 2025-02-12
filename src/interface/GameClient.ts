@@ -39,11 +39,11 @@ export interface GameAction {
 }
 
 export enum LLMModel {
-  Llama_3_1_405b = "llama_3_1_405b",
-  Deepseek_R1 = "deepseek_r1",
-  Llama_3_3_70b_Instruct = "llama_3_3_70b_instruct",
-  Qwen2p5_72b_Instruct = "qwen2p5_72b_instruct",
-  Deepseek_V3 = "deepseek_v3",
+  Llama_3_1_405B_Instruct = "Llama-3.1-405B-Instruct",
+  Llama_3_3_70B_Instruct = "Llama-3.3-70B-Instruct",
+  DeepSeek_R1 = "DeepSeek-R1",
+  DeepSeek_V3 = "DeepSeek-V3",
+  Qwen_2_5_72B_Instruct = "Qwen-2.5-72B-Instruct",
 }
 
 export interface IGameClient {
