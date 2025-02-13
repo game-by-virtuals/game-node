@@ -18,6 +18,7 @@ class GameAgent implements IGameAgent {
   public description: string;
   public workers: GameWorker[];
   public getStateFn?: (functionResult?: any, currentState?: Record<string, any>) => Promise<Record<string, any>>;
+  private workerStates: Record<string, any> = {};
 
   private workerId: string;
   private gameClient: IGameClient;
@@ -50,6 +51,30 @@ class GameAgent implements IGameAgent {
       this.goal,
       this.description
     );
+
+    console.log("workers", this.workers);
+
+    const workerStates: Record<string, any> = {};
+    
+    for (const worker of this.workers) {
+        // Create dummy result (like Python)
+        const dummyResult = {
+            action_id: "",
+            action_status: "DONE",
+            feedback_message: "",
+            info: {}
+        };
+        
+        // Initialize state if worker has getEnvironment function
+        if (worker.getEnvironment) {
+            workerStates[worker.id] = await worker.getEnvironment(dummyResult, undefined);
+        }
+    }
+    
+    // Store worker states
+    this.workerStates = workerStates;
+
+    console.log("WORKER STATES::  ", this.workerStates);
 
     this.workers.forEach((worker) => {
       worker.setAgentId(agent.id);

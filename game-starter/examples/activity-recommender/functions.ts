@@ -1,9 +1,12 @@
 import 'dotenv/config';
-import {
-    GameFunction,
-    ExecutableGameFunctionResponse,
-    ExecutableGameFunctionStatus,
-} from "@virtuals-protocol/game";
+// import {
+//     GameFunction,
+//     ExecutableGameFunctionResponse,
+//     ExecutableGameFunctionStatus,
+// } from "@virtuals-protocol/game";
+
+import  GameFunction, { ExecutableGameFunctionResponse , ExecutableGameFunctionStatus}  from "../../../src/function";
+
 import OpenAI from 'openai';
 
 // Initialize OpenAI
@@ -20,7 +23,11 @@ export const getStateFunction = new GameFunction({
         try {
             return new ExecutableGameFunctionResponse(
                 ExecutableGameFunctionStatus.Done,
-                "Current state retrieved successfully"
+                "Current state retrieved successfully",
+                {
+                    count:5 ,
+                    timestamp: new Date().toISOString()
+                }
             );
         } catch (e) {
             return new ExecutableGameFunctionResponse(
@@ -62,7 +69,10 @@ export const getLocationFunction = new GameFunction({
                     lon: data.loc?.split(',')[1],
                     timezone: data.timezone,
                     current_time: new Date().toLocaleString('en-US', { timeZone: data.timezone })
-                })
+                }),
+                {
+                    count: 4
+                }
             );
         } catch (e) {
             return new ExecutableGameFunctionResponse(

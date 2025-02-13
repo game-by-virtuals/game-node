@@ -9,6 +9,13 @@ async function main() {
         while (true) {
             await activity_agent.step({ verbose: true });
         }
+
+        //for some reason getting error here
+        // await activity_agent.run(1, {
+        //     verbose: true
+        // });
+
+
     } catch (error) {
         console.error("Error running activity recommender:", error);
     }

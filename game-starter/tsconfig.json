@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "rootDir": ".",
+    "rootDir": "../",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
@@ -12,8 +12,9 @@
   },
   "include": [
     "src/**/*",
+    "../src/**/*",
     "examples/**/*"
-  ],
+, "../examples/activity-recommender"  ],
   "exclude": [
     "node_modules"
   ]

@@ -10,7 +10,8 @@ export type ExecutableGameFunctionResponseJSON = ReturnType<
 export class ExecutableGameFunctionResponse {
   constructor(
     public status: ExecutableGameFunctionStatus,
-    public feedback: string
+    public feedback: string,
+    public data?: any
   ) {}
 
   toJSON(id: string) {
@@ -18,6 +19,7 @@ export class ExecutableGameFunctionResponse {
       action_id: id,
       action_status: this.status,
       feedback_message: this.feedback,
+      data: this.data,
     };
   }
 }

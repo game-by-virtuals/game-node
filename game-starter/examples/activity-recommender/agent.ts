@@ -1,5 +1,7 @@
-import { GameAgent } from "@virtuals-protocol/game";
-import { activityRecommenderWorker } from "./worker";
+// import { GameAgent } from "@virtuals-protocol/game";
+import  GameAgent  from "../../../src/agent";
+
+import { getWeatherWorker, getLocationWorker, recommendActivitiesWorker, activityRecommenderWorker } from "./worker";
 import dotenv from "dotenv";
 dotenv.config();
 

@@ -9,7 +9,7 @@ interface IGameWorker {
   name: string;
   description: string;
   functions: GameFunctionBase[];
-  getEnvironment?: (functionResult?: any, currentState?: Record<string, any>) => Promise<Record<string, any>>;
+  getEnvironment?: (functionResult?: any, currentState?: Record<string, any> | undefined) => Promise<Record<string, any>>;
 }
 
 class GameWorker implements IGameWorker {
@@ -48,6 +48,7 @@ class GameWorker implements IGameWorker {
   }
 
   async step(submissionId: string, options?: { verbose: boolean }) {
+    console.log("STEP::  ", submissionId);
     if (!this.agentId) {
       throw new Error("Agent not initialized");
     }
@@ -103,10 +104,13 @@ class GameWorker implements IGameWorker {
 
     this.gameActionResult = result.toJSON(action.action_args.fn_id);
 
+    console.log("RESULT::  ", this.gameActionResult);
+
     return true;
   }
 
   async runTask(task: string, options?: { verbose: boolean }) {
+    console.log("RUN TASK::  ", task);
     if (!this.agentId) {
       throw new Error("Agent not initialized");
     }
