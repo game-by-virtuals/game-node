@@ -1,0 +1,45 @@
+{
+  "name": "@virtuals-protocol/game-coingecko-maop-plugin",
+  "version": "0.1.0",
+  "description": "coingecko plugin for GAME SDK under questflow MAOP",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsup": "tsup src/index.ts --dts --format cjs,esm --out-dir dist",
+    "example": "ts-node src/example.ts",
+    "coinDataByID": "ts-node src/example.coinDataByID.ts",
+    "coinPricesByAddress": "ts-node src/example.coinPricesByAddress.ts",
+    "coinPricesByIDs": "ts-node src/example.coinPricesByIDs.ts",
+    "coinsCategoriesList": "ts-node src/example.coinsCategoriesList.ts",
+    "coinsListWithMarketData": "ts-node src/example.coinsListWithMarketData.ts",
+    "newPoolsByNetwork": "ts-node src/example.newPoolsByNetwork.ts",
+    "specificPoolData": "ts-node src/example.specificPoolData.ts",
+    "tokenInfoByAddress": "ts-node src/example.tokenInfoByAddress.ts",
+    "tokenPriceByAddresses": "ts-node src/example.tokenPriceByAddresses.ts",
+    "topGainersLosersConfig": "ts-node src/example.topGainersLosersConfig.ts",
+    "trendingPoolsByNetwork": "ts-node src/example.trendingPoolsByNetwork.ts",
+    "trendingPoolsList": "ts-node src/example.trendingPoolsList.ts",
+    "trendingSearchList": "ts-node src/example.trendingSearchList.ts"
+  },
+  "author": "Questflow",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "dotenv": "^16.4.7",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.4",
+    "tsup": "^8.3.5"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/game-by-virtuals/game-node"
+  }
+}
