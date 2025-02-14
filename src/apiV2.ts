@@ -8,6 +8,7 @@ import {
   Map,
 } from "./interface/GameClient";
 import GameWorker from "./worker";
+import { GameChatResponse } from "./chatAgent";
 
 class GameClientV2 implements IGameClient {
   public client: Axios;
@@ -119,6 +120,54 @@ class GameClientV2 implements IGameClient {
     );
 
     return result.data.data;
+  }
+
+  async createChat(data: Record<string, any>): Promise<string> {
+    const response = await this.client.post<{
+      data: { conversation_id: string };
+    }>("/conversation", { data });
+
+    const chatId = response.data.data.conversation_id;
+    if (!chatId) {
+      throw new Error("Agent did not return a conversation_id for the chat.");
+    }
+    return chatId;
+  }
+
+  async updateChat(
+    conversationId: string,
+    data: Record<string, any>
+  ): Promise<GameChatResponse> {
+    const response = await this.client.post<{ data: GameChatResponse }>(
+      `/conversation/${conversationId}/next`,
+      { data }
+    );
+
+    return response.data.data;
+  }
+
+  async reportFunction(
+    conversationId: string,
+    data: Record<string, any>
+  ): Promise<GameChatResponse> {
+    const response = await this.client.post<{ data: GameChatResponse }>(
+      `/conversation/${conversationId}/function/result`,
+      { data }
+    );
+
+    return response.data.data;
+  }
+
+  async endChat(
+    conversationId: string,
+    data: Record<string, any>
+  ): Promise<GameChatResponse> {
+    const response = await this.client.post<{ data: GameChatResponse }>(
+      `/conversation/${conversationId}/end`,
+      { data }
+    );
+
+    return response.data.data;
   }
 }
 
