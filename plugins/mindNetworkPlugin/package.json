@@ -1,0 +1,32 @@
+{
+  "name": "@virtuals-protocol/game-mind-network-plugin",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsup": "tsup src/index.ts --dts --format cjs,esm --out-dir dist"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.4",
+    "ethers": "^6.13.5",
+    "mind-randgen-sdk": "^1.0.2",
+    "tsup": "^8.3.5"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/game-by-virtuals/game-node"
+  }
+}
