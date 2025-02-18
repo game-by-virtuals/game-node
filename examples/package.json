@@ -11,6 +11,7 @@
     "start": "ts-node -P ./tsconfig.json",
     "build": "tsc -p ./tsconfig.json",
     "twitter-example": "ts-node twitter-example/twitter.ts",
-    "telegram-example": "ts-node telegram-example/tg.ts"
+    "telegram-example": "ts-node telegram-example/tg.ts",
+    "state-management": "ts-node state-management/index.ts" 
   }
 }
