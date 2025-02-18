@@ -4,7 +4,7 @@ import {
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
 } from "@virtuals-protocol/game";
-import { AgentSDK, parseNewAgentAddress } from "ai-agent-sdk-js";
+import { ATTPsSDK, parseNewAgentAddress } from "attps-sdk-js";
 import { AttpsPriceQueryResponse } from "./types";
 
 interface IAttpsPluginOptions {
@@ -49,7 +49,7 @@ class AttpsPlugin {
   private id: string;
   private name: string;
   private description: string;
-  private agentSDK: AgentSDK
+  private agentSDK: ATTPsSDK
 
   constructor(options: IAttpsPluginOptions) {
     this.id = options.id || "attps_worker";
@@ -58,7 +58,7 @@ class AttpsPlugin {
       options.description ||
       "A worker that will execute tasks within the ATTPs Platforms. It is capable of creating agents, verifying data, and more.";
 
-    this.agentSDK = new AgentSDK({
+    this.agentSDK = new ATTPsSDK({
       rpcUrl: options.credentials.rpcUrl,
       privateKey: options.credentials.privateKey,
       proxyAddress: options.credentials.proxyAddress,

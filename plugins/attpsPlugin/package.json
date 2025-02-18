@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@virtuals-protocol/game": "^0.1.7",
-    "ai-agent-sdk-js": "^0.0.3",
+    "attps-sdk-js": "^0.1.0",
     "tsup": "^8.3.5"
   },
   "files": [
