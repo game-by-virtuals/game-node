@@ -1,73 +1,64 @@
 import {
   ChatAgent,
-  Function,
   FunctionResultStatus,
-} from "@virtuals-protocol/game";
+} from "../src/chatAgent";
+
+import  GameFunction, { ExecutableGameFunctionResponse, ExecutableGameFunctionStatus } from "../src/function";
 
 type FunctionResult = [FunctionResultStatus, string, Record<string, any>];
 
 // Action Functions
-const generatePicture = (data: Record<string, any>): FunctionResult => {
-  return [
-    FunctionResultStatus.DONE,
-    "Picture generated and presented to the user",
-    {},
-  ];
+const generatePicture = async (): Promise<ExecutableGameFunctionResponse> => {
+  return new ExecutableGameFunctionResponse(ExecutableGameFunctionStatus.Done, "Picture generated and presented to the user");
 };
 
-const generateMusic = (data: Record<string, any>): FunctionResult => {
-  return [
-    FunctionResultStatus.DONE,
-    "Music generated and presented to the user",
-    {},
-  ];
-};
+const generateMusic = async (): Promise<ExecutableGameFunctionResponse> => {
+  return new ExecutableGameFunctionResponse(ExecutableGameFunctionStatus.Done, "Music generated and presented to the user");
+}
 
-const checkCryptoPrice = (data: Record<string, any>): FunctionResult => {
-  const prices: Record<string, number> = {
-    bitcoin: 100000,
-    ethereum: 20000,
-  };
 
-  const result = prices[data.currency.toLowerCase()];
-  if (!result) {
-    return [
-      FunctionResultStatus.FAILED,
-      "The price of the currency is not available",
-      {},
-    ];
-  }
-  return [
-    FunctionResultStatus.DONE,
-    `The price of ${data.currency} is ${result}`,
-    {},
-  ];
-};
 
 // Action Space
-const actionSpace: Function[] = [
-  new Function(
-    "generate_picture",
-    "Generate a picture",
-    [{ name: "prompt", description: "The prompt for the picture" }],
-    generatePicture
-  ),
-  new Function(
-    "generate_music",
-    "Generate a music",
-    [{ name: "prompt", description: "The prompt for the music" }],
-    generateMusic
-  ),
-  new Function(
-    "check_crypto_price",
-    "Check the price of a crypto currency",
-    [{ name: "currency", description: "The currency to check the price of" }],
-    checkCryptoPrice
-  ),
+const actionSpace: GameFunction<any>[] = [
+  new GameFunction({
+    name: "generate_picture",
+    description: "Generate a picture",
+    args: [{ name: "prompt", description: "The prompt for the picture" }],
+    executable: generatePicture,
+  }),
+  new GameFunction({
+    name: "generate_music",
+    description: "Generate a music",
+    args: [{ name: "prompt", description: "The prompt for the music" }],
+    executable: generateMusic,
+  }),
+  new GameFunction({
+    name: "check_crypto_price",
+    description: "Check the price of a crypto currency",
+    args: [{ name: "currency", description: "The currency to check the price of" }],
+    executable: async (args, logger) => {
+      const prices: Record<string, number> = {
+        bitcoin: 100000,
+        ethereum: 20000,
+      };
+    
+      if (!args.currency) {
+        return new ExecutableGameFunctionResponse(ExecutableGameFunctionStatus.Failed, "No currency specified");
+      }
+      
+      const result = prices[args.currency.toLowerCase()];
+    
+      if (!result) {
+        return new ExecutableGameFunctionResponse(ExecutableGameFunctionStatus.Failed, "The price of the currency is not available");
+      }
+    
+      return new ExecutableGameFunctionResponse(ExecutableGameFunctionStatus.Done, `The price of ${args.currency} is ${result}`);
+    }
+  }),
 ];
 
 // Environment check
-const apiKey = process.env.GAME_API_KEY;
+const apiKey = "apt-f5bb89dd5f692ce111b428ff368b5428";
 if (!apiKey) {
   throw new Error("GAME_API_KEY is not set");
 }
