@@ -90,7 +90,7 @@ class Chat {
         (msg) => console.log(msg)
       );
 
-      responseMessage = await this.reportFunctionResult(result);
+      responseMessage = await this.reportFunctionResult(result, convoResponse.function_call.id);
       functionCallResponse = {
         fn_name: fnName,
         fn_args: convoResponse.function_call.args,
@@ -127,8 +127,9 @@ class Chat {
     return result as GameChatResponse;
   }
 
-  async reportFunctionResult(result: ExecutableGameFunctionResponse): Promise<string> {
+  async reportFunctionResult(result: ExecutableGameFunctionResponse, fnId: string): Promise<string> {
     const data = {
+      fn_id: fnId,
       result: result.feedback
         ? `${result.status}: ${result.feedback}`
         : result.status,
