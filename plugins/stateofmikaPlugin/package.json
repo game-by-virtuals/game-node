@@ -1,0 +1,33 @@
+{
+    "name": "@virtuals-protocol/game-state-mika-plugin",
+    "version": "0.1.0",
+    "description": "State of Mika Plugin for Virtuals GAME",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsup src/index.ts --dts --format cjs,esm --out-dir dist",
+        "test": "jest --coverage"
+    },
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.7.2",
+        "@types/jest": "^29.5.14",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.2.5"
+    },
+    "dependencies": {
+        "tsup": "^8.3.5",
+        "axios": "^0.27.2",
+        "@virtuals-protocol/game": "^0.1.7"
+    },
+    "files": [
+        "dist"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/game-by-virtuals/game-node"
+    }
+}
