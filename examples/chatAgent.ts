@@ -1,7 +1,7 @@
 import {
   ChatAgent,
   FunctionResultStatus,
-} from "../src/chatAgent";
+} from "@virtuals-protocol/game";
 
 import  GameFunction, { ExecutableGameFunctionResponse, ExecutableGameFunctionStatus } from "../src/function";
 
@@ -42,11 +42,8 @@ const actionSpace: GameFunction<any>[] = [
         ethereum: 20000,
       };
     
-      if (!args.currency) {
-        return new ExecutableGameFunctionResponse(ExecutableGameFunctionStatus.Failed, "No currency specified");
-      }
       
-      const result = prices[args.currency.toLowerCase()];
+      const result = prices[args.currency!.toLowerCase()];
     
       if (!result) {
         return new ExecutableGameFunctionResponse(ExecutableGameFunctionStatus.Failed, "The price of the currency is not available");
@@ -58,7 +55,7 @@ const actionSpace: GameFunction<any>[] = [
 ];
 
 // Environment check
-const apiKey = "apt-f5bb89dd5f692ce111b428ff368b5428";
+const apiKey = "API_KEY";
 if (!apiKey) {
   throw new Error("GAME_API_KEY is not set");
 }
