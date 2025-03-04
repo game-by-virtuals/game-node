@@ -3,6 +3,10 @@ import TwitterApi, {
   TweetSearchRecentV2Paginator,
   TweetV2LikeResult,
   UserV2Result,
+  TweetUserMentionTimelineV2Paginator,
+  TweetV2PaginableTimelineParams,
+  UserV2TimelineResult,
+  FollowersV2ParamsWithoutPaginator,
 } from "twitter-api-v2";
 import { ITweetClient } from "./interface";
 
@@ -59,5 +63,52 @@ export class TwitterClient implements ITweetClient {
     return this.twitterClient.v2.me({
       "user.fields": ["public_metrics"],
     });
+  }
+
+  async mentions(
+    paginationToken?: string
+  ): Promise<TweetUserMentionTimelineV2Paginator["data"]> {
+    const me = await this.twitterClient.v2.me();
+
+    const options: Partial<TweetV2PaginableTimelineParams> = {};
+
+    if (paginationToken) {
+      options.pagination_token = paginationToken;
+    }
+
+    const response = await this.twitterClient.v2.userMentionTimeline(
+      me.data.id,
+      options
+    );
+
+    return response.data;
+  }
+
+  async followers(paginationToken?: string): Promise<UserV2TimelineResult> {
+    const me = await this.twitterClient.v2.me();
+
+    const options: Partial<FollowersV2ParamsWithoutPaginator> = {};
+
+    if (paginationToken) {
+      options.pagination_token = paginationToken;
+    }
+
+    const response = await this.twitterClient.v2.followers(me.data.id, options);
+
+    return response;
+  }
+
+  async following(paginationToken?: string): Promise<UserV2TimelineResult> {
+    const me = await this.twitterClient.v2.me();
+
+    const options: Partial<FollowersV2ParamsWithoutPaginator> = {};
+
+    if (paginationToken) {
+      options.pagination_token = paginationToken;
+    }
+
+    const response = await this.twitterClient.v2.following(me.data.id, options);
+
+    return response;
   }
 }

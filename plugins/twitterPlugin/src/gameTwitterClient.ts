@@ -3,8 +3,10 @@ import {
   TweetSearchRecentV2Paginator,
   TweetV2LikeResult,
   UserV2Result,
+  TweetUserMentionTimelineV2Paginator,
+  UserV2TimelineResult,
 } from "twitter-api-v2";
-import { ITweetClient } from "./interface";
+import { ITweetClient, MediaIdsType } from "./interface";
 
 interface ICredential {
   accessToken: string;
@@ -38,10 +40,13 @@ export class GameTwitterClient implements ITweetClient {
     return response.json();
   }
 
-  async post(tweet: string, mediaId?: string): Promise<TweetV2PostTweetResult> {
+  async post(
+    tweet: string,
+    mediaIds?: MediaIdsType
+  ): Promise<TweetV2PostTweetResult> {
     return this.fetchAPI<TweetV2PostTweetResult>("/post", {
       method: "POST",
-      body: JSON.stringify({ content: tweet, mediaId }),
+      body: JSON.stringify({ content: tweet, mediaIds }),
     });
   }
 
@@ -57,11 +62,11 @@ export class GameTwitterClient implements ITweetClient {
   async reply(
     tweetId: string,
     reply: string,
-    mediaId: string
+    mediaIds?: MediaIdsType
   ): Promise<TweetV2PostTweetResult> {
     return this.fetchAPI<TweetV2PostTweetResult>(`/reply/${tweetId}`, {
       method: "POST",
-      body: JSON.stringify({ content: reply, mediaId }),
+      body: JSON.stringify({ content: reply, mediaIds }),
     });
   }
 
@@ -80,6 +85,44 @@ export class GameTwitterClient implements ITweetClient {
 
   async me(): Promise<UserV2Result> {
     return this.fetchAPI<UserV2Result>("/me", {
+      method: "GET",
+    });
+  }
+
+  async mentions(
+    paginationToken?: string
+  ): Promise<TweetUserMentionTimelineV2Paginator["data"]> {
+    let url = "/mentions";
+
+    if (paginationToken) {
+      url += `?paginationToken=${paginationToken}`;
+    }
+
+    return this.fetchAPI<TweetUserMentionTimelineV2Paginator["data"]>(url, {
+      method: "GET",
+    });
+  }
+
+  async followers(paginationToken?: string): Promise<UserV2TimelineResult> {
+    let url = "/followers";
+
+    if (paginationToken) {
+      url += `?paginationToken=${paginationToken}`;
+    }
+
+    return this.fetchAPI<UserV2TimelineResult>(url, {
+      method: "GET",
+    });
+  }
+
+  async following(paginationToken?: string): Promise<UserV2TimelineResult> {
+    let url = "/following";
+
+    if (paginationToken) {
+      url += `?paginationToken=${paginationToken}`;
+    }
+
+    return this.fetchAPI<UserV2TimelineResult>(url, {
       method: "GET",
     });
   }
