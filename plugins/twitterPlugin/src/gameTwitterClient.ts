@@ -19,12 +19,30 @@ export class GameTwitterClient implements ITweetClient {
   constructor(credential: ICredential) {
     this.baseURL = "https://twitter.game.virtuals.io/tweets";
     this.headers = {
-      "Content-Type": "application/json",
       "x-api-key": `${credential.accessToken}`,
     };
   }
 
   private async fetchAPI<T>(
+    endpoint: string,
+    options: RequestInit
+  ): Promise<T> {
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...this.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  private async fetchFormData<T>(
     endpoint: string,
     options: RequestInit
   ): Promise<T> {
@@ -125,5 +143,19 @@ export class GameTwitterClient implements ITweetClient {
     return this.fetchAPI<UserV2TimelineResult>(url, {
       method: "GET",
     });
+  }
+
+  async uploadMedia(media: Blob): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", media);
+
+    const result = await this.fetchFormData<{
+      mediaId: string;
+    }>(`/media`, {
+      method: "POST",
+      body: formData,
+    });
+
+    return result.mediaId;
   }
 }

@@ -32,4 +32,5 @@ export interface ITweetClient {
   ): Promise<TweetUserMentionTimelineV2Paginator["data"]>;
   followers(paginationToken?: string): Promise<UserV2TimelineResult>;
   following(paginationToken?: string): Promise<UserV2TimelineResult>;
+  uploadMedia(media: Blob): Promise<string>;
 }

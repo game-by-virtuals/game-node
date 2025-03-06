@@ -7,6 +7,7 @@ import TwitterApi, {
   TweetV2PaginableTimelineParams,
   UserV2TimelineResult,
   FollowersV2ParamsWithoutPaginator,
+  EUploadMimeType,
 } from "twitter-api-v2";
 import { ITweetClient } from "./interface";
 
@@ -108,6 +109,16 @@ export class TwitterClient implements ITweetClient {
     }
 
     const response = await this.twitterClient.v2.following(me.data.id, options);
+
+    return response;
+  }
+
+  async uploadMedia(media: Blob): Promise<string> {
+    const mediaBuffer = Buffer.from(await media.arrayBuffer());
+
+    const response = await this.twitterClient.v2.uploadMedia(mediaBuffer, {
+      media_type: media.type as EUploadMimeType,
+    });
 
     return response;
   }
