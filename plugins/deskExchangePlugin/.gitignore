@@ -1,0 +1,15 @@
+#dependencies
+node_modules/
+
+#env
+.env
+
+#build
+dist/
+
+#IDE
+.vscode/
+.idea/
+
+#test
+coverage/
