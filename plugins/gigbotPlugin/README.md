@@ -123,7 +123,7 @@ For additional help or to report issues, please contact Gigbot support or create
 
 ## License
 
-ISC License
+MIT License
 
 
 
