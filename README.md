@@ -216,8 +216,24 @@ Function
   - This can be any executable
 
 Chat Agents
--Chat Agents enable interactive conversations with AI agents that can execute functions. They are simpler to use than full Agents and are ideal for chatbot-like interactions where the agent can perform actions.
+Chat Agents enable interactive conversations with AI agents that can execute functions. They are simpler to use than full Agents and are ideal for chatbot-like interactions where the agent can perform actions.
 
+To create a chat agent:
+```typescript
+// Initialize a chat agent with your API key and a system prompt
+const agent = new ChatAgent(
+    "apt-your-api-key-here",
+    "You are a helpful kitchen assistant who can check ingredients and help prepare meals"
+);
+
+// Start a conversation
+const response = await agent.chat("What ingredients do we have available?");
+console.log(response);
+```
+
+Note: Chat Agents require a V2 API key that starts with "apt-".
+
+Check out our [Chat Agent example](https://github.com/game-by-virtuals/game-node/blob/main/examples/chatAgent.ts) to see how to implement a chat agent with function execution capabilities.
 
 ## License
 
