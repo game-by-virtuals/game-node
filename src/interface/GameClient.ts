@@ -38,7 +38,7 @@ export interface GameAction {
   agent_state?: Record<string, any>;
 }
 
-export enum LLMModel {
+export enum LLMModelName {
   Llama_3_1_405B_Instruct = "Llama-3.1-405B-Instruct",
   Llama_3_3_70B_Instruct = "Llama-3.3-70B-Instruct",
   DeepSeek_R1 = "DeepSeek-R1",
