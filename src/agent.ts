@@ -11,6 +11,8 @@ interface IGameAgent {
   workers: GameWorker[];
   getAgentState?: () => Promise<Record<string, any>>;
   llmModel?: LLMModel | string;
+  v2Engine?: boolean;
+  sessionId?: string;
 }
 
 class GameAgent implements IGameAgent {
@@ -19,7 +21,8 @@ class GameAgent implements IGameAgent {
   public description: string;
   public workers: GameWorker[];
   public getAgentState?: () => Promise<Record<string, any>>;
-
+  public v2Engine?: boolean;
+  public sessionId: string | undefined = undefined;
   private workerId: string;
   private gameClient: IGameClient;
 
@@ -33,9 +36,10 @@ class GameAgent implements IGameAgent {
 
   constructor(apiKey: string, options: IGameAgent) {
     const llmModel = options.llmModel || LLMModel.Llama_3_1_405B_Instruct;
+    const v2Engine = options.v2Engine || false;
 
     this.gameClient = apiKey.startsWith("apt-")
-      ? new GameClientV2(apiKey, llmModel)
+      ? new GameClientV2(apiKey, llmModel, v2Engine)
       : new GameClient(apiKey, llmModel);
     this.workerId = options.workers[0].id;
 
@@ -44,6 +48,8 @@ class GameAgent implements IGameAgent {
     this.description = options.description;
     this.workers = options.workers;
     this.getAgentState = options.getAgentState;
+
+    this.sessionId = undefined;
   }
 
   async init() {
@@ -77,7 +83,7 @@ class GameAgent implements IGameAgent {
     return worker;
   }
 
-  async step(options?: { verbose: boolean }) {
+  async step(sessionId: string, options?: { verbose: boolean }) {
     if (!this.agentId || !this.mapId) {
       throw new Error("Agent not initialized");
     }
@@ -106,7 +112,8 @@ class GameAgent implements IGameAgent {
       worker,
       this.gameActionResult,
       environment,
-      agentState
+      agentState,
+      sessionId
     );
 
     options?.verbose &&
@@ -142,6 +149,8 @@ class GameAgent implements IGameAgent {
 
         this.gameActionResult = result.toJSON(action.action_args.fn_id);
 
+        this.log(`Function result: ${JSON.stringify(this.gameActionResult)}.`);
+
         break;
       case ActionType.GoTo:
         this.workerId = action.action_args.location_id;
@@ -163,8 +172,14 @@ class GameAgent implements IGameAgent {
       throw new Error("Agent not initialized");
     }
 
+    this.sessionId = await this.gameClient.createSession(this.agentId);
+
+    if (!this.sessionId) {
+      throw new Error("Session not created");
+    }
+
     while (true) {
-      const action = await this.step({
+      const action = await this.step(this.sessionId, {
         verbose: options?.verbose || false,
       });
 

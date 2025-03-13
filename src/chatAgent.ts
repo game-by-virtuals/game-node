@@ -228,12 +228,16 @@ export class ChatAgent {
   public prompt: string;
   private client: GAMEClientV2;
 
-  constructor(api_key: string, prompt: string) {
+  constructor(api_key: string, prompt: string, v2Engine: boolean) {
     this._api_key = api_key;
     this.prompt = prompt;
 
     if (api_key.startsWith("apt-")) {
-      this.client = new GAMEClientV2(api_key, LLMModel.Llama_3_1_405B_Instruct);
+      this.client = new GAMEClientV2(
+        api_key,
+        LLMModel.Llama_3_1_405B_Instruct,
+        v2Engine
+      );
     } else {
       throw new Error("Please use V2 API key to use ChatAgent");
     }
