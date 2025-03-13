@@ -19,6 +19,25 @@ yarn add @virtuals-protocol/game-recall-storage-plugin
 
 ## Usage
 
+### Account Setup
+
+Before using the plugin, you need to create an account on [Recall](https://recall.network/). You can
+head to the [Recall Faucet](https://docs.recall.network/intro/faucet) to get testnet tokens, and
+then follow the [Recall Portal](https://docs.recall.network/intro/portal) for how to purchase
+storage credits.
+
+Once your account is funded with _both_ testnet tokens and storage credits, you can proceed to the
+next step.
+
+### Environment Variables
+
+The plugin requires the following environment variables to be set:
+
+- `RECALL_PRIVATE_KEY`: The private key of the Recall account that was funded above.
+- `RECALL_BUCKET_ALIAS`: The alias of the Recall bucket (e.g., `game-bucket`).
+- `RECALL_PREFIX`: Optionally, the prefix of the Recall bucket (e.g., `cot/`), which will prefix all
+  objects stored in the bucket.
+
 ### Importing the Plugin
 
 First, import the `RecallStoragePlugin` class from the plugin:
