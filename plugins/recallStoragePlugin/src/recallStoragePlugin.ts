@@ -11,20 +11,17 @@ import {
 import { type Address, type Hex } from "viem";
 import { type ChainName, getChain, testnet } from "@recallnet/chains";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, extname } from "node:path";
+import { basename } from "node:path";
 
 /**
- * Options for the S3Plugin
+ * Options for the RecallStoragePlugin
  * @param id - The ID of the worker
  * @param name - The name of the worker
  * @param description - The description of the worker
- * @param credentials.accessKeyId - The S3 access key ID
- * @param credentials.secretAccessKey - The S3 secret access key
- * @param region - The region of the bucket
- * @param bucket - Name of the existing bucket
- * @param endpoint - Endpoint of the S3 client
- * @param forcePathStyle - Whether to force path style
- * @param sslEnabled - Whether to enable SSL
+ * @param privateKey - The private key for the Recall account
+ * @param bucketAlias - The alias of the Recall bucket
+ * @param prefix - Optional prefix to prepend to all object keys
+ * @param network - Optional network name to use (defaults to the Recall `testnet`)
  */
 interface IRecallStoragePluginOptions {
   id?: string;
@@ -37,18 +34,18 @@ interface IRecallStoragePluginOptions {
 }
 
 /**
- * Result of an upload to Recall
- * @param success - Whether the upload was successful
- * @param tx - The transaction hash of the upload
+ * Result of a Recall storage operation
+ * @param success - Whether the operation was successful
+ * @param tx - The transaction hash of the operation, if applicable
  */
 interface RecallExecuteResponse {
   success: boolean;
   tx?: string;
-  data?: string;
 }
 
 /**
- * RecallStoragePlugin class
+ * Plugin for integrating Recall decentralized storage functionality
+ * Allows uploading and downloading files to/from Recall storage
  */
 class RecallStoragePlugin {
   private id: string;
@@ -58,6 +55,10 @@ class RecallStoragePlugin {
   private bucketAlias: string;
   private prefix: string;
 
+  /**
+   * Creates a new RecallStoragePlugin instance
+   * @param options - Configuration options for the plugin
+   */
   constructor(options: IRecallStoragePluginOptions) {
     this.id = options.id || "recall_storage_worker";
     this.name = options.name || "Recall Storage Worker";
@@ -78,6 +79,10 @@ class RecallStoragePlugin {
     this.prefix = options.prefix || "";
   }
 
+  /**
+   * Creates a GameWorker instance with the plugin's functions
+   * @returns A configured GameWorker instance
+   */
   public getWorker(data?: {
     functions?: GameFunction<any>[];
     getEnvironment?: () => Promise<Record<string, any>>;
@@ -94,6 +99,12 @@ class RecallStoragePlugin {
     });
   }
 
+  /**
+   * Gets an existing bucket or create a new one with the configured alias
+   * @param logger - Function to log status messages
+   * @returns The bucket address (contract address hex string)
+   * @throws Error if bucket cannot be found or created
+   */
   async getOrCreateBucket(logger: (message: string) => void) {
     try {
       const { result: buckets } = await this.client.bucketManager().list();
@@ -127,8 +138,8 @@ class RecallStoragePlugin {
   }
 
   /**
-   * Upload a file to Recall
-   * @returns The upload file function
+   * Upload files to Recall storage
+   * @returns A GameFunction configured for file uploads
    */
   get uploadFileFunction() {
     return new GameFunction({
@@ -186,8 +197,8 @@ class RecallStoragePlugin {
   }
 
   /**
-   * Download a file from Recall storage to a local file path
-   * @returns The download file function
+   * Download files from Recall storage
+   * @returns A GameFunction configured for file downloads
    */
   get downloadFileFunction() {
     return new GameFunction({
