@@ -3,7 +3,7 @@
 A plugin to fully verify agent activities, including actions and other behaviors that use HTTPS.
 
 ## Overview
-This plugin verifies the validity of network requests and responses using the [Primus zk-tls SDK](https://docs.primuslabs.xyz/data-verification/zk-tls-sdk/overview/). It generates and verifies a zkTLS proof based on the zkTLS protocol.
+This plugin verifies the validity of network requests and responses using the [Primus zk-tls SDK](https://docs.primuslabs.xyz/data-verification/core-sdk/overview). It generates and verifies a zkTLS proof based on the zkTLS protocol.
 
 ## Usage
 

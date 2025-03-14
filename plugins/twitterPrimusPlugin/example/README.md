@@ -5,8 +5,14 @@ This is a demo project that demonstrates how to use the `twitterPrimusPlugin` to
 ## How to run
 
 ### Install
+####  Install dependencies in twitterPrimusPlugin
+```shell
+npm install
+```
+#### Install dependencies in example
 run `npm install` to install dependencies.
 ```shell
+cd example
 npm install
 ```
 
