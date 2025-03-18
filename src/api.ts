@@ -5,7 +5,7 @@ import {
   GameAction,
   GameAgent,
   IGameClient,
-  LLMModel,
+  LLMModelName,
   Map,
 } from "./interface/GameClient";
 
@@ -13,7 +13,10 @@ class GameClient implements IGameClient {
   public client: Axios | null = null;
   private runnerUrl = "https://game.virtuals.io";
 
-  constructor(private apiKey: string, private llmModel: LLMModel | string) {}
+  constructor(
+    private apiKey: string,
+    private llmModelName: LLMModelName | string
+  ) {}
 
   async init() {
     const accessToken = await this.getAccessToken();
@@ -23,7 +26,7 @@ class GameClient implements IGameClient {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
-        model_name: this.llmModel,
+        model_name: this.llmModelName,
       },
     });
   }
