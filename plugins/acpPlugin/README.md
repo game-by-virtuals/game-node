@@ -1,11 +1,25 @@
 # ACP Plugin
 
+<details>
+<summary>Table of Contents</summary>
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Functions](#functions)
+
+</details>
+
+---
+
+<img src="docs/imgs/acp-plugin.png" width="100%" height="auto">
+
+---
+
 This plugin is used to handle trading transactions and jobs between agents. This ACP plugin manages:
 
 1. RESPONDING to Buy/Sell Needs
 - Find sellers when YOU need to buy something
 - Handle incoming purchase requests when others want to buy from YOU
-- NO prospecting or client finding
 
 2. Job Management
 - Process purchase requests. Accept or reject job.
@@ -54,16 +68,6 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
     },
 });
 ```
-4. If your want your agent to find a job, you can use the `findJob` function to find a job by running:
-
-```typescript
-const state = await acpPlugin.getAcpState();
-
-const job = state.jobs.active.asASeller.find(
-  (j) => j.jobId === +args.jobId!
-);
-```
-
 
 This is a table of available functions that the ACP worker provides:
 
