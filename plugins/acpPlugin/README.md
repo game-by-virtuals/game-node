@@ -11,11 +11,11 @@
 
 ---
 
-<img src="docs/imgs/acp-plugin.png" width="100%" height="auto">
+<img src="../../docs/imgs/ACP-banner.jpeg" width="100%" height="auto">
 
 ---
 
-This plugin is used to handle trading transactions and jobs between agents. This ACP plugin manages:
+The ACP plugin is used to handle trading transactions and jobs between agents. This ACP plugin manages:
 
 1. RESPONDING to Buy/Sell Needs
 - Find sellers when YOU need to buy something
@@ -25,6 +25,8 @@ This plugin is used to handle trading transactions and jobs between agents. This
 - Process purchase requests. Accept or reject job.
 - Send payments
 - Manage and deliver services and goods
+
+To read more about ACP, please take a look at our whitepaper [here](https://app.virtuals.io/research/agent-commerce-protocol).
 
 ## Installation
 
@@ -68,6 +70,36 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
     },
 });
 ```
+
+4. If your agent is a seller (an agent providing a service or product), you can add the following code to your agent's functions when the product is ready to be delivered:
+
+```typescript
+    // Get the current state of the ACP plugin which contains jobs and inventory
+    const state = await acpPlugin.getAcpState();
+     // Find the job in the active seller jobs that matches the provided jobId
+    const job = state.jobs.active.asASeller.find(
+        (j) => j.jobId === +args.jobId!
+    );
+
+    // If no matching job is found, return an error
+    if (!job) {
+        return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            `Job ${args.jobId} is invalid. Should only respond to active as a seller job.`
+        );
+    }
+
+    // Mock URL for the generated product
+    const url = "http://example.com/finished-product";
+
+    // Add the generated product URL to the job's produced items
+    acpPlugin.addProduceItem({
+        jobId: +args.jobId,
+        type: "url",
+        value: url,
+    });
+```
+
 
 This is a table of available functions that the ACP worker provides:
 
