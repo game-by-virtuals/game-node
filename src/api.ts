@@ -8,6 +8,7 @@ import {
   LLMModel,
   Map,
 } from "./interface/GameClient";
+import { randomUUID } from "node:crypto";
 
 class GameClient implements IGameClient {
   public client: Axios | null = null;
@@ -42,7 +43,11 @@ class GameClient implements IGameClient {
     return result.data.data.accessToken;
   }
 
-  private async post<T>(url: string, data: any) {
+  private async post<T>(
+    url: string,
+    data: any,
+    options?: { headers?: Record<string, any> }
+  ) {
     await this.init();
 
     if (!this.client) {
@@ -54,6 +59,7 @@ class GameClient implements IGameClient {
         method: "post",
         headers: {
           "Content-Type": "application/json",
+          ...options?.headers,
         },
         route: url,
         data,
@@ -91,7 +97,8 @@ class GameClient implements IGameClient {
     worker: GameWorker,
     gameActionResult: ExecutableGameFunctionResponseJSON | null,
     environment: Record<string, any>,
-    agentState: Record<string, any>
+    agentState: Record<string, any>,
+    sessionId: string
   ) {
     const payload: { [key in string]: any } = {
       location: worker.id,
@@ -108,7 +115,12 @@ class GameClient implements IGameClient {
 
     const result = await this.post<{ data: GameAction }>(
       `/v2/agents/${agentId}/actions`,
-      payload
+      { payload },
+      {
+        headers: {
+          session_id: sessionId,
+        },
+      }
     );
 
     return result.data;
@@ -147,6 +159,10 @@ class GameClient implements IGameClient {
     );
 
     return result.data;
+  }
+
+  async createSession(): Promise<string> {
+    return randomUUID();
   }
 }
 
