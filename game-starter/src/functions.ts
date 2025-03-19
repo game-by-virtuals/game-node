@@ -22,38 +22,6 @@ const openai = new OpenAI({
     baseURL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1' // Default to OpenAI's standard URL
 });
 
-// Example function that shows current state
-export const getStateFunction = new GameFunction({
-    name: "get_state",
-    description: "Get current agent state",
-    args: [] as const,
-    executable: async (args, logger) => {
-        try {
-            return new ExecutableGameFunctionResponse(
-                ExecutableGameFunctionStatus.Done,
-                "Current state retrieved successfully"
-            );
-        } catch (e) {
-            return new ExecutableGameFunctionResponse(
-                ExecutableGameFunctionStatus.Failed,
-                "Failed to get state"
-            );
-        }
-    }
-});
-
-export const setStateFunction = new GameFunction({
-    name: "set_state",
-    description: "Set current agent state",
-    args: [] as const,
-    executable: async (args, logger) => {
-        return new ExecutableGameFunctionResponse(
-            ExecutableGameFunctionStatus.Done,
-            "State set successfully"
-        );
-    }
-});
-
 // Function to get location data
 export const getLocationFunction = new GameFunction({
     name: "get_location",

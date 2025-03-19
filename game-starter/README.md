@@ -13,6 +13,11 @@ NPM: https://www.npmjs.com/package/@virtuals-protocol/game
 - git
 - node
 
+required environment variables:
+- GAME_API_KEY : API key for the GAME framework, https://docs.game.virtuals.io/game-sdk
+- WEATHER_API_KEY: API key for the weather API, get it from https://openweathermap.org/api
+- OPENAI_API_KEY: API key for the OpenAI API, get it from https://platform.openai.com/api-keys
+
 ## To run project
 1. Start from the game starter directory
    `cd game-starter`

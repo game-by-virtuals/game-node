@@ -1,6 +1,6 @@
 {
   "name": "@virtuals-protocol/game-twitter-plugin",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

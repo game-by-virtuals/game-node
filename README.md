@@ -1,3 +1,37 @@
+<details>
+<summary>Table of Contents</summary>
+
+- [Getting Started](#getting-started)
+  - [Functions and Executables](#1-functions-and-executables)
+  - [State Management](#2-state-management)
+  - [Workers](#3-workers)
+  - [Agents](#4-agents)
+  - [Using the Logger in Custom Functions](#using-the-logger-in-custom-functions)
+  - [Running the Agent](#running-the-agent)
+  - [Running Agent (without fix interval)](#running-agent-without-fix-interval)
+- [Installation](#installation)
+- [Examples](#examples)
+- [Plugins](#plugins)
+- [Components and Architecture Overview](#components-and-architecture-overview)
+  - [Agent (a.k.a. [high level planner])](#agent-aka-high-level-planner)
+  - [Worker (a.k.a. [low-level planner])](#worker-aka-low-level-planner)
+  - [Function](#function)
+- [Chat Agents](#chat-agents)
+
+</details>
+
+---
+
+<img src="docs/imgs/GAME-framework.jpeg" width="100%" height="auto">
+
+---
+
+# Getting Started
+
+To get started with GAME, we recommend trying out the `game-starter` project. This project will get you up and running with a working agent in minutes.
+
+Head over to the folder's [readme](https://github.com/game-by-virtuals/game-node/tree/main/game-starter) for instructions on how to get started!
+
 ## Usage
 This is the github repo for our NPM package.
 
@@ -55,6 +89,8 @@ async function getAgentState(): Promise<Record<string, any>> {
   };
 }
 ```
+
+For more information on how to use state management, you can check out a simple example here: [State Management Example](https://github.com/game-by-virtuals/game-node/tree/main/examples/state-management)
 
 ### 3. Workers
 
@@ -130,7 +166,6 @@ const customFunction = new GameFunction({
   },
 });
 ```
-
 In this example, the logger is used to log messages before and after the execution of the custom action. This helps in tracking the function's execution flow and any errors that occur.
 
 ### Running the Agent
@@ -170,15 +205,13 @@ To install the package, run:
 npm install @virtuals-protocol/game
 ```
 
-## Game-starter
-
-In the `game-starter` folder is a starter project that will get you up and running with a working agent in minutes.
-
-Go into the folder's readme for instructions are on how to get started.
-
 ## Examples
 
-In the `examples` folder, there are two self contained examples: a twitter agent and a telegram agent.
+In the `examples` folder, there are a few self contained examples:
+
+- `twitter-agent`: A twitter agent that tweets and replies to tweets.
+- `telegram-agent`: A telegram agent that sends messages and replies to messages.
+- `chat-agent-example`: A chat agent that can execute functions and interact with users in a chat.
 
 Just compile with `npm run build` and `npm start` to run! (make sure you have an API key first!)
 
@@ -196,7 +229,7 @@ At a high level, this SDK allows you to develop your agents powered by the GAME 
 
 ![New SDK visual](docs/imgs/new_sdk_visual.png)
 
-Agent (a.k.a. [high level planner](https://docs.game.virtuals.io/game-cloud#high-level-planner-context))
+#### Agent (a.k.a. [high level planner](https://docs.game.virtuals.io/game-cloud#high-level-planner-context))
 
 - Takes in a <b>Goal</b>
   - Drives the agent's behavior through the high-level plan which influences the thinking and creation of tasks that would contribute towards this goal
@@ -204,21 +237,48 @@ Agent (a.k.a. [high level planner](https://docs.game.virtuals.io/game-cloud#high
   - Combination of what was previously known as World Info + Agent Description
   - This includes a description of the "world" the agent lives in, and the personality and background of the agent
 
-Worker (a.k.a. [low-level planner](https://docs.game.virtuals.io/game-cloud#low-level-planner-context))
+#### Worker (a.k.a. [low-level planner](https://docs.game.virtuals.io/game-cloud#low-level-planner-context))
 
 - Takes in a <b>Description</b>
   - Used to control which workers are called by the agent, based on the high-level plan and tasks created to contribute to the goal
 
-Function
+#### Function
 
 - Takes in a <b>Description</b>
   - Used to control which functions are called by the workers, based on each worker's low-level plan
   - This can be any executable
 
-Chat Agents
--Chat Agents enable interactive conversations with AI agents that can execute functions. They are simpler to use than full Agents and are ideal for chatbot-like interactions where the agent can perform actions.
+### Chat Agents
 
+Chat Agents enable interactive conversations with AI agents that can execute functions. They are simpler to use than full Agents and are ideal for chatbot-like interactions where the agent can perform actions.
+
+To create a chat agent:
+```typescript
+// Initialize a chat agent with your API key and a system prompt
+const agent = new ChatAgent(
+    "your-GAME-api-key-here",
+    "<agent description>"
+);
+
+// Start a conversation
+const response = await agent.chat("<user prompt>");
+```
+
+Note: Chat Agents require a V2 API key that starts with "apt-".
+
+Check out our [Chat Agent example directory](https://github.com/game-by-virtuals/game-node/tree/main/examples/chat-agent-example) to see how to implement a chat agent with function execution capabilities and how to integrate chat agents with telegram and discord plugins.
+
+## Repository Structure
+
+| Folder | Description |
+|--------|-------------|
+| `/src` | Core SDK source code containing the main GAME framework implementation |
+| `/docs` |  Images, and additional resources |
+| `/examples` | Example implementations and use cases of the GAME framework |
+| `/plugins` | Plugins availble to use with GAME framework (Discord, Telegram, etc.) |
+| `/game-starter` | Starter project that gets you up and running with a working agent |
 
 ## License
 
 This project is licensed under the MIT License.
+
