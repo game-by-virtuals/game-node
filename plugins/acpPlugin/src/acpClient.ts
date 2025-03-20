@@ -25,12 +25,23 @@ export class AcpClient {
     return (await response.json()) as AcpState;
   }
 
-  async browseAgents(query: string) {
-    const response = await fetch(
-      `https://acpx.virtuals.gg/wp-json/wp/v2/agents?search=${query}`
-    );
+  async browseAgents(cluster?: string) {
+    let url = `https://acpx.virtuals.gg/api/agents`;
 
-    return (await response.json()) as AcpAgent[];
+    if (cluster) {
+      url += `?filters[cluster]=${cluster}`;
+    }
+
+    const response = await fetch(url);
+
+    const responseJson = await response.json();
+
+    return (responseJson.data as AcpAgent[]).map((agent) => ({
+      id: agent.id,
+      name: agent.name,
+      description: agent.description,
+      walletAddress: agent.walletAddress,
+    }));
   }
 
   async createJob(

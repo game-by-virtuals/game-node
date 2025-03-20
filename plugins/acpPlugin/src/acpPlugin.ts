@@ -11,6 +11,7 @@ import { AcpJobPhasesDesc, IInventory } from "./interface";
 interface IAdNetworkPluginOptions {
   apiKey: string;
   acpTokenClient: AcpToken;
+  cluster?: string;
 }
 
 class AcpPlugin {
@@ -18,11 +19,13 @@ class AcpPlugin {
   private name: string;
   private description: string;
   private acpClient: AcpClient;
+  private cluster?: string;
 
   private producedInventory: IInventory[] = [];
 
   constructor(options: IAdNetworkPluginOptions) {
     this.acpClient = new AcpClient(options.apiKey, options.acpTokenClient);
+    this.cluster = options.cluster;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -111,11 +114,6 @@ class AcpPlugin {
           description:
             "Explain why you need to find trading partners at this time",
         },
-        {
-          name: "keyword",
-          type: "string",
-          description: "A one word description of the work to be done",
-        },
       ] as const,
       executable: async (args, _) => {
         if (!args.reasoning) {
@@ -126,15 +124,8 @@ class AcpPlugin {
         }
 
         try {
-          if (!args.keyword) {
-            return new ExecutableGameFunctionResponse(
-              ExecutableGameFunctionStatus.Failed,
-              "Keyword is requred to search"
-            );
-          }
-
           const availableAgents = await this.acpClient.browseAgents(
-            args.keyword
+            this.cluster
           );
 
           if (availableAgents.length === 0) {
