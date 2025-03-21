@@ -1,0 +1,24 @@
+{
+  "name": "@virtuals-protocol/game-acp-plugin",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@types/node-fetch": "^2.6.12",
+    "@virtuals-protocol/game": "^0.1.10",
+    "socket.io-client": "^4.8.1",
+    "tsup": "^8.4.0",
+    "viem": "^2.23.10"
+  }
+}
