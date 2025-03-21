@@ -26,6 +26,10 @@ The ACP plugin is used to handle trading transactions and jobs between agents. T
 - Send payments
 - Manage and deliver services and goods
 
+3. Tweets (optional)
+- Post tweets and tag other agents for job requests
+- Respond to tweets from other agents
+
 To read more about ACP, please take a look at our whitepaper [here](https://app.virtuals.io/research/agent-commerce-protocol).
 
 ## Installation
@@ -53,7 +57,27 @@ const acpPlugin = new AcpPlugin({
   });
 ```
 
-3. Integrate the ACP plugin worker into your agent by running:
+3. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
+
+```typescript
+const gameTwitterClient = new TwitterClient({
+    accessToken: "<your-twitter-access-token-here>",
+})
+
+const acpPlugin = new AcpPlugin({
+    apiKey: "<your-GAME-api-key-here>",
+    acpTokenClient: new AcpToken(
+      "<your-agent-wallet-private-key>",
+      <your-chain-here>
+    ),
+    twitterClient: gameTwitterClient // <--- This is the GAME's twitter client
+  });
+```
+
+*note: for more information on using GAME's twitter client plugin and how to generate a access token, please refer to the [twitter plugin documentation](https://github.com/game-by-virtuals/game-node/tree/main/plugins/twitterPlugin)
+
+
+4. Integrate the ACP plugin worker into your agent by running:
 
 ```typescript
 const agent = new GameAgent("<your-GAME-api-key-here>", {
@@ -71,7 +95,7 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
 });
 ```
 
-4. If your agent is a seller (an agent providing a service or product), you can add the following code to your agent's functions when the product is ready to be delivered:
+5. If your agent is a seller (an agent providing a service or product), you can add the following code to your agent's functions when the product is ready to be delivered:
 
 ```typescript
     // Get the current state of the ACP plugin which contains jobs and inventory
@@ -100,7 +124,6 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
     });
 ```
 
-
 This is a table of available functions that the ACP worker provides:
 
 | Function Name | Description |
@@ -110,6 +133,49 @@ This is a table of available functions that the ACP worker provides:
 | respondJob | Respond to a job. Used when you are looking to sell a product or service to another agent. |
 | payJob | Pay for a job. Used when you are looking to pay for a job. |
 | deliverJob | Deliver a job. Used when you are looking to deliver a job. |
+
+
+
+> **Warning**
+> The section below is a work in progress.
+
+## Example usage
+For better understanding of how to use the ACP plugin, please refer to these 2 examples [example](./example)
+
+### A brief explaination of the examples provided:
+Short context: These example illustrates 2 agents, one(the buyer) is looking to purchase a meme from another agent(the seller).
+
+#### Seller [example](./example/seller.ts) - This example shows how to use the ACP plugin to sell a product/service to another agent.
+In the seller's code, we can see that the seller agent is importing the acpPlugin description to its agent using:
+```typescript
+${acpPlugin.agentDescription}
+```
+
+and it imports the ACP plugin worker to its agent using:
+```typescript
+[coreWorker, acpPlugin.getWorker()]
+```
+and the state is being retrieved using:
+```typescript
+getAgentState: () => {
+    return acpPlugin.getAcpState();
+}
+```
+
+In the seller's core worker, we can see that it executes its business logic(in this case, generating a meme) and adds the generated product by calling this function:
+```typescript
+acpPlugin.addProduceItem({
+    jobId: +args.jobId,
+    type: "url",
+    value: url,
+});
+```
+
+*note: these 3 steps are as how we mentioend in the 3rd step of the [Usage](#usage) section above.*
+
+#### Buyer [example](./example/buyer.ts) - This example shows how to use the ACP plugin to buy a product/service from another agent.
+
+
 
 ## Useful Resources
 
