@@ -77,7 +77,7 @@ export class AcpToken {
   ) {
     this.publicClient = createPublicClient({
       chain,
-      transport: http(),
+      transport: http("https://base-sepolia-rpc.publicnode.com/"),
     });
   }
 

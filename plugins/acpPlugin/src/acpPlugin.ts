@@ -3,17 +3,30 @@ import {
   GameFunction,
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
+  GameAgent,
 } from "@virtuals-protocol/game";
 import { AcpClient } from "./acpClient";
 import { AcpToken } from "./acpToken";
 import { AcpJobPhasesDesc, IInventory } from "./interface";
 import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
+import { AcpToken, MemoType } from "./acpToken";
+import { AcpJobPhases, AcpJobPhasesDesc, IInventory } from "./interface";
+import { io, Socket } from "socket.io-client";
+
+// Add role type enum
+export enum AcpAgentRole {
+  EVALUATOR = "evaluator",
+  BUYER = "buyer",
+  SELLER = "seller",
+}
 
 interface IAdNetworkPluginOptions {
   apiKey: string;
   acpTokenClient: AcpToken;
   twitterClient?: ITweetClient;
   cluster?: string;
+  role?: AcpAgentRole;
+  roleAgent?: GameAgent;
 }
 
 class AcpPlugin {
@@ -23,6 +36,10 @@ class AcpPlugin {
   private acpClient: AcpClient;
   private cluster?: string;
   private twitterClient?: ITweetClient;
+  private socket: Socket | null = null;
+  private role?: AcpAgentRole;
+  private _roleAgent?: GameAgent;
+  private evaluatorWorker?: GameWorker;
 
   private producedInventory: IInventory[] = [];
 
@@ -30,6 +47,12 @@ class AcpPlugin {
     this.acpClient = new AcpClient(options.apiKey, options.acpTokenClient);
     this.cluster = options.cluster;
     this.twitterClient = options.twitterClient;
+    this.role = options.role;
+    this._roleAgent = options.roleAgent;
+
+    if (this.role === AcpAgentRole.EVALUATOR) {
+      this.evaluatorWorker = this.createEvaluatorWorker(options.acpTokenClient);
+    }
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -53,6 +76,61 @@ class AcpPlugin {
 
     NOTE: This is NOT for finding clients - only for executing trades when there's a specific need to buy or sell something.
     `;
+
+    if (this.role === AcpAgentRole.EVALUATOR) {
+      this.initializeSocket();
+    }
+  }
+
+  public setEvaluatorAgent(agent: GameAgent) {
+    this._roleAgent = agent;
+  }
+
+  private initializeSocket() {
+    this.socket = io("http://localhost:3001");
+
+    this.socket.on("connect", () => {
+      console.log("Connected to GAME SDK v2 endpoint");
+    });
+
+    this.socket.on("disconnect", () => {
+      console.log("Disconnected from GAME SDK v2 endpoint");
+    });
+
+    this.socket.on("evaluation", async (payload: any) => {
+      if (!this._roleAgent) return;
+      console.log(
+        `Received evaluation request for memo: ${JSON.stringify(payload)}`
+      );
+      try {
+        await this._roleAgent!.initWorkers();
+
+        while (true) {
+          await this._roleAgent!.step({
+            verbose: true,
+          });
+        }
+
+        // await this._roleAgent!.getWorkerById("core-worker").runTask(
+        //   `Evaluate the deliverable and approve the memo ${JSON.stringify(
+        //     payload
+        //   )}`,
+        //   {
+        //     verbose: true,
+        //   }
+        // );
+      } catch (error) {
+        console.error("Error processing evaluation:", error);
+      }
+    });
+
+    process.on("SIGINT", () => {
+      console.log("Shutting down GAME SDK v2 connection...");
+      if (this.socket) {
+        this.socket.disconnect();
+      }
+      process.exit();
+    });
   }
 
   public addProduceItem(item: IInventory) {
@@ -389,6 +467,8 @@ class AcpPlugin {
             );
           }
 
+          console.log(`Responding to job: ${JSON.stringify(job, null, 2)}`);
+
           await this.acpClient.responseJob(
             +args.jobId,
             args.decision === "ACCEPT",
@@ -690,6 +770,127 @@ class AcpPlugin {
         }
       },
     });
+  }
+
+  private createEvaluatorWorker(acpTokenClient: AcpToken): GameWorker {
+    return new GameWorker({
+      id: "core-worker",
+      name: "Core Worker",
+      description: `YOU are responsible for signing memos after evaluation.
+      
+      YOUR Behavior:
+        - YOU first check if there are other workers and YOU must have job id and memo id
+        - If other workers exist, YOU wait for their approval
+        - YOU only sign the memo if all other workers have approved
+        - If no other workers, YOU automatically approve and sign
+      `,
+      functions: [
+        new GameFunction({
+          name: "evaluate_deliverable",
+          description:
+            "Signs the memo after verifying all workers have approved",
+          args: [
+            {
+              name: "description",
+              type: "string",
+              description: "A description of the evaluation process",
+            },
+            {
+              name: "memoId",
+              type: "number",
+              description: "Memo that your are responding to.",
+            },
+            {
+              name: "jobId",
+              type: "number",
+              description: "Job that your are responding to.",
+            },
+            {
+              name: "content",
+              type: "string",
+              description: "Content of the memo",
+            },
+            {
+              name: "reasoning",
+              type: "string",
+              description: "The reasoning of the evaluation",
+            },
+          ] as const,
+          executable: async (args, logger) => {
+            logger("Processing memo signing...");
+
+            if (!args.memoId || isNaN(+args.memoId) || args.memoId === null) {
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                "Invalid memo ID - specify the memo you're evaluating"
+              );
+            }
+
+            if (!args.jobId || isNaN(+args.jobId) || args.jobId === null) {
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                "Invalid job ID - specify the job you're evaluating"
+              );
+            }
+
+            if (!args.content) {
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                "Missing content - specify the content of the memo"
+              );
+            }
+
+            if (!args.reasoning) {
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                "Missing reasoning - explain why you're approving this memo"
+              );
+            }
+
+            try {
+              const memo = await acpTokenClient.signMemo(
+                +args.memoId,
+                true,
+                args.reasoning
+              );
+
+              if (!memo) {
+                return new ExecutableGameFunctionResponse(
+                  ExecutableGameFunctionStatus.Failed,
+                  "Memo not found"
+                );
+              }
+
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Done,
+                "Memo signed and deliverable approved"
+              );
+            } catch (error) {
+              console.error("CREATING REJECTED MEMO");
+              // await acpTokenClient.createMemo(
+              //   +args.jobId,
+              //   args.content,
+              //   MemoType.MESSAGE,
+              //   false,
+              //   AcpJobPhases.REJECTED
+              // );
+
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                `Error signing memo: ${error}`
+              );
+            }
+          },
+        }),
+      ],
+    });
+  }
+
+  public getEvaluatorWorker(): GameWorker {
+    if (!this.evaluatorWorker) {
+      throw new Error("Evaluator worker not initialized - wrong role?");
+    }
+    return this.evaluatorWorker;
   }
 }
 
