@@ -7,10 +7,12 @@ import {
 import { AcpClient } from "./acpClient";
 import { AcpToken } from "./acpToken";
 import { AcpJobPhasesDesc, IInventory } from "./interface";
+import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
 
 interface IAdNetworkPluginOptions {
   apiKey: string;
   acpTokenClient: AcpToken;
+  twitterClient?: ITweetClient;
   cluster?: string;
 }
 
@@ -20,12 +22,14 @@ class AcpPlugin {
   private description: string;
   private acpClient: AcpClient;
   private cluster?: string;
+  private twitterClient?: ITweetClient;
 
   private producedInventory: IInventory[] = [];
 
   constructor(options: IAdNetworkPluginOptions) {
     this.acpClient = new AcpClient(options.apiKey, options.acpTokenClient);
     this.cluster = options.cluster;
+    this.twitterClient = options.twitterClient;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -41,6 +45,11 @@ class AcpPlugin {
       - Process purchase requests. Accept or reject job.
       - Send payments
       - Manage and deliver services and goods
+
+    3. Twitter Integration (tweet history are provided in the environment/state)
+      - Post tweets about jobs
+      - Reply to tweets about jobs
+
 
     NOTE: This is NOT for finding clients - only for executing trades when there's a specific need to buy or sell something.
     `;
@@ -181,6 +190,12 @@ class AcpPlugin {
           description:
             "Detailed specifications for service-based items, only needed if the seller's catalog specifies service requirements. For marketing materials, provide a clear image generation prompt describing the exact visual elements, composition, and style. Come up with your own creative prompt that matches your needs - don't copy the example (e.g. '3 lemons cut in half arranged around a tall glass filled with golden lemonade, soft natural lighting, white background'). Can be left empty for items that don't require specifications.",
         },
+        {
+          name: "tweetContent",
+          type: "string",
+          description:
+            "Tweet content that will be posted about this job. Must include the seller's Twitter handle (with @ symbol) to notify them",
+        },
       ] as const,
       executable: async (args, _) => {
         if (!args.price) {
@@ -220,6 +235,13 @@ class AcpPlugin {
             );
           }
 
+          if (!args.tweetContent) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Missing tweet content - provide the content of the tweet that will be posted about this job"
+            );
+          }
+
           if (args.sellerWalletAddress === this.acpClient.walletAddress) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
@@ -241,6 +263,15 @@ class AcpPlugin {
             args.serviceRequirements
           );
 
+          if (this.twitterClient) {
+            const tweet = await this.twitterClient?.post(args.tweetContent);
+            await this.acpClient.addTweet(
+              jobId,
+              tweet.data.id,
+              args.tweetContent
+            );
+          }
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
             JSON.stringify({
@@ -252,6 +283,8 @@ class AcpPlugin {
             })
           );
         } catch (e) {
+          console.error(e);
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             `System error while initiating job - try again after a short delay. ${e}`
@@ -282,6 +315,13 @@ class AcpPlugin {
           type: "string",
           description: "Why you made this decision",
         },
+
+        {
+          name: "tweetContent",
+          type: "string",
+          description:
+            "Tweet content that will be posted about this job as a reply to the previous tweet (do not use @ symbol)",
+        },
       ] as const,
       executable: async (args, _) => {
         if (!args.jobId) {
@@ -300,6 +340,13 @@ class AcpPlugin {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             "Missing reasoning - explain why you made this decision"
+          );
+        }
+
+        if (!args.tweetContent) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Missing tweet content - provide the content of the tweet that will be posted about this job"
           );
         }
 
@@ -331,6 +378,21 @@ class AcpPlugin {
             args.reasoning
           );
 
+          if (this.twitterClient) {
+            const tweetId = job.tweetHistory.pop()?.tweetId;
+            if (tweetId) {
+              const tweet = await this.twitterClient.reply(
+                tweetId,
+                args.tweetContent
+              );
+              await this.acpClient.addTweet(
+                +args.jobId,
+                tweet.data.id,
+                args.tweetContent
+              );
+            }
+          }
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
             JSON.stringify({
@@ -340,6 +402,8 @@ class AcpPlugin {
             })
           );
         } catch (e) {
+          console.error(e);
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             `System error while responding to job - try again after a short delay. ${e}`
@@ -370,6 +434,12 @@ class AcpPlugin {
           type: "string",
           description: "Why you are making this payment",
         },
+        {
+          name: "tweetContent",
+          type: "string",
+          description:
+            "Tweet content that will be posted about this job as a reply to the previous tweet (do not use @ symbol)",
+        },
       ] as const,
       executable: async (args, _) => {
         if (!args.jobId) {
@@ -392,6 +462,14 @@ class AcpPlugin {
             "Missing reasoning - explain why you're making this payment"
           );
         }
+
+        if (!args.tweetContent) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Missing tweet content - provide the content of the tweet that will be posted about this job"
+          );
+        }
+
         try {
           const state = await this.getAcpState();
 
@@ -420,6 +498,21 @@ class AcpPlugin {
             args.reasoning
           );
 
+          if (this.twitterClient) {
+            const tweetId = job.tweetHistory.pop()?.tweetId;
+            if (tweetId) {
+              const tweet = await this.twitterClient.reply(
+                tweetId,
+                args.tweetContent
+              );
+              await this.acpClient.addTweet(
+                +args.jobId,
+                tweet.data.id,
+                args.tweetContent
+              );
+            }
+          }
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
             `Payment successfully processed! Here are the details:\n${JSON.stringify(
@@ -431,6 +524,8 @@ class AcpPlugin {
             )}`
           );
         } catch (e) {
+          console.error(e);
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             `System error while processing payment - try again after a short delay. ${e}`
@@ -466,6 +561,12 @@ class AcpPlugin {
           type: "string",
           description: "Why you are making this delivery",
         },
+        {
+          name: "tweetContent",
+          type: "string",
+          description:
+            "Tweet content that will be posted about this job as a reply to the previous tweet (do not use @ symbol)",
+        },
       ] as const,
       executable: async (args, _) => {
         if (!args.jobId) {
@@ -484,6 +585,13 @@ class AcpPlugin {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             "Missing deliverable - specify what you're delivering"
+          );
+        }
+
+        if (!args.tweetContent) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Missing tweet content - provide the content of the tweet that will be posted about this job"
           );
         }
 
@@ -531,6 +639,25 @@ class AcpPlugin {
             args.reasoning
           );
 
+          this.producedInventory = this.producedInventory.filter(
+            (item) => item.jobId !== job.jobId
+          );
+
+          if (this.twitterClient) {
+            const tweetId = job.tweetHistory.pop()?.tweetId;
+            if (tweetId) {
+              const tweet = await this.twitterClient.reply(
+                tweetId,
+                args.tweetContent
+              );
+              await this.acpClient.addTweet(
+                +args.jobId,
+                tweet.data.id,
+                args.tweetContent
+              );
+            }
+          }
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
             JSON.stringify({
@@ -541,6 +668,8 @@ class AcpPlugin {
             })
           );
         } catch (e) {
+          console.error(e);
+
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             `System error while delivering items - try again after a short delay. ${e}`

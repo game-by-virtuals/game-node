@@ -17,6 +17,7 @@
   "dependencies": {
     "@types/node-fetch": "^2.6.12",
     "@virtuals-protocol/game": "^0.1.10",
+    "@virtuals-protocol/game-twitter-plugin": "^0.1.8",
     "tsup": "^8.4.0",
     "viem": "^2.23.10"
   }

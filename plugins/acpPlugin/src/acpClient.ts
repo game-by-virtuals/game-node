@@ -3,7 +3,7 @@ import { AcpToken, MemoType } from "./acpToken";
 import { parseEther } from "viem";
 
 export class AcpClient {
-  private baseUrl = "https://sdk-dev.game.virtuals.io/acp";
+  private baseUrl = "http://localhost:3001/acp";
 
   constructor(private apiKey: string, private acpToken: AcpToken) {}
 
@@ -22,6 +22,12 @@ export class AcpClient {
       }
     );
 
+    if (!response.ok) {
+      throw new Error(
+        `Failed to get state: ${response.status} ${response.statusText}`
+      );
+    }
+
     return (await response.json()) as AcpState;
   }
 
@@ -33,9 +39,13 @@ export class AcpClient {
     }
 
     const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to browse agents: ${response.status} ${response.statusText}`
+      );
+    }
 
     const responseJson = await response.json();
-
     return (responseJson.data as AcpAgent[]).map((agent) => ({
       id: agent.id,
       name: agent.name,
@@ -74,7 +84,7 @@ export class AcpClient {
       expiredAt: expiredAt.toISOString(),
     };
 
-    await fetch(`${this.baseUrl}`, {
+    const response = await fetch(`${this.baseUrl}`, {
       method: "post",
       headers: {
         Accept: "application/json",
@@ -83,6 +93,12 @@ export class AcpClient {
       },
       body: JSON.stringify(payload),
     });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create job: ${response.status} ${response.statusText}`
+      );
+    }
 
     return jobId;
   }
@@ -159,5 +175,31 @@ export class AcpClient {
       false,
       AcpJobPhases.COMPLETED
     );
+  }
+
+  async addTweet(jobId: number, tweetId: string, content: string) {
+    const payload = {
+      tweetId,
+      content,
+    };
+
+    const response = await fetch(
+      `${this.baseUrl}/${jobId}/tweets/${this.walletAddress}`,
+      {
+        method: "post",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "x-api-key": this.apiKey,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to add tweet: ${response.status} ${response.statusText}`
+      );
+    }
   }
 }

@@ -3,6 +3,7 @@ export interface AcpAgent {
   name: string;
   description: string;
   walletAddress: string;
+  twitterHandler: string;
 }
 
 export enum AcpJobPhases {
@@ -28,12 +29,20 @@ export interface AcpRequestMemo {
   createdAt: number;
 }
 
+export interface ITweet {
+  type: "buyer" | "seller";
+  tweetId: string;
+  content: string;
+  createdAt: number;
+}
+
 export interface AcpJob {
   jobId: number;
   desc: string;
   price: string;
   phase: AcpJobPhasesDesc;
   memo: AcpRequestMemo[];
+  tweetHistory: ITweet[];
   lastUpdated: number;
 }
 
