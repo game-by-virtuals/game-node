@@ -12,7 +12,7 @@ import { GameChatResponse } from "./chatAgent";
 
 class GameClientV2 implements IGameClient {
   public client: Axios;
-  private baseUrl = "https://sdk.game.virtuals.io/v2";
+  private baseUrl = "http://localhost:3001/v2";
 
   constructor(private apiKey: string, private llmModel: LLMModel | string) {
     this.client = axios.create({

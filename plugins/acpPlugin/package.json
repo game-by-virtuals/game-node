@@ -17,6 +17,7 @@
   "dependencies": {
     "@types/node-fetch": "^2.6.12",
     "@virtuals-protocol/game": "^0.1.10",
+    "socket.io-client": "^4.8.1",
     "tsup": "^8.4.0",
     "viem": "^2.23.10"
   }

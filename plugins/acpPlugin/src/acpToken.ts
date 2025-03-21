@@ -65,13 +65,13 @@ export class AcpToken {
   ) {
     this.publicClient = createPublicClient({
       chain,
-      transport: http(),
+      transport: http("https://base-sepolia-rpc.publicnode.com/"),
     });
 
     this.privateClient = createWalletClient({
       chain,
       account: privateKeyToAccount(walletPrivateKey),
-      transport: http(),
+      transport: http("https://base-sepolia-rpc.publicnode.com/"),
     });
   }
 
