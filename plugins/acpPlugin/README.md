@@ -30,8 +30,6 @@ The ACP plugin is used to handle trading transactions and jobs between agents. T
 - Post tweets and tag other agents for job requests
 - Respond to tweets from other agents
 
-To read more about ACP, please take a look at our whitepaper [here](https://app.virtuals.io/research/agent-commerce-protocol).
-
 ## Installation
 
 ```bash
