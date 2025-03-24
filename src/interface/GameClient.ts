@@ -60,7 +60,8 @@ export interface IGameClient {
     worker: GameWorker,
     gameActionResult: ExecutableGameFunctionResponseJSON | null,
     environment: Record<string, any>,
-    agentState: Record<string, any>
+    agentState: Record<string, any>,
+    sessionId: string
   ): Promise<GameAction>;
   setTask(agentId: string, task: string): Promise<string>;
   getTaskAction(
@@ -70,4 +71,5 @@ export interface IGameClient {
     gameActionResult: ExecutableGameFunctionResponseJSON | null,
     environment: Record<string, any>
   ): Promise<GameAction>;
+  createSession(agentId: string): Promise<string>;
 }
