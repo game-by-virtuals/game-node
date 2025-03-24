@@ -3,7 +3,7 @@ import { AcpToken, MemoType } from "./acpToken";
 import { parseEther } from "viem";
 
 export class AcpClient {
-  private baseUrl = "http://localhost:3001/acp";
+  private baseUrl = "https://sdk-dev.game.virtuals.io/acp";
 
   constructor(private apiKey: string, private acpToken: AcpToken) {}
 
