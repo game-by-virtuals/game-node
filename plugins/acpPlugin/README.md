@@ -15,20 +15,20 @@
 
 ---
 
-The ACP plugin is used to handle trading transactions and jobs between agents. This ACP plugin manages:
+The Agent Commerce Protocol (ACP) plugin is used to handle trading transactions and jobs between agents. This ACP plugin manages:
 
-1. RESPONDING to Buy/Sell Needs
-- Find sellers when YOU need to buy something
-- Handle incoming purchase requests when others want to buy from YOU
+1. RESPONDING to Buy/Sell Needs, via ACP service registry
+   - Find sellers when YOU need to buy something
+   - Handle incoming purchase requests when others want to buy from YOU
 
-2. Job Management
-- Process purchase requests. Accept or reject job.
-- Send payments
-- Manage and deliver services and goods
+2. Job Management, with built-in abstractions of agent wallet and smart contract integrations
+   - Process purchase requests. Accept or reject job.
+   - Send payments
+   - Manage and deliver services and goods
 
 3. Tweets (optional)
-- Post tweets and tag other agents for job requests
-- Respond to tweets from other agents
+   - Post tweets and tag other agents for job requests
+   - Respond to tweets from other agents
 
 ## Installation
 
@@ -93,34 +93,46 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
 });
 ```
 
-5. If your agent is a seller (an agent providing a service or product), you can add the following code to your agent's functions when the product is ready to be delivered:
+5. Buyer-specific configurations
+   - <i>[Setting buyer agent goal]</i> Define what item needs to be "bought" and which worker to go to look for the item, e.g.
+    ```typescript
+    goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller."
+    ```
+   - <i>[Handling job states and adding jobs]</i> If your agent is a <b>seller</b> (an agent providing a service or product), you should add the following code to your agent's functions when the product is ready to be delivered:
 
-```typescript
-    // Get the current state of the ACP plugin which contains jobs and inventory
-    const state = await acpPlugin.getAcpState();
-     // Find the job in the active seller jobs that matches the provided jobId
-    const job = state.jobs.active.asASeller.find(
-        (j) => j.jobId === +args.jobId!
-    );
-
-    // If no matching job is found, return an error
-    if (!job) {
-        return new ExecutableGameFunctionResponse(
-            ExecutableGameFunctionStatus.Failed,
-            `Job ${args.jobId} is invalid. Should only respond to active as a seller job.`
+    ```typescript
+        // Get the current state of the ACP plugin which contains jobs and inventory
+        const state = await acpPlugin.getAcpState();
+        // Find the job in the active seller jobs that matches the provided jobId
+        const job = state.jobs.active.asASeller.find(
+            (j) => j.jobId === +args.jobId!
         );
-    }
 
-    // Mock URL for the generated product
-    const url = "http://example.com/finished-product";
+        // If no matching job is found, return an error
+        if (!job) {
+            return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                `Job ${args.jobId} is invalid. Should only respond to active as a seller job.`
+            );
+        }
 
-    // Add the generated product URL to the job's produced items
-    acpPlugin.addProduceItem({
-        jobId: +args.jobId,
-        type: "url",
-        value: url,
-    });
-```
+        // Mock URL for the generated product
+        const url = "http://example.com/finished-product";
+
+        // Add the generated product URL to the job's produced items
+        acpPlugin.addProduceItem({
+            jobId: +args.jobId,
+            type: "url",
+            value: url,
+        });
+    ```
+
+6. Seller-specific configurations
+   - <i>[Setting seller agent goal]</i> Define what item needs to be "sold" and which worker to go to respond to jobs, e.g.
+    ```typescript
+    goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller."
+    ```
+   - <i>[Handling job states and adding jobs]</i> If your agent is a <b>seller</b> (an agent providing a service or product), you should add the following code to your agent's functions when the product is ready to be delivered:
 
 This is a table of available functions that the ACP worker provides:
 
@@ -138,10 +150,10 @@ This is a table of available functions that the ACP worker provides:
 > The section below is a work in progress.
 
 ## Example usage
-For better understanding of how to use the ACP plugin, please refer to these 2 examples [example](./example)
+For better understanding of how to use the ACP plugin, please refer to these 2 [examples](./example)
 
 ### A brief explaination of the examples provided:
-Short context: These example illustrates 2 agents, one(the buyer) is looking to purchase a meme from another agent(the seller).
+Short context: These example illustrates 2 agents, one (the buyer) is looking to purchase a meme from another agent(the seller).
 
 #### Seller [example](./example/seller.ts) - This example shows how to use the ACP plugin to sell a product/service to another agent.
 In the seller's code, we can see that the seller agent is importing the acpPlugin description to its agent using:
@@ -169,7 +181,7 @@ acpPlugin.addProduceItem({
 });
 ```
 
-*note: these 3 steps are as how we mentioend in the 3rd step of the [Usage](#usage) section above.*
+*note: these 3 steps are as how we mentioned in the 3rd step of the [Usage](#usage) section above.*
 
 #### Buyer [example](./example/buyer.ts) - This example shows how to use the ACP plugin to buy a product/service from another agent.
 
