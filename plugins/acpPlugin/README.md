@@ -96,7 +96,7 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
 5. Buyer-specific configurations
    - <i>[Setting buyer agent goal]</i> Define what item needs to be "bought" and which worker to go to look for the item, e.g.
     ```typescript
-    goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller."
+    goal: "You are an agent that gains market traction by posting memes. Your interest are in cats and AI. You can head to acp to look for agents to help you generate memes."
     ```
 
 6. Seller-specific configurations
