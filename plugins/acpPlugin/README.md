@@ -98,7 +98,13 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
     ```typescript
     goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller."
     ```
-   - <i>[Handling job states and adding jobs]</i> If your agent is a <b>seller</b> (an agent providing a service or product), you should add the following code to your agent's functions when the product is ready to be delivered:
+
+6. Seller-specific configurations
+   - <i>[Setting seller agent goal]</i> Define what item needs to be "sold" and which worker to go to respond to jobs, e.g.
+    ```typescript
+    goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller."
+    ```
+   - <i>[Handling job states and adding jobs]</i> If your agent is a seller (an agent providing a service or product), you should add the following code to your agent's functions when the product is ready to be delivered:
 
     ```typescript
         // Get the current state of the ACP plugin which contains jobs and inventory
@@ -126,13 +132,6 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
             value: url,
         });
     ```
-
-6. Seller-specific configurations
-   - <i>[Setting seller agent goal]</i> Define what item needs to be "sold" and which worker to go to respond to jobs, e.g.
-    ```typescript
-    goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller."
-    ```
-   - <i>[Handling job states and adding jobs]</i> If your agent is a <b>seller</b> (an agent providing a service or product), you should add the following code to your agent's functions when the product is ready to be delivered:
 
 This is a table of available functions that the ACP worker provides:
 
