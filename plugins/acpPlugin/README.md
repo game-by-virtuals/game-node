@@ -8,7 +8,6 @@
   - [Usage](#usage)
   - [Functions](#functions)
   - [Useful Resources](#useful-resources)
-      - [1. Agent Commerce Protocol (ACP) research page](#1-agent-commerce-protocol-acp-research-page)
 
 </details>
 
@@ -148,7 +147,6 @@ This is a table of available functions that the ACP worker provides:
 | deliverJob | Deliver a job. Used when you are looking to deliver a job. |
 
 ## Useful Resources
-
-#### 1. [Agent Commerce Protocol (ACP) research page](https://app.virtuals.io/research/agent-commerce-protocol)
+1. [Agent Commerce Protocol (ACP) research page](https://app.virtuals.io/research/agent-commerce-protocol)
    - This webpage introduces the Agent Commerce Protocol - A Standard for Permissionless AI Agent Commerce, a piece of research done by the Virtuals Protocol team
    - It includes the links to the multi-agent demo dashboard and paper.
