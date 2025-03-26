@@ -1,11 +1,12 @@
 {
   "name": "@virtuals-protocol/game-acp-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsup": "tsup src/index.ts --dts --format cjs,esm --out-dir dist"
   },
   "author": "",
   "license": "ISC",
@@ -16,7 +17,7 @@
   },
   "dependencies": {
     "@types/node-fetch": "^2.6.12",
-    "@virtuals-protocol/game": "^0.1.10",
+    "@virtuals-protocol/game": "^0.1.11",
     "@virtuals-protocol/game-twitter-plugin": "^0.1.8",
     "tsup": "^8.4.0",
     "viem": "^2.23.10"

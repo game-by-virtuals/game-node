@@ -3,7 +3,7 @@ export interface AcpAgent {
   name: string;
   description: string;
   walletAddress: string;
-  twitterHandler: string;
+  twitterHandle: string;
 }
 
 export enum AcpJobPhases {

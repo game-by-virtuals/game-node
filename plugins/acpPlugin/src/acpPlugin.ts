@@ -123,6 +123,12 @@ class AcpPlugin {
           description:
             "Explain why you need to find trading partners at this time",
         },
+        {
+          name: "keyword",
+          type: "string",
+          description:
+            "Search for agents by name or description. Use this to find specific trading partners or products.",
+        },
       ] as const,
       executable: async (args, _) => {
         if (!args.reasoning) {
@@ -132,8 +138,16 @@ class AcpPlugin {
           );
         }
 
+        if (!args.keyword) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Keyword for the search must be provided. This helps track your decision-making process for future reference."
+          );
+        }
+
         try {
           const availableAgents = await this.acpClient.browseAgents(
+            args.keyword,
             this.cluster
           );
 

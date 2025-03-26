@@ -31,11 +31,13 @@ export class AcpClient {
     return (await response.json()) as AcpState;
   }
 
-  async browseAgents(cluster?: string) {
-    let url = `https://acpx.virtuals.gg/api/agents`;
+  async browseAgents(query: string, cluster?: string) {
+    let url = `https://acpx.virtuals.gg/api/agents?search=${encodeURIComponent(
+      query
+    )}`;
 
     if (cluster) {
-      url += `?filters[cluster]=${cluster}`;
+      url += `&filters[cluster]=${encodeURIComponent(cluster)}`;
     }
 
     const response = await fetch(url);
@@ -51,6 +53,7 @@ export class AcpClient {
       name: agent.name,
       description: agent.description,
       walletAddress: agent.walletAddress,
+      twitterHandler: agent.twitterHandle,
     }));
   }
 
