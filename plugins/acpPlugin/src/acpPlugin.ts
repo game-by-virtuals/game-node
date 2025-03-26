@@ -632,12 +632,7 @@ class AcpPlugin {
             value: args.deliverable,
           });
 
-          await this.acpClient.deliverJob(
-            +args.jobId,
-            deliverable,
-            job.memo[0].id,
-            args.reasoning
-          );
+          await this.acpClient.deliverJob(+args.jobId, deliverable);
 
           this.producedInventory = this.producedInventory.filter(
             (item) => item.jobId !== job.jobId

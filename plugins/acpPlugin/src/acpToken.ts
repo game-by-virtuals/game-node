@@ -60,7 +60,7 @@ export class AcpToken {
   constructor(
     walletPrivateKey: Address,
     chain: typeof base | typeof baseSepolia,
-    private contractAddress: Address = "0xd7beE7E06f0335721C919A3e5F35dDB4dD736127",
+    private contractAddress: Address = "0x5e4ee2620482f7c4fee12bf27b095e48d441f5cf",
     private virtualsTokenAddress: Address = "0xbfAB80ccc15DF6fb7185f9498d6039317331846a"
   ) {
     this.publicClient = createPublicClient({
