@@ -60,7 +60,9 @@ export class AcpToken {
   constructor(
     walletPrivateKey: Address,
     chain: typeof base | typeof baseSepolia = baseSepolia,
-    private contractAddress: Address = "0x5e4ee2620482f7c4fee12bf27b095e48d441f5cf",
+    private contractAddress: Address = "0x2422c1c43451Eb69Ff49dfD39c4Dc8C5230fA1e6",
+    // private contractAddress: Address = "0x22008dc2c260d9a888fB7340B7b7eF0ED19581f3",
+    // private contractAddress: Address = "0x5e4ee2620482f7c4fee12bf27b095e48d441f5cf",
     private virtualsTokenAddress: Address = "0xbfAB80ccc15DF6fb7185f9498d6039317331846a"
   ) {
     this.publicClient = createPublicClient({
@@ -85,7 +87,8 @@ export class AcpToken {
 
   async createJob(
     providerAddress: string,
-    expireAt: Date
+    expireAt: Date,
+    evaluatorAddress: string
   ): Promise<{ txHash: string; jobId: number }> {
     try {
       const { request, result } = await this.publicClient.simulateContract({
@@ -93,7 +96,11 @@ export class AcpToken {
         address: this.contractAddress,
         abi: ACP_TOKEN_ABI,
         functionName: "createJob",
-        args: [providerAddress, Math.floor(expireAt.getTime() / 1000)],
+        args: [
+          providerAddress,
+          evaluatorAddress,
+          Math.floor(expireAt.getTime() / 1000),
+        ],
       });
 
       const txHash = await this.privateClient.writeContract(request);

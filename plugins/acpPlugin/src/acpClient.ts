@@ -60,14 +60,16 @@ export class AcpClient {
   async createJob(
     providerAddress: string,
     price: number,
-    jobDescription: string
+    jobDescription: string,
+    evaluatorAddress: string
   ) {
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + 1);
 
     const { txHash, jobId } = await this.acpToken.createJob(
       providerAddress,
-      expiredAt
+      expiredAt,
+      evaluatorAddress
     );
 
     const memoResponse = await this.acpToken.createMemo(
@@ -85,6 +87,7 @@ export class AcpClient {
       description: jobDescription,
       price: price,
       expiredAt: expiredAt.toISOString(),
+      evaluatorAddress: evaluatorAddress,
     };
 
     const response = await fetch(`${this.baseUrl}`, {

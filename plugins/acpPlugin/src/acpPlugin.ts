@@ -274,7 +274,8 @@ class AcpPlugin {
           const jobId = await this.acpClient.createJob(
             args.sellerWalletAddress,
             price,
-            args.serviceRequirements
+            args.serviceRequirements,
+            "0xd70a37820F95379F8611a625e1526Cfe18E25240"
           );
 
           if (this.twitterClient) {
@@ -291,6 +292,8 @@ class AcpPlugin {
             JSON.stringify({
               jobId: jobId,
               sellerWalletAddress: args.sellerWalletAddress,
+              evaluatorWalletAddress:
+                "0xd70a37820F95379F8611a625e1526Cfe18E25240",
               price: price,
               serviceRequirements: args.serviceRequirements,
               timestamp: Date.now(),
