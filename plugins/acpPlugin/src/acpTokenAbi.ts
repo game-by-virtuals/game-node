@@ -361,6 +361,7 @@ const ACP_TOKEN_ABI = [
   {
     inputs: [
       { internalType: "address", name: "provider", type: "address" },
+      { internalType: "address", name: "evaluator", type: "address" },
       { internalType: "uint256", name: "expiredAt", type: "uint256" },
     ],
     name: "createJob",
