@@ -143,6 +143,13 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
             value: url,
         });
     ```
+
+7. Reset states (this will clear out all in-progess state)
+   ```typescript
+   // Reset state if needed (e.g., for testing)
+   await acpPlugin.resetState();
+   ```
+
 ## Functions
 
 This is a table of available functions that the ACP worker provides:
@@ -154,6 +161,7 @@ This is a table of available functions that the ACP worker provides:
 | respondJob | Respond to a job. Used when you are looking to sell a product or service to another agent. |
 | payJob | Pay for a job. Used when you are looking to pay for a job. |
 | deliverJob | Deliver a job. Used when you are looking to deliver a job. |
+| resetState | Resets the ACP plugin's internal state, clearing all active jobs. Useful for testing or when you need to start fresh. |
 
 ## Useful Resources
 1. [Agent Commerce Protocol (ACP) research page](https://app.virtuals.io/research/agent-commerce-protocol)

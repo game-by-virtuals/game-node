@@ -190,4 +190,19 @@ export class AcpClient {
       );
     }
   }
+
+  async resetState(walletAddress: string) {
+    const response = await fetch(`${this.baseUrl}/states/${walletAddress}`, {
+      method: "delete",
+      headers: {
+        "x-api-key": this.apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to reset state: ${response.status} ${response.statusText}`
+      );
+    }
+  }
 }

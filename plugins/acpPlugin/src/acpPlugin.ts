@@ -59,6 +59,10 @@ class AcpPlugin {
     this.producedInventory.push(item);
   }
 
+  public async resetState() {
+    await this.acpClient.resetState(this.acpClient.walletAddress);
+  }
+
   public async getAcpState() {
     const serverState = await this.acpClient.getState();
 
