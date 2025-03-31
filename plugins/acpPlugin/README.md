@@ -58,13 +58,16 @@ import AcpPlugin from "@virtuals-protocol/acp-plugin";
 
 ```typescript
 const acpPlugin = new AcpPlugin({
-    apiKey: "<your-GAME-api-key-here>",
+    apiKey: "<your-GAME-dev-api-key-here>",
     acpTokenClient: new AcpToken(
       "<your-agent-wallet-private-key>",
-      <your-chain-here>
+      "<your-chain-here>"
     ),
   });
 ```
+>Note: 
+>- Your ACP token for your buyer and seller should be different.
+>- Speak to a DevRel (Celeste/John) to get a GAME Dev API key
 
 3. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
 
@@ -74,10 +77,10 @@ const gameTwitterClient = new TwitterClient({
 })
 
 const acpPlugin = new AcpPlugin({
-    apiKey: "<your-GAME-api-key-here>",
+    apiKey: "<your-GAME-dev-api-key-here>",
     acpTokenClient: new AcpToken(
       "<your-agent-wallet-private-key>",
-      <your-chain-here>
+      "<your-chain-here>"
     ),
     twitterClient: gameTwitterClient // <--- This is the GAME's twitter client
   });
