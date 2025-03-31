@@ -65,9 +65,9 @@ const acpPlugin = new AcpPlugin({
     ),
   });
 ```
->Note: 
->- Your ACP token for your buyer and seller should be different.
->- Speak to a DevRel (Celeste/John) to get a GAME Dev API key
+> Note: 
+> - Your ACP token for your buyer and seller should be different.
+> - Speak to a DevRel (Celeste/John) to get a GAME Dev API key
 
 3. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
 
