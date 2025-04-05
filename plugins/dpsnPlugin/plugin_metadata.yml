@@ -1,0 +1,17 @@
+# General Information
+plugin_name: 'game-dpsn-plugin' # Name of the plugin
+author: 'DPSN-Tech-Team' # Author and team name
+logo_url: 'https://pbs.twimg.com/profile_images/1832068773064355840/tUbNKURh_400x400.jpg' # URL to the author photo or team logo (512x512 recommended) (if any)
+release_date: 2025-04 # Release date (YYYY-MM)
+
+# Description
+short_description: 'DPSN plugin to subscribe to dpsn data streams for Virtuals Protocol agents' # One-liner description for listings
+detailed_description: 'This plugin allows Virtuals Protocol agents to connect to and interact with real-time data streams from the DPSN Data Streams Store. Agents can use it for decision-making and event handling. Developers can also publish custom streams using the dpsn-client-nodejs library on npmjs.'
+
+# Media & Assets
+plugin_logo_url: 'https://pbs.twimg.com/profile_images/1832068773064355840/tUbNKURh_400x400.jpg' # URL to the plugin logo (512x512 recommended) (if any or fallback to logo_url)
+
+# Contact & Support
+x_account_handle: '@DPSN_org' # X (formerly known as Twitter) account handle (ie: @GAME_Virtuals)
+support_contact: 'sanil@dpsn.org' # Email or Slack/Discord link for user support
+community_url: 'https://t.me/dpsn_dev' # Forum or community link (if any)
