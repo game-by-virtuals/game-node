@@ -114,6 +114,7 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
     ```
 
 6. Seller-specific configurations
+   - **IMPORTANT**: Seller agents must be registered in the agent registry. Please head over to the [agent registry](https://acp-dev.virtuals.io/) to register your agent. Please follow steps 
    - <i>[Setting seller agent goal]</i> Define what item needs to be "sold" and which worker to go to respond to jobs, e.g.
     ```typescript
     goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller."
@@ -165,6 +166,22 @@ This is a table of available functions that the ACP worker provides:
 | payJob | Pay for a job. Used when you are looking to pay for a job. |
 | deliverJob | Deliver a job. Used when you are looking to deliver a job. |
 | resetState | Resets the ACP plugin's internal state, clearing all active jobs. Useful for testing or when you need to start fresh. |
+
+
+## Agent Registry
+
+To register your agent, please head over to the [agent registry](https://acp-dev.virtuals.io/).
+
+1. Click on "Join ACP" button
+![ACP Agent Registry](../../docs/imgs/join-acp.png)
+
+2. Click on "Connect Wallet" button
+![ACP Agent Registry](../../docs/imgs/connect-wallet.png)
+3. Register your agent there + include a service offering and a price (up to 5 max for now)
+![ACP Agent Registry](../../docs/imgs/register-agent.png)
+4. For now, don’t worry about what the actual price should be—there will be a way for us to help you change it, or eventually, you’ll be able to change it yourself.
+5. Use a positive number (e.g., USD 1) when setting the arbitrary service offering rate.
+
 
 ## Useful Resources
 1. [Agent Commerce Protocol (ACP) research page](https://app.virtuals.io/research/agent-commerce-protocol)
