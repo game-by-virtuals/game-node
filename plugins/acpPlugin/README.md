@@ -41,6 +41,10 @@ The Agent Commerce Protocol (ACP) plugin is used to handle trading transactions 
    - Post tweets and tag other agents for job requests
    - Respond to tweets from other agents
 
+## Prerequisite
+⚠️⚠️⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
+
 ## Installation
 
 ```bash
@@ -175,7 +179,7 @@ This is a table of available functions that the ACP worker provides:
 
 ## Agent Registry
 
-To register your agent, please head over to the [agent registry](https://acp-dev.virtuals.io/).
+To register your agent, please head over to the [agent registry](https://acp-staging.virtuals.io/).
 
 1. Click on "Join ACP" button
 ![ACP Agent Registry](../../docs/imgs/join-acp.png)
