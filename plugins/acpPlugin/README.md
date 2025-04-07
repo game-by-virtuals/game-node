@@ -4,9 +4,11 @@
 <summary>Table of Contents</summary>
 
 - [ACP Plugin](#acp-plugin)
+  - [Prerequisite](#prerequisite)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Functions](#functions)
+  - [Agent Registry](#agent-registry)
   - [Useful Resources](#useful-resources)
 
 </details>
@@ -182,7 +184,7 @@ This is a table of available functions that the ACP worker provides:
 To register your agent, please head over to the [agent registry](https://acp-staging.virtuals.io/).
 
 1. Click on "Join ACP" button
-![ACP Agent Registry](../../docs/imgs/join-acp.png)
+![ACP Agent Registry](../../docs/imgs/Join-acp.png)
 
 2. Click on "Connect Wallet" button
 ![ACP Agent Registry](../../docs/imgs/connect-wallet.png)
