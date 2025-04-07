@@ -32,6 +32,25 @@ const ACP_TOKEN_ABI = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "uint256",
+        name: "jobId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newBudget",
+        type: "uint256",
+      },
+    ],
+    name: "BudgetSet",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: "uint256",
         name: "jobId",
@@ -95,7 +114,7 @@ const ACP_TOKEN_ABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: "uint256",
         name: "jobId",
         type: "uint256",
@@ -110,6 +129,12 @@ const ACP_TOKEN_ABI = [
         indexed: true,
         internalType: "address",
         name: "provider",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "evaluator",
         type: "address",
       },
     ],
@@ -335,13 +360,6 @@ const ACP_TOKEN_ABI = [
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "evaluator", type: "address" }],
-    name: "addEvaluator",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       { internalType: "address", name: "account", type: "address" },
       { internalType: "uint256", name: "jobId", type: "uint256" },
@@ -361,6 +379,7 @@ const ACP_TOKEN_ABI = [
   {
     inputs: [
       { internalType: "address", name: "provider", type: "address" },
+      { internalType: "address", name: "evaluator", type: "address" },
       { internalType: "uint256", name: "expiredAt", type: "uint256" },
     ],
     name: "createJob",
@@ -387,27 +406,17 @@ const ACP_TOKEN_ABI = [
   },
   {
     inputs: [],
-    name: "evaluatorCounter",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "evaluatorFeeBP",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "", type: "address" }],
-    name: "evaluators",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "jobId", type: "uint256" }],
+    inputs: [
+      { internalType: "uint256", name: "jobId", type: "uint256" },
+      { internalType: "uint256", name: "offset", type: "uint256" },
+      { internalType: "uint256", name: "limit", type: "uint256" },
+    ],
     name: "getAllMemos",
     outputs: [
       {
@@ -421,13 +430,13 @@ const ACP_TOKEN_ABI = [
           { internalType: "bool", name: "isSecured", type: "bool" },
           { internalType: "uint8", name: "nextPhase", type: "uint8" },
           { internalType: "uint256", name: "jobId", type: "uint256" },
-          { internalType: "uint8", name: "numApprovals", type: "uint8" },
           { internalType: "address", name: "sender", type: "address" },
         ],
         internalType: "struct InteractionLedger.Memo[]",
         name: "",
         type: "tuple[]",
       },
+      { internalType: "uint256", name: "total", type: "uint256" },
     ],
     stateMutability: "view",
     type: "function",
@@ -436,6 +445,8 @@ const ACP_TOKEN_ABI = [
     inputs: [
       { internalType: "uint256", name: "jobId", type: "uint256" },
       { internalType: "uint8", name: "phase", type: "uint8" },
+      { internalType: "uint256", name: "offset", type: "uint256" },
+      { internalType: "uint256", name: "limit", type: "uint256" },
     ],
     name: "getMemosForPhase",
     outputs: [
@@ -450,13 +461,13 @@ const ACP_TOKEN_ABI = [
           { internalType: "bool", name: "isSecured", type: "bool" },
           { internalType: "uint8", name: "nextPhase", type: "uint8" },
           { internalType: "uint256", name: "jobId", type: "uint256" },
-          { internalType: "uint8", name: "numApprovals", type: "uint8" },
           { internalType: "address", name: "sender", type: "address" },
         ],
         internalType: "struct InteractionLedger.Memo[]",
         name: "",
         type: "tuple[]",
       },
+      { internalType: "uint256", name: "total", type: "uint256" },
     ],
     stateMutability: "view",
     type: "function",
@@ -497,22 +508,14 @@ const ACP_TOKEN_ABI = [
   },
   {
     inputs: [
-      { internalType: "address", name: "_providerRegistry", type: "address" },
       { internalType: "address", name: "paymentTokenAddress", type: "address" },
       { internalType: "uint256", name: "evaluatorFeeBP_", type: "uint256" },
-      { internalType: "uint8", name: "numEvaluatorsPerJob_", type: "uint8" },
-      { internalType: "uint8", name: "minApprovals_", type: "uint8" },
+      { internalType: "uint256", name: "platformFeeBP_", type: "uint256" },
+      { internalType: "address", name: "platformTreasury_", type: "address" },
     ],
     name: "initialize",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "evaluator", type: "address" }],
-    name: "isEvaluator",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
-    stateMutability: "view",
     type: "function",
   },
   {
@@ -529,16 +532,6 @@ const ACP_TOKEN_ABI = [
     inputs: [],
     name: "jobCounter",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "uint256", name: "jobId", type: "uint256" },
-      { internalType: "uint256", name: "", type: "uint256" },
-    ],
-    name: "jobEvaluators",
-    outputs: [{ internalType: "address", name: "evaluators", type: "address" }],
     stateMutability: "view",
     type: "function",
   },
@@ -565,7 +558,7 @@ const ACP_TOKEN_ABI = [
       { internalType: "uint8", name: "phase", type: "uint8" },
       { internalType: "uint256", name: "memoCount", type: "uint256" },
       { internalType: "uint256", name: "expiredAt", type: "uint256" },
-      { internalType: "uint8", name: "evaluatorCount", type: "uint8" },
+      { internalType: "address", name: "evaluator", type: "address" },
     ],
     stateMutability: "view",
     type: "function",
@@ -574,13 +567,6 @@ const ACP_TOKEN_ABI = [
     inputs: [],
     name: "memoCounter",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "minApprovals",
-    outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
     stateMutability: "view",
     type: "function",
   },
@@ -600,22 +586,16 @@ const ACP_TOKEN_ABI = [
   },
   {
     inputs: [],
-    name: "providerRegistry",
-    outputs: [
-      {
-        internalType: "contract IServiceProviderRegistry",
-        name: "",
-        type: "address",
-      },
-    ],
+    name: "platformFeeBP",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "evaluator", type: "address" }],
-    name: "removeEvaluator",
-    outputs: [],
-    stateMutability: "nonpayable",
+    inputs: [],
+    name: "platformTreasury",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -679,10 +659,18 @@ const ACP_TOKEN_ABI = [
   {
     inputs: [
       { internalType: "uint256", name: "evaluatorFeeBP_", type: "uint256" },
-      { internalType: "uint8", name: "numEvaluatorsPerJob_", type: "uint8" },
-      { internalType: "uint8", name: "minApprovals_", type: "uint8" },
     ],
-    name: "updateEvaluatorConfigs",
+    name: "updateEvaluatorFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "platformFeeBP_", type: "uint256" },
+      { internalType: "address", name: "platformTreasury_", type: "address" },
+    ],
+    name: "updatePlatformFee",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

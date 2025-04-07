@@ -4,6 +4,10 @@ export interface AcpAgent {
   description: string;
   walletAddress: string;
   twitterHandle: string;
+  offerings: {
+    name: string;
+    price: number;
+  }[];
 }
 
 export enum AcpJobPhases {

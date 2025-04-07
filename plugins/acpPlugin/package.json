@@ -1,6 +1,6 @@
 {
   "name": "@virtuals-protocol/game-acp-plugin",
-  "version": "0.1.3",
+  "version": "0.1.7",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -16,6 +16,9 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@aa-sdk/core": "^4.21.0",
+    "@account-kit/infra": "^4.21.0",
+    "@account-kit/smart-contracts": "^4.21.0",
     "@types/node-fetch": "^2.6.12",
     "@virtuals-protocol/game": "^0.1.11",
     "@virtuals-protocol/game-twitter-plugin": "^0.1.8",

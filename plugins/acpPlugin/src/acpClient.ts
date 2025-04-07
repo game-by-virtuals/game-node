@@ -54,6 +54,7 @@ export class AcpClient {
       description: agent.description,
       walletAddress: agent.walletAddress,
       twitterHandler: agent.twitterHandle,
+      offerings: agent.offerings,
     }));
   }
 
@@ -70,17 +71,9 @@ export class AcpClient {
       expiredAt
     );
 
-    const memoResponse = await this.acpToken.createMemo(
-      jobId,
-      jobDescription,
-      MemoType.MESSAGE,
-      false,
-      AcpJobPhases.NEGOTIOATION
-    );
-
     const payload = {
       jobId: jobId,
-      clientAddress: this.acpToken.getWalletAddress(),
+      clientAddress: this.walletAddress,
       providerAddress: providerAddress,
       description: jobDescription,
       price: price,
@@ -96,6 +89,14 @@ export class AcpClient {
       },
       body: JSON.stringify(payload),
     });
+
+    const memoResponse = await this.acpToken.createMemo(
+      jobId,
+      jobDescription,
+      MemoType.MESSAGE,
+      false,
+      AcpJobPhases.NEGOTIOATION
+    );
 
     if (!response.ok) {
       throw new Error(

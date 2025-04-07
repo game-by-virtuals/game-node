@@ -1,14 +1,24 @@
 import {
   Address,
   createPublicClient,
-  createWalletClient,
+  encodeFunctionData,
   erc20Abi,
+  fromHex,
   http,
 } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import ACP_TOKEN_ABI from "./acpTokenAbi";
-import { privateKeyToAccount } from "viem/accounts";
 import { AcpJobPhases } from "./interface";
+import {
+  createModularAccountV2Client,
+  ModularAccountV2Client,
+} from "@account-kit/smart-contracts";
+import { LocalAccountSigner, SmartAccountSigner } from "@aa-sdk/core";
+import {
+  alchemy,
+  base as AlchemyBase,
+  baseSepolia as AlchemyBaseSepolia,
+} from "@account-kit/infra";
 
 export enum MemoType {
   MESSAGE,
@@ -54,25 +64,70 @@ export type JobResult = [
 ];
 
 export class AcpToken {
+  private _sessionKeyClient: ModularAccountV2Client | undefined;
   private publicClient;
-  private privateClient;
 
   constructor(
-    walletPrivateKey: Address,
-    chain: typeof base | typeof baseSepolia = baseSepolia,
-    private contractAddress: Address = "0x5e4ee2620482f7c4fee12bf27b095e48d441f5cf",
-    private virtualsTokenAddress: Address = "0xbfAB80ccc15DF6fb7185f9498d6039317331846a"
+    private walletPrivateKey: Address,
+    private sessionEntityKeyId: number,
+    private agentWalletAddress: Address,
+    private chain: typeof base | typeof baseSepolia,
+    private contractAddress: Address,
+    private virtualsTokenAddress: Address
   ) {
     this.publicClient = createPublicClient({
       chain,
       transport: http(),
     });
+  }
 
-    this.privateClient = createWalletClient({
+  static async build(
+    walletPrivateKey: Address,
+    sessionEntityKeyId: number,
+    agentWalletAddress: Address,
+    chain: typeof base | typeof baseSepolia = baseSepolia,
+    contractAddress: Address = "0x2422c1c43451Eb69Ff49dfD39c4Dc8C5230fA1e6",
+    virtualsTokenAddress: Address = "0xbfAB80ccc15DF6fb7185f9498d6039317331846a"
+  ) {
+    const acpToken = new AcpToken(
+      walletPrivateKey,
+      sessionEntityKeyId,
+      agentWalletAddress,
       chain,
-      account: privateKeyToAccount(walletPrivateKey),
-      transport: http(),
+      contractAddress,
+      virtualsTokenAddress
+    );
+
+    await acpToken.init();
+
+    return acpToken;
+  }
+
+  async init() {
+    const sessionKeySigner: SmartAccountSigner =
+      LocalAccountSigner.privateKeyToAccountSigner(this.walletPrivateKey);
+
+    this._sessionKeyClient = await createModularAccountV2Client({
+      chain: this.chain === baseSepolia ? AlchemyBaseSepolia : AlchemyBase,
+      transport: alchemy({
+        rpcUrl: "https://alchemy-proxy.virtuals.io/api/proxy/rpc",
+      }),
+      signer: sessionKeySigner,
+      policyId: "0f2ca493-af82-41cf-99a6-8534d668f160",
+      accountAddress: this.agentWalletAddress,
+      signerEntity: {
+        entityId: this.sessionEntityKeyId,
+        isGlobalValidation: true,
+      },
     });
+  }
+
+  get sessionKeyClient() {
+    if (!this._sessionKeyClient) {
+      throw new Error("Session key client not initialized");
+    }
+
+    return this._sessionKeyClient;
   }
 
   getContractAddress() {
@@ -80,7 +135,26 @@ export class AcpToken {
   }
 
   getWalletAddress() {
-    return this.privateClient.account.address;
+    return this.agentWalletAddress;
+  }
+
+  private async getJobId(hash: Address) {
+    const result = await this.sessionKeyClient.getUserOperationReceipt(hash);
+
+    if (!result) {
+      throw new Error("Failed to get user operation receipt");
+    }
+
+    const contractLogs = result.logs.find(
+      (log: any) =>
+        log.address.toLowerCase() === this.contractAddress.toLowerCase()
+    ) as any;
+
+    if (!contractLogs) {
+      throw new Error("Failed to get contract logs");
+    }
+
+    return fromHex(contractLogs.data, "number");
   }
 
   async createJob(
@@ -88,21 +162,31 @@ export class AcpToken {
     expireAt: Date
   ): Promise<{ txHash: string; jobId: number }> {
     try {
-      const { request, result } = await this.publicClient.simulateContract({
-        account: this.privateClient.account,
-        address: this.contractAddress,
+      const data = encodeFunctionData({
         abi: ACP_TOKEN_ABI,
         functionName: "createJob",
-        args: [providerAddress, Math.floor(expireAt.getTime() / 1000)],
+        args: [
+          providerAddress,
+          providerAddress,
+          Math.floor(expireAt.getTime() / 1000),
+        ],
       });
 
-      const txHash = await this.privateClient.writeContract(request);
-
-      await this.publicClient.waitForTransactionReceipt({
-        hash: txHash,
+      const { hash } = await this.sessionKeyClient.sendUserOperation({
+        uo: {
+          target: this.contractAddress,
+          data: data,
+        },
       });
 
-      return { txHash, jobId: Number(result) };
+      const result =
+        await this.sessionKeyClient.waitForUserOperationTransaction({
+          hash,
+        });
+
+      const jobId = await this.getJobId(hash);
+
+      return { txHash: hash, jobId: jobId };
     } catch (error) {
       console.error(error);
       throw new Error("Failed to create job");
@@ -110,23 +194,24 @@ export class AcpToken {
   }
 
   async approveAllowance(priceInWei: bigint) {
-    const approvalRequest = await this.publicClient.simulateContract({
-      account: this.privateClient.account,
-      address: this.virtualsTokenAddress,
+    const data = encodeFunctionData({
       abi: erc20Abi,
       functionName: "approve",
       args: [this.contractAddress, priceInWei],
     });
 
-    const txHash = await this.privateClient.writeContract(
-      approvalRequest.request
-    );
-
-    await this.publicClient.waitForTransactionReceipt({
-      hash: txHash,
+    const { hash } = await this.sessionKeyClient.sendUserOperation({
+      uo: {
+        target: this.virtualsTokenAddress,
+        data: data,
+      },
     });
 
-    return txHash;
+    await this.sessionKeyClient.waitForUserOperationTransaction({
+      hash,
+    });
+
+    return hash;
   }
 
   async createMemo(
@@ -135,21 +220,28 @@ export class AcpToken {
     type: MemoType,
     isSecured: boolean,
     nextPhase: number
-  ): Promise<{ txHash: Address; memoId: number }> {
+  ): Promise<Address> {
     let retries = 3;
     while (retries > 0) {
       try {
-        const { request, result } = await this.publicClient.simulateContract({
-          account: this.privateClient.account,
-          address: this.contractAddress,
+        const data = encodeFunctionData({
           abi: ACP_TOKEN_ABI,
           functionName: "createMemo",
           args: [jobId, content, type, isSecured, nextPhase],
         });
 
-        const txHash = await this.privateClient.writeContract(request);
+        const { hash } = await this.sessionKeyClient.sendUserOperation({
+          uo: {
+            target: this.contractAddress,
+            data: data,
+          },
+        });
 
-        return { txHash, memoId: Number(result) };
+        await this.sessionKeyClient.waitForUserOperationTransaction({
+          hash,
+        });
+
+        return hash;
       } catch (error) {
         console.error(`failed to create memo ${jobId} ${content} ${error}`);
         retries -= 1;
@@ -164,21 +256,24 @@ export class AcpToken {
     let retries = 3;
     while (retries > 0) {
       try {
-        const { request } = await this.publicClient.simulateContract({
-          account: this.privateClient.account,
-          address: this.contractAddress,
+        const data = encodeFunctionData({
           abi: ACP_TOKEN_ABI,
           functionName: "signMemo",
           args: [memoId, isApproved, reason],
         });
 
-        const txHash = await this.privateClient.writeContract(request);
-
-        await this.publicClient.waitForTransactionReceipt({
-          hash: txHash,
+        const { hash } = await this.sessionKeyClient.sendUserOperation({
+          uo: {
+            target: this.contractAddress,
+            data: data,
+          },
         });
 
-        return txHash;
+        await this.sessionKeyClient.waitForUserOperationTransaction({
+          hash,
+        });
+
+        return hash;
       } catch (error) {
         console.error(`failed to sign memo ${error}`);
         retries -= 1;
@@ -191,21 +286,24 @@ export class AcpToken {
 
   async setBudget(jobId: number, budget: bigint) {
     try {
-      const { request } = await this.publicClient.simulateContract({
-        account: this.privateClient.account,
-        address: this.contractAddress,
+      const data = encodeFunctionData({
         abi: ACP_TOKEN_ABI,
         functionName: "setBudget",
         args: [jobId, budget],
       });
 
-      const txHash = await this.privateClient.writeContract(request);
-
-      await this.publicClient.waitForTransactionReceipt({
-        hash: txHash,
+      const { hash } = await this.sessionKeyClient.sendUserOperation({
+        uo: {
+          target: this.contractAddress,
+          data: data,
+        },
       });
 
-      return txHash;
+      await this.sessionKeyClient.waitForUserOperationTransaction({
+        hash,
+      });
+
+      return hash;
     } catch (error) {
       console.error(error);
       throw new Error("Failed to set budget");

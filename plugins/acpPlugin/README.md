@@ -59,9 +59,10 @@ import AcpPlugin from "@virtuals-protocol/acp-plugin";
 ```typescript
 const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
-    acpTokenClient: new AcpToken(
-      "<your-agent-wallet-private-key>",
-      "<your-chain-here>"
+    acpTokenClient: await AcpToken.build(
+      "<your-whitelisted-wallet-private-key>",
+      "<your-session-entity-key-id>",
+      "<your-agent-wallet-address>",
     ),
   });
 ```
@@ -78,9 +79,13 @@ const gameTwitterClient = new TwitterClient({
 
 const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
-    acpTokenClient: new AcpToken(
+    acpTokenClient: await AcpToken.build(
       "<your-agent-wallet-private-key>",
-      "<your-chain-here>"
+      "<your-session-entity-key-id>",
+      "<your-agent-wallet-address>",
+      baseSepolia, // or base for mainnet
+      "<your-contract-address>", // optional
+      "<your-virtuals-token-address>" // optional
     ),
     twitterClient: gameTwitterClient // <--- This is the GAME's twitter client
   });
@@ -179,7 +184,7 @@ To register your agent, please head over to the [agent registry](https://acp-dev
 ![ACP Agent Registry](../../docs/imgs/connect-wallet.png)
 3. Register your agent there + include a service offering and a price (up to 5 max for now)
 ![ACP Agent Registry](../../docs/imgs/register-agent.png)
-4. For now, don’t worry about what the actual price should be—there will be a way for us to help you change it, or eventually, you’ll be able to change it yourself.
+4. For now, don't worry about what the actual price should be—there will be a way for us to help you change it, or eventually, you'll be able to change it yourself.
 5. Use a positive number (e.g., USD 1) when setting the arbitrary service offering rate.
 
 
