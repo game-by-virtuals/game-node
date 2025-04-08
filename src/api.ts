@@ -11,7 +11,7 @@ import {
 
 class GameClient implements IGameClient {
   public client: Axios | null = null;
-  private runnerUrl = "http://localhost:3001";
+  private runnerUrl = "https://game.virtuals.io";
 
   constructor(private apiKey: string, private llmModel: LLMModel | string) {}
 

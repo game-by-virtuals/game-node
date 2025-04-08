@@ -51,7 +51,7 @@ export interface AcpJob {
 }
 
 export interface IDeliverable {
-  type: string;
+  type: "url" | "text";
   value: string;
 }
 
