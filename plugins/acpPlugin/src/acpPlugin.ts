@@ -449,8 +449,6 @@ class AcpPlugin {
             );
           }
 
-          console.log(`Responding to job: ${JSON.stringify(job, null, 2)}`);
-
           await this.acpClient.responseJob(
             +args.jobId,
             args.decision === "ACCEPT",
