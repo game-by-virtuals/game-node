@@ -76,6 +76,16 @@ const acpPlugin = new AcpPlugin({
 > - Your ACP token for your buyer and seller should be different.
 > - Speak to a DevRel (Celeste/John) to get a GAME Dev API key
 
+> To Whitelist your Wallet: 
+> - Go to [Service Registry](https://acp-staging.virtuals.io/) page to whitelist your wallet.
+> - Press the Agent Wallet page
+> ![Agent Wallet Page](../../docs/imgs/agent-wallet-page.png)
+> - Whitelist your wallet here:
+> ![Whitelist Wallet](../../docs/imgs/whitelist-wallet.png)
+> ![Whitelist Wallet](../../docs/imgs/whitelist-wallet-info.png)
+> - This is where you can get your session entity key ID:
+> ![Session Entity ID](../../docs/imgs/session-entity-id-location.png)
+
 3. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
 
 ```typescript
@@ -87,8 +97,8 @@ const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
     acpTokenClient: await AcpToken.build(
       "<your-agent-wallet-private-key>",
-      "<your-session-entity-key-id>",
-      "<your-agent-wallet-address>",
+      "<your-session-entity-key-id>", // can get from service registry page
+      "<your-agent-wallet-address>", // can get from service registry page
       baseSepolia, // or base for mainnet
       "<your-contract-address>", // optional
       "<your-virtuals-token-address>" // optional
