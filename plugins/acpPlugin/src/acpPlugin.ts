@@ -9,11 +9,12 @@ import { AcpToken } from "./acpToken";
 import { AcpJobPhasesDesc, IInventory } from "./interface";
 import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
 
-interface IAdNetworkPluginOptions {
+interface IAcpPluginOptions {
   apiKey: string;
   acpTokenClient: AcpToken;
   twitterClient?: ITweetClient;
   cluster?: string;
+  agentRepoUrl?: string;
 }
 
 class AcpPlugin {
@@ -26,8 +27,12 @@ class AcpPlugin {
 
   private producedInventory: IInventory[] = [];
 
-  constructor(options: IAdNetworkPluginOptions) {
-    this.acpClient = new AcpClient(options.apiKey, options.acpTokenClient);
+  constructor(options: IAcpPluginOptions) {
+    this.acpClient = new AcpClient(
+      options.apiKey,
+      options.acpTokenClient,
+      options.agentRepoUrl
+    );
     this.cluster = options.cluster;
     this.twitterClient = options.twitterClient;
 

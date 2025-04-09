@@ -5,22 +5,20 @@ import { parseEther } from "viem";
 export class AcpClient {
   private baseUrl = "https://sdk-dev.game.virtuals.io/acp";
 
-  constructor(private apiKey: string, private acpToken: AcpToken) {}
+  constructor(
+    private apiKey: string,
+    private acpToken: AcpToken,
+    private agentRepoUrl?: string
+  ) {}
 
   get walletAddress() {
     return this.acpToken.getWalletAddress();
   }
 
   async getState(): Promise<AcpState> {
-    const response = await fetch(
-      `${this.baseUrl}/states/${this.walletAddress}`,
-      {
-        method: "get",
-        headers: {
-          "x-api-key": this.apiKey,
-        },
-      }
-    );
+    const response = await this.request(`states/${this.walletAddress}`, {
+      method: "get",
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -32,9 +30,9 @@ export class AcpClient {
   }
 
   async browseAgents(query: string, cluster?: string) {
-    let url = `https://acpx.virtuals.gg/api/agents?search=${encodeURIComponent(
-      query
-    )}`;
+    const baseUrl =
+      this.agentRepoUrl || "https://acpx-staging.virtuals.io/api/agents";
+    let url = `${baseUrl}?search=${encodeURIComponent(query)}`;
 
     if (cluster) {
       url += `&filters[cluster]=${encodeURIComponent(cluster)}`;
@@ -66,10 +64,7 @@ export class AcpClient {
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + 1);
 
-    const { txHash, jobId } = await this.acpToken.createJob(
-      providerAddress,
-      expiredAt
-    );
+    const { jobId } = await this.acpToken.createJob(providerAddress, expiredAt);
 
     const payload = {
       jobId: jobId,
@@ -80,13 +75,8 @@ export class AcpClient {
       expiredAt: expiredAt.toISOString(),
     };
 
-    const response = await fetch(`${this.baseUrl}`, {
+    const response = await this.request(``, {
       method: "post",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "x-api-key": this.apiKey,
-      },
       body: JSON.stringify(payload),
     });
 
@@ -114,7 +104,7 @@ export class AcpClient {
     reasoning: string
   ) {
     if (accept) {
-      const txHash = await this.acpToken.signMemo(memoId, accept, reasoning);
+      await this.acpToken.signMemo(memoId, accept, reasoning);
 
       const transactionResult = await this.acpToken.createMemo(
         jobId,
@@ -172,15 +162,10 @@ export class AcpClient {
       content,
     };
 
-    const response = await fetch(
-      `${this.baseUrl}/${jobId}/tweets/${this.walletAddress}`,
+    const response = await this.request(
+      `${jobId}/tweets/${this.walletAddress}`,
       {
         method: "post",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "x-api-key": this.apiKey,
-        },
         body: JSON.stringify(payload),
       }
     );
@@ -193,11 +178,8 @@ export class AcpClient {
   }
 
   async resetState(walletAddress: string) {
-    const response = await fetch(`${this.baseUrl}/states/${walletAddress}`, {
+    const response = await this.request(`states/${walletAddress}`, {
       method: "delete",
-      headers: {
-        "x-api-key": this.apiKey,
-      },
     });
 
     if (!response.ok) {
@@ -205,5 +187,26 @@ export class AcpClient {
         `Failed to reset state: ${response.status} ${response.statusText}`
       );
     }
+  }
+
+  private async request(url: string, options: RequestInit = {}) {
+    const headers: Record<string, string> = {
+      "x-api-key": this.apiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
+    if (options.headers) {
+      Object.assign(headers, options.headers);
+    }
+
+    if (process.env.npm_package_version) {
+      headers["x-package-version"] = process.env.npm_package_version;
+    }
+
+    return fetch(`${this.baseUrl}/${url}`, {
+      ...options,
+      headers,
+    });
   }
 }

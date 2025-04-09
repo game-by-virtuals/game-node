@@ -1,12 +1,4 @@
-import {
-  Address,
-  createPublicClient,
-  encodeFunctionData,
-  erc20Abi,
-  fromHex,
-  http,
-} from "viem";
-import { base, baseSepolia } from "viem/chains";
+import { Address, encodeFunctionData, erc20Abi, fromHex } from "viem";
 import ACP_TOKEN_ABI from "./acpTokenAbi";
 import { AcpJobPhases } from "./interface";
 import {
@@ -14,11 +6,7 @@ import {
   ModularAccountV2Client,
 } from "@account-kit/smart-contracts";
 import { LocalAccountSigner, SmartAccountSigner } from "@aa-sdk/core";
-import {
-  alchemy,
-  base as AlchemyBase,
-  baseSepolia as AlchemyBaseSepolia,
-} from "@account-kit/infra";
+import { alchemy, baseSepolia } from "@account-kit/infra";
 
 export enum MemoType {
   MESSAGE,
@@ -65,37 +53,28 @@ export type JobResult = [
 
 export class AcpToken {
   private _sessionKeyClient: ModularAccountV2Client | undefined;
-  private publicClient;
+
+  private chain = baseSepolia;
+  private contractAddress: Address =
+    "0x2422c1c43451Eb69Ff49dfD39c4Dc8C5230fA1e6";
+  private virtualsTokenAddress: Address =
+    "0xbfAB80ccc15DF6fb7185f9498d6039317331846a";
 
   constructor(
     private walletPrivateKey: Address,
     private sessionEntityKeyId: number,
-    private agentWalletAddress: Address,
-    private chain: typeof base | typeof baseSepolia,
-    private contractAddress: Address,
-    private virtualsTokenAddress: Address
-  ) {
-    this.publicClient = createPublicClient({
-      chain,
-      transport: http(),
-    });
-  }
+    private agentWalletAddress: Address
+  ) {}
 
   static async build(
     walletPrivateKey: Address,
     sessionEntityKeyId: number,
-    agentWalletAddress: Address,
-    chain: typeof base | typeof baseSepolia = baseSepolia,
-    contractAddress: Address = "0x2422c1c43451Eb69Ff49dfD39c4Dc8C5230fA1e6",
-    virtualsTokenAddress: Address = "0xbfAB80ccc15DF6fb7185f9498d6039317331846a"
+    agentWalletAddress: Address
   ) {
     const acpToken = new AcpToken(
       walletPrivateKey,
       sessionEntityKeyId,
-      agentWalletAddress,
-      chain,
-      contractAddress,
-      virtualsTokenAddress
+      agentWalletAddress
     );
 
     await acpToken.init();
@@ -108,7 +87,7 @@ export class AcpToken {
       LocalAccountSigner.privateKeyToAccountSigner(this.walletPrivateKey);
 
     this._sessionKeyClient = await createModularAccountV2Client({
-      chain: this.chain === baseSepolia ? AlchemyBaseSepolia : AlchemyBase,
+      chain: this.chain,
       transport: alchemy({
         rpcUrl: "https://alchemy-proxy.virtuals.io/api/proxy/rpc",
       }),
@@ -312,7 +291,7 @@ export class AcpToken {
 
   async getJob(jobId: number): Promise<IJob | undefined> {
     try {
-      const jobData = (await this.publicClient.readContract({
+      const jobData = (await this.sessionKeyClient.readContract({
         address: this.contractAddress,
         abi: ACP_TOKEN_ABI,
         functionName: "jobs",
@@ -357,7 +336,7 @@ export class AcpToken {
     memoType?: MemoType
   ): Promise<IMemo | undefined> {
     try {
-      const memos = (await this.publicClient.readContract({
+      const memos = (await this.sessionKeyClient.readContract({
         address: this.contractAddress,
         abi: ACP_TOKEN_ABI,
         functionName: "getAllMemos",
@@ -381,7 +360,7 @@ export class AcpToken {
     targetPhase: AcpJobPhases
   ): Promise<IMemo | undefined> {
     try {
-      const memos = (await this.publicClient.readContract({
+      const memos = (await this.sessionKeyClient.readContract({
         address: this.contractAddress,
         abi: ACP_TOKEN_ABI,
         functionName: "getMemosForPhase",
