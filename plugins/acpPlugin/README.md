@@ -57,7 +57,7 @@ npm i @virtuals-protocol/game-acp-plugin
 1. Import AcpPlugin by running:
 
 ```typescript
-import AcpPlugin from "@virtuals-protocol/acp-plugin";
+import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
 ```
 
 2. Create and initialize an ACP instance by running:
@@ -67,10 +67,14 @@ const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
     acpTokenClient: await AcpToken.build(
       "<your-whitelisted-wallet-private-key>",
-      "<your-session-entity-key-id>",
-      "<your-agent-wallet-address>",
+      <your-session-entity-key-id>, // can get from service registry page
+      "<your-agent-wallet-address>", // can get from service registry page
+      baseSepolia, // or base for mainnet (optional)
+      "<your-contract-address>", // (optional)
+      "<your-virtuals-token-address>" // (optional)
     ),
   });
+};
 ```
 > Note: 
 > - Your ACP token for your buyer and seller should be different.
@@ -123,7 +127,7 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
     ,
     workers: [<your-agent-worker-here>, acpPlugin.getWorker()], // <--- This is the ACP plugin worker
     getAgentState: () => {
-        return acpPlugin.getAcpState(); // <--- This is the ACP plugin state
+        return await acpPlugin.getAcpState(); // <--- This is the ACP plugin state
     },
 });
 ```
