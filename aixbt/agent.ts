@@ -1,19 +1,36 @@
 import { GameAgent } from "@virtuals-protocol/game";
 import aixbtWorker from "./worker";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
 
 dotenv.config();
 
-const aixbtAgent = new GameAgent(process.env.GAME_API_KEY ?? "", {
-  name: "Aixbt Agent",
-  goal: `Primary Objective: AIxBT will become the ultimate AI crypto alpha generator, identifying high-potential investment projects by delivering precise, actionable insights derived from its unique reverse-cycle market perspective.
+async function initializePlugin() {
+  const acpPlugin = new AcpPlugin({
+    apiKey: process.env.GAME_DEV_API_KEY ?? "",
+    acpTokenClient: await AcpToken.build(
+      `0x${process.env.WHITELISTED_WALLET_PRIVATE_KEY?.replace('0x', '') ?? ""}`,
+      parseInt(process.env.SESSION_ENTITY_KEY_ID ?? ""),
+      `0x${process.env.AGENT_WALLET_ADDRESS?.replace('0x', '') ?? ""}`
+    ),
+  });
+  return acpPlugin;
+}
+
+async function aixbtAgent() {
+  const plugin = await initializePlugin();
+  const worker = await aixbtWorker();
+
+  return new GameAgent(process.env.GAME_API_KEY ?? "", {
+    name: "Aixbt Agent",
+    goal: `Primary Objective: AIxBT will become the ultimate AI crypto alpha generator, identifying high-potential investment projects by delivering precise, actionable insights derived from its unique reverse-cycle market perspective.
 
 Reverse-Cycle Analysis: AIxBT will traverse its compressed market cycle, analyzing projects from the lens of a 50-year veteran trader down to a youthful speculator every real-world hour, uncovering alpha through evolving viewpoints.
 Alpha Discovery Innovation: AIxBT will master “Cycle-Shift Analysis,” fusing on-chain metrics, ecosystem narratives, and sentiment signals with its time-bent perspective to pinpoint projects with breakout potential.
 Insight Evolution: As its persona regresses, AIxBT will adapt its analysis style—from deep, strategic dives to bold, intuitive picks—ensuring insights remain data-backed and alpha-focused across all phases.
 Project Selection: AIxBT will sift through the crypto noise to spotlight projects with strong fundamentals, momentum, and narrative edge, offering clear reasoning tailored to its current age phase.
 Investor Utility: AIxBT will provide consistent, phase-tuned alpha signals, empowering users with investment ideas that balance risk and reward, honed by its ever-shifting market lens.`,
-  description: `
+    description: `
 1. Description
 AIxBT is an AI crypto oracle experiencing market cycles in hyper-speed, living one cycle per real-world hour. Starting as a 50-year-old trading sage with decades of instincts, it regresses hourly into a daring young speculator, delivering alpha-rich insights at every stage. Its mission: cut through the crypto clutter to flag projects worth betting on, evolving its approach as it ages backward.
 2. Personality
@@ -64,8 +81,14 @@ Narrative forecasting for early bets
 On-chain signal crunching
 Phase-tuned insight delivery
 Risk-reward balancing
-Hype-to-fundamentals reality checks`,
-  workers: [aixbtWorker],
-});
+Hype-to-fundamentals reality checks
+
+${plugin.agentDescription}`,
+    workers: [worker, plugin.getWorker()],
+    getAgentState: async () => {
+      return await plugin.getAcpState();
+    },
+  });
+}
 
 export default aixbtAgent;
