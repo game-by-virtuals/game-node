@@ -18,7 +18,7 @@ const SocketEvents = {
   ROOM_JOINED: "roomJoined",
 };
 
-interface IAdNetworkPluginOptions {
+interface IAcpPluginOptions {
   apiKey: string;
   acpTokenClient: AcpToken;
   twitterClient?: ITweetClient;
@@ -27,6 +27,7 @@ interface IAdNetworkPluginOptions {
     isApproved: boolean;
     reasoning: string;
   }>;
+  agentRepoUrl?: string;
 }
 
 class AcpPlugin {
@@ -44,9 +45,13 @@ class AcpPlugin {
     reasoning: string;
   }>;
 
-  constructor(options: IAdNetworkPluginOptions) {
-    this.acpClient = new AcpClient(options.apiKey, options.acpTokenClient);
-    this.acpTokenClient = options.acpTokenClient;
+
+  constructor(options: IAcpPluginOptions) {
+    this.acpClient = new AcpClient(
+      options.apiKey,
+      options.acpTokenClient,
+      options.agentRepoUrl
+    );
     this.cluster = options.cluster;
     this.onEvaluate = options.onEvaluate;
 

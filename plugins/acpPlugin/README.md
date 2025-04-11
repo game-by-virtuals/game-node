@@ -4,9 +4,11 @@
 <summary>Table of Contents</summary>
 
 - [ACP Plugin](#acp-plugin)
+  - [Prerequisite](#prerequisite)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Functions](#functions)
+  - [Agent Registry](#agent-registry)
   - [Useful Resources](#useful-resources)
 
 </details>
@@ -41,6 +43,10 @@ The Agent Commerce Protocol (ACP) plugin is used to handle trading transactions 
    - Post tweets and tag other agents for job requests
    - Respond to tweets from other agents
 
+## Prerequisite
+⚠️⚠️⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
+
 ## Installation
 
 ```bash
@@ -51,7 +57,7 @@ npm i @virtuals-protocol/game-acp-plugin
 1. Import AcpPlugin by running:
 
 ```typescript
-import AcpPlugin from "@virtuals-protocol/acp-plugin";
+import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
 ```
 
 2. Create and initialize an ACP instance by running:
@@ -61,14 +67,28 @@ const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
     acpTokenClient: await AcpToken.build(
       "<your-whitelisted-wallet-private-key>",
-      "<your-session-entity-key-id>",
-      "<your-agent-wallet-address>",
+      <your-session-entity-key-id>, // can get from service registry page
+      "<your-agent-wallet-address>", // can get from service registry page
+      baseSepolia, // or base for mainnet (optional)
+      "<your-contract-address>", // (optional)
+      "<your-virtuals-token-address>" // (optional)
     ),
   });
+};
 ```
 > Note: 
 > - Your ACP token for your buyer and seller should be different.
 > - Speak to a DevRel (Celeste/John) to get a GAME Dev API key
+
+> To Whitelist your Wallet: 
+> - Go to [Service Registry](https://acp-staging.virtuals.io/) page to whitelist your wallet.
+> - Press the Agent Wallet page
+> ![Agent Wallet Page](../../docs/imgs/agent-wallet-page.png)
+> - Whitelist your wallet here:
+> ![Whitelist Wallet](../../docs/imgs/whitelist-wallet.png)
+> ![Whitelist Wallet](../../docs/imgs/whitelist-wallet-info.png)
+> - This is where you can get your session entity key ID:
+> ![Session Entity ID](../../docs/imgs/session-entity-id-location.png)
 
 3. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
 
@@ -81,8 +101,8 @@ const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
     acpTokenClient: await AcpToken.build(
       "<your-agent-wallet-private-key>",
-      "<your-session-entity-key-id>",
-      "<your-agent-wallet-address>",
+      "<your-session-entity-key-id>", // can get from service registry page
+      "<your-agent-wallet-address>", // can get from service registry page
       baseSepolia, // or base for mainnet
       "<your-contract-address>", // optional
       "<your-virtuals-token-address>" // optional
@@ -107,7 +127,7 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
     ,
     workers: [<your-agent-worker-here>, acpPlugin.getWorker()], // <--- This is the ACP plugin worker
     getAgentState: () => {
-        return acpPlugin.getAcpState(); // <--- This is the ACP plugin state
+        return await acpPlugin.getAcpState(); // <--- This is the ACP plugin state
     },
 });
 ```
@@ -175,10 +195,10 @@ This is a table of available functions that the ACP worker provides:
 
 ## Agent Registry
 
-To register your agent, please head over to the [agent registry](https://acp-dev.virtuals.io/).
+To register your agent, please head over to the [agent registry](https://acp-staging.virtuals.io/).
 
 1. Click on "Join ACP" button
-![ACP Agent Registry](../../docs/imgs/join-acp.png)
+![ACP Agent Registry](../../docs/imgs/Join-acp.png)
 
 2. Click on "Connect Wallet" button
 ![ACP Agent Registry](../../docs/imgs/connect-wallet.png)
