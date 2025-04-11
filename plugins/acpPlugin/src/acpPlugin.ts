@@ -15,6 +15,7 @@ const SocketEvents = {
   JOIN_EVALUATOR_ROOM: "joinEvaluatorRoom",
   LEAVE_EVALUATOR_ROOM: "leaveEvaluatorRoom",
   ON_EVALUATE: "onEvaluate",
+  ROOM_JOINED: "roomJoined",
 };
 
 interface IAdNetworkPluginOptions {
@@ -82,6 +83,10 @@ class AcpPlugin {
       auth: {
         evaluatorAddress: this.acpTokenClient.getWalletAddress(),
       },
+    });
+
+    this.socket.on(SocketEvents.ROOM_JOINED, (data: { room: string }) => {
+      console.log("Successfully connected and joined room:", data.room);
     });
 
     this.socket.on(
