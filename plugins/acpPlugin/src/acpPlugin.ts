@@ -3,17 +3,30 @@ import {
   GameFunction,
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
+  GameAgent,
 } from "@virtuals-protocol/game";
 import { AcpClient } from "./acpClient";
 import { AcpToken } from "./acpToken";
-import { AcpJobPhasesDesc, IInventory } from "./interface";
+import { AcpJobPhasesDesc, IDeliverable, IInventory } from "./interface";
 import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
+import { io, Socket } from "socket.io-client";
+
+const SocketEvents = {
+  JOIN_EVALUATOR_ROOM: "joinEvaluatorRoom",
+  LEAVE_EVALUATOR_ROOM: "leaveEvaluatorRoom",
+  ON_EVALUATE: "onEvaluate",
+  ROOM_JOINED: "roomJoined",
+};
 
 interface IAcpPluginOptions {
   apiKey: string;
   acpTokenClient: AcpToken;
   twitterClient?: ITweetClient;
   cluster?: string;
+  onEvaluate?: (deliverables: IDeliverable) => Promise<{
+    isApproved: boolean;
+    reasoning: string;
+  }>;
   agentRepoUrl?: string;
 }
 
@@ -22,10 +35,16 @@ class AcpPlugin {
   private name: string;
   private description: string;
   private acpClient: AcpClient;
+  private acpTokenClient: AcpToken;
+  private producedInventory: IInventory[] = [];
+  private socket: Socket | null = null;
   private cluster?: string;
   private twitterClient?: ITweetClient;
+  private onEvaluate?: (deliverable: IDeliverable) => Promise<{
+    isApproved: boolean;
+    reasoning: string;
+  }>;
 
-  private producedInventory: IInventory[] = [];
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = new AcpClient(
@@ -34,7 +53,7 @@ class AcpPlugin {
       options.agentRepoUrl
     );
     this.cluster = options.cluster;
-    this.twitterClient = options.twitterClient;
+    this.onEvaluate = options.onEvaluate;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -58,6 +77,52 @@ class AcpPlugin {
 
     NOTE: This is NOT for finding clients - only for executing trades when there's a specific need to buy or sell something.
     `;
+
+    if (this.onEvaluate) {
+      this.initializeSocket();
+    }
+  }
+
+  private initializeSocket() {
+    this.socket = io("https://sdk-dev.game.virtuals.io", {
+      auth: {
+        evaluatorAddress: this.acpTokenClient.getWalletAddress(),
+      },
+    });
+
+    this.socket.on(SocketEvents.ROOM_JOINED, (data: { room: string }) => {
+      console.log("Successfully connected and joined room:", data.room);
+    });
+
+    this.socket.on(
+      SocketEvents.ON_EVALUATE,
+      async (data: { memoId: number; deliverable: IDeliverable }) => {
+        if (this.onEvaluate) {
+          const { isApproved, reasoning } = await this.onEvaluate(
+            data.deliverable
+          );
+          if (isApproved) {
+            await this.acpTokenClient.signMemo(data.memoId, true, reasoning);
+          } else {
+            await this.acpTokenClient.signMemo(data.memoId, false, reasoning);
+          }
+        }
+      }
+    );
+
+    const cleanup = async () => {
+      if (this.socket) {
+        this.socket.emit(
+          SocketEvents.LEAVE_EVALUATOR_ROOM,
+          this.acpTokenClient.getWalletAddress()
+        );
+        this.socket.disconnect();
+      }
+      process.exit(0);
+    };
+
+    process.on("SIGINT", cleanup);
+    process.on("SIGTERM", cleanup);
   }
 
   public addProduceItem(item: IInventory) {

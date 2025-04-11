@@ -70,6 +70,7 @@ export class AcpClient {
       jobId: jobId,
       clientAddress: this.walletAddress,
       providerAddress: providerAddress,
+      evaluatorAddress: providerAddress,
       description: jobDescription,
       price: price,
       expiredAt: expiredAt.toISOString(),
