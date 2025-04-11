@@ -1,0 +1,38 @@
+{
+  "name": "@virtuals-protocol/game-alchemy-plugin",
+  "version": "0.1.0",
+  "description": "A plugin for Virtuals Protocol G.A.M.E. to fetch on-chain data using the Alchemy API.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "jest --coverage",
+    "tsup": "tsup src/example.ts --dts --format cjs,esm --out-dir dist",
+    "build": "npm run tsup"
+  },
+  "author": "Alchemy",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.3",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "eslint": "^9.17.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.7",
+    "axios": "^1.7.7"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git"
+  }
+}
