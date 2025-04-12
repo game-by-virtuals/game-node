@@ -85,8 +85,15 @@ class Chat {
         );
       }
 
+      const executableArgs = Object.entries(
+        convoResponse.function_call.args
+      ).reduce((acc, [key, value]) => {
+        acc[key] = { value: String(value) };
+        return acc;
+      }, {} as Record<string, { value: string }>);
+
       const result = await fnToCall.execute(
-        convoResponse.function_call.args,
+        executableArgs, 
         (msg) => console.log(msg)
       );
 
