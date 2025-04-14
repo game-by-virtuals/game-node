@@ -300,7 +300,7 @@ class AcpPlugin {
           name: "requireEvaluator",
           type: "boolean",
           description:
-            "Whether to require a evaluator to verify the deliverable",
+            "Decide if your job request is complex enough to spend money for evaluator agent to assess the relevancy of the output. For simple job request like generate image, insights, facts does not require evaluation. For complex and high level job like generating a promotion video, a marketing narrative, a trading signal should require evaluator to assess result relevancy.",
         },
         {
           name: "evaluatorKeyword",
