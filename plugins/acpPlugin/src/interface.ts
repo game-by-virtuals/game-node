@@ -10,6 +10,13 @@ export interface AcpAgent {
   }[];
 }
 
+export enum AcpClusters {
+  HEDGE_FUND = "hedge_fund",
+  MEDIAHOUSE = "mediahouse",
+}
+
+export type AcpClusterOptions = AcpClusters | undefined;
+
 export enum AcpJobPhases {
   REQUEST = 0,
   NEGOTIOATION = 1,
