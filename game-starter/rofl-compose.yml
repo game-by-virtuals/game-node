@@ -1,0 +1,17 @@
+services:
+  game-starter:
+    image: docker.io/<your-dockerhub-username>/virtuals-game-starter
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    environment:
+      - API_KEY=${API_KEY}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - virtuals:/app
+    restart: always
+
+volumes:
+    virtuals:
