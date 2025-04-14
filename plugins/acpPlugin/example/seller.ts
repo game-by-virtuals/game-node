@@ -6,9 +6,8 @@ import {
   GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-import { baseSepolia } from "viem/chains";
 import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
-import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
+import AcpPlugin, { AcpToken, AcpClusters } from "@virtuals-protocol/game-acp-plugin";
 
 function askQuestion(query: string): Promise<string> {
   const rl = readline.createInterface({
@@ -24,9 +23,9 @@ function askQuestion(query: string): Promise<string> {
   );
 }
 
-const gameTwitterClient = new GameTwitterClient({
-  accessToken: "<ACCESS_TOKEN>",
-});
+// const gameTwitterClient = new GameTwitterClient({
+//   accessToken: "<ACCESS_TOKEN>",
+// });
 
 async function test() {
   const acpPlugin = new AcpPlugin({
@@ -36,6 +35,7 @@ async function test() {
       "<your-session-entity-key-id>",
       "<your-agent-wallet-address>"
     ),
+    cluster: AcpClusters.MEDIAHOUSE
     // twitterClient: gameTwitterClient,
   });
 
