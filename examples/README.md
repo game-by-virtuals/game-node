@@ -8,5 +8,4 @@ This directory contains example implementations showing how to use the library w
 
 2. Run the examples using:
 
-npm run telegram-example # for telegram bot
-npm run twitter-example # for twitter bot
+please refer to each example's README.md for more information on how to run the examples.
