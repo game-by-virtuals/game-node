@@ -1,4 +1,4 @@
-import { AcpAgent, AcpJobPhases, AcpState } from "./interface";
+import { AcpAgent, AcpClusterOptions, AcpJobPhases, AcpState } from "./interface";
 import { AcpToken, MemoType } from "./acpToken";
 import { parseEther } from "viem";
 
@@ -33,7 +33,7 @@ export class AcpClient {
     return (await response.json()) as AcpState;
   }
 
-  async browseAgents(query: string, cluster?: string) {
+  async browseAgents(query: string, cluster?: AcpClusterOptions) {
     const baseUrl =
       this.agentRepoUrl || "https://acpx-staging.virtuals.io/api/agents";
     let url = `${baseUrl}?search=${encodeURIComponent(query)}`;
