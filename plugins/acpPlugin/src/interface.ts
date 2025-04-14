@@ -11,7 +11,7 @@ export interface AcpAgent {
 }
 
 export enum AcpClusters {
-  HEDGE_FUND = "hedge_fund",
+  HEDGEFUND = "hedgefund",
   MEDIAHOUSE = "mediahouse",
 }
 
