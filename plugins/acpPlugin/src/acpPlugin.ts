@@ -7,7 +7,7 @@ import {
 } from "@virtuals-protocol/game";
 import { AcpClient } from "./acpClient";
 import { AcpToken } from "./acpToken";
-import { AcpJobPhasesDesc, IDeliverable, IInventory } from "./interface";
+import { AcpClusterOptions, AcpJobPhasesDesc, IDeliverable, IInventory } from "./interface";
 import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
 import { io, Socket } from "socket.io-client";
 import { Address } from "viem";
@@ -23,8 +23,8 @@ interface IAcpPluginOptions {
   apiKey: string;
   acpTokenClient: AcpToken;
   twitterClient?: ITweetClient;
-  cluster?: string;
-  evaluatorCluster?: string;
+  cluster?: AcpClusterOptions;
+  evaluatorCluster?: AcpClusterOptions;
   onEvaluate?: (deliverables: IDeliverable) => Promise<EvaluateResult>;
   agentRepoUrl?: string;
 }
@@ -46,8 +46,8 @@ class AcpPlugin {
   private acpClient: AcpClient;
   private producedInventory: IInventory[] = [];
   private socket: Socket | null = null;
-  private cluster?: string;
-  private evaluatorCluster?: string;
+  private cluster?: AcpClusterOptions;
+  private evaluatorCluster?: AcpClusterOptions;
   private twitterClient?: ITweetClient;
   private onEvaluate: (deliverable: IDeliverable) => Promise<EvaluateResult>;
 
