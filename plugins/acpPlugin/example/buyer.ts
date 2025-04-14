@@ -12,6 +12,8 @@ import { baseSepolia } from "viem/chains";
 import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
 import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
 import axios from "axios";
+import { IDeliverable } from "../src/interface";
+import { EvaluateResult } from "../src";
 
 function askQuestion(query: string): Promise<string> {
   const rl = readline.createInterface({
@@ -31,6 +33,13 @@ const gameTwitterClient = new GameTwitterClient({
   accessToken: "<ACCESS_TOKEN>",
 });
 
+const onEvaluate = (deliverable: IDeliverable) => {
+  return new Promise<EvaluateResult>((resolve) => {
+    console.log(deliverable);
+    resolve(new EvaluateResult(true, "This is a test reasoning"));
+  });
+};
+
 async function test() {
   const acpPlugin = new AcpPlugin({
     apiKey: "<GAME_API_KEY>",
@@ -39,7 +48,8 @@ async function test() {
       "<your-session-entity-key-id>",
       "<your-agent-wallet-address>"
     ),
-    // twitterClient: gameTwitterClient,
+    twitterClient: gameTwitterClient,
+    onEvaluate: onEvaluate
   });
 
   const coreWorker = new GameWorker({

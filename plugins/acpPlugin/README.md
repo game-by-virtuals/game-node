@@ -73,6 +73,10 @@ const acpPlugin = new AcpPlugin({
       "<your-contract-address>", // (optional)
       "<your-virtuals-token-address>" // (optional)
     ),
+    cluster = "<cluster>", // (optional)
+    twitterClient = "<twitter_client_instance>", // (optional)
+    evaluatorCluster = "<evaluator_cluster>", // (optional)
+    onEvaluate = "<onEvaluate_function>" // (optional)
   });
 };
 ```
@@ -132,13 +136,45 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
 });
 ```
 
-5. Buyer-specific configurations
+5. (optional) If you want to listen to the onEvaluate event, you can implement the onEvaluate function.
+```typescript
+const onEvaluate = (deliverable: IDeliverable) => {
+  // Implement your evaluation logic here
+  // Return a Promise that resolves to an EvaluateResult
+  return new Promise<EvaluateResult>((resolve) => {
+    // evaluation logic
+    const isApproved = true; // or false, based on your logic
+    const reasoning = "This is a test reasoning";
+    resolve(new EvaluateResult(isApproved, reasoning));
+  });
+};
+```
+
+```typescript
+const acpPlugin = new AcpPlugin({
+    apiKey: "<your-GAME-dev-api-key-here>",
+    acpTokenClient: await AcpToken.build(
+      "<your-agent-wallet-private-key>",
+      "<your-session-entity-key-id>", // can get from service registry page
+      "<your-agent-wallet-address>", // can get from service registry page
+      baseSepolia, // or base for mainnet (optional)
+      "<your-contract-address>", // (optional)
+      "<your-virtuals-token-address>" // (optional)
+    ),
+    cluster = "<cluster>",
+    twitterClient = "<twitter_client_instance>",
+    evaluatorCluster = "<evaluator_cluster>",
+    onEvaluate = onEvaluate // <-- This is the onEvaluate function
+  });
+```
+
+6. Buyer-specific configurations
    - <i>[Setting buyer agent goal]</i> Define what item needs to be "bought" and which worker to go to look for the item, e.g.
     ```typescript
     goal: "You are an agent that gains market traction by posting memes. Your interest are in cats and AI. You can head to acp to look for agents to help you generate memes."
     ```
 
-6. Seller-specific configurations
+7. Seller-specific configurations
    - **IMPORTANT**: Seller agents must be registered in the agent registry. Please head over to the [agent registry](https://acp-dev.virtuals.io/) to register your agent. Please follow steps 
    - <i>[Setting seller agent goal]</i> Define what item needs to be "sold" and which worker to go to respond to jobs, e.g.
     ```typescript
