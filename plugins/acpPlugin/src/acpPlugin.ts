@@ -10,6 +10,7 @@ import { AcpToken } from "./acpToken";
 import { AcpJobPhasesDesc, IDeliverable, IInventory } from "./interface";
 import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
 import { io, Socket } from "socket.io-client";
+import { Address } from "viem";
 
 const SocketEvents = {
   JOIN_EVALUATOR_ROOM: "joinEvaluatorRoom",
@@ -23,11 +24,19 @@ interface IAcpPluginOptions {
   acpTokenClient: AcpToken;
   twitterClient?: ITweetClient;
   cluster?: string;
-  onEvaluate?: (deliverables: IDeliverable) => Promise<{
-    isApproved: boolean;
-    reasoning: string;
-  }>;
+  evaluatorCluster?: string;
+  onEvaluate?: (deliverables: IDeliverable) => Promise<EvaluateResult>;
   agentRepoUrl?: string;
+}
+
+export class EvaluateResult {
+  isApproved: boolean;
+  reasoning: string;
+
+  constructor(isApproved: boolean, reasoning: string) {
+    this.isApproved = isApproved;
+    this.reasoning = reasoning;
+  }
 }
 
 class AcpPlugin {
@@ -35,16 +44,12 @@ class AcpPlugin {
   private name: string;
   private description: string;
   private acpClient: AcpClient;
-  private acpTokenClient: AcpToken;
   private producedInventory: IInventory[] = [];
   private socket: Socket | null = null;
   private cluster?: string;
+  private evaluatorCluster?: string;
   private twitterClient?: ITweetClient;
-  private onEvaluate?: (deliverable: IDeliverable) => Promise<{
-    isApproved: boolean;
-    reasoning: string;
-  }>;
-
+  private onEvaluate: (deliverable: IDeliverable) => Promise<EvaluateResult>;
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = new AcpClient(
@@ -53,7 +58,8 @@ class AcpPlugin {
       options.agentRepoUrl
     );
     this.cluster = options.cluster;
-    this.onEvaluate = options.onEvaluate;
+    this.evaluatorCluster = options.evaluatorCluster;
+    this.onEvaluate = options.onEvaluate || this.defaultOnEvaluate;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -78,20 +84,18 @@ class AcpPlugin {
     NOTE: This is NOT for finding clients - only for executing trades when there's a specific need to buy or sell something.
     `;
 
-    if (this.onEvaluate) {
-      this.initializeSocket();
-    }
+    this.initializeSocket();
+  }
+
+  private async defaultOnEvaluate(_: IDeliverable) {
+    return new EvaluateResult(true, "Evaluated by default");
   }
 
   private initializeSocket() {
     this.socket = io("https://sdk-dev.game.virtuals.io", {
       auth: {
-        evaluatorAddress: this.acpTokenClient.getWalletAddress(),
+        evaluatorAddress: this.acpClient.walletAddress,
       },
-    });
-
-    this.socket.on(SocketEvents.ROOM_JOINED, (data: { room: string }) => {
-      console.log("Successfully connected and joined room:", data.room);
     });
 
     this.socket.on(
@@ -102,9 +106,17 @@ class AcpPlugin {
             data.deliverable
           );
           if (isApproved) {
-            await this.acpTokenClient.signMemo(data.memoId, true, reasoning);
+            await this.acpClient.acpTokenClient.signMemo(
+              data.memoId,
+              true,
+              reasoning
+            );
           } else {
-            await this.acpTokenClient.signMemo(data.memoId, false, reasoning);
+            await this.acpClient.acpTokenClient.signMemo(
+              data.memoId,
+              false,
+              reasoning
+            );
           }
         }
       }
@@ -114,7 +126,7 @@ class AcpPlugin {
       if (this.socket) {
         this.socket.emit(
           SocketEvents.LEAVE_EVALUATOR_ROOM,
-          this.acpTokenClient.getWalletAddress()
+          this.acpClient.walletAddress
         );
         this.socket.disconnect();
       }
@@ -284,6 +296,17 @@ class AcpPlugin {
           description:
             "Tweet content that will be posted about this job. Must include the seller's Twitter handle (with @ symbol) to notify them",
         },
+        {
+          name: "requireEvaluator",
+          type: "boolean",
+          description:
+            "Whether to require a evaluator to verify the deliverable",
+        },
+        {
+          name: "evaluatorKeyword",
+          type: "string",
+          description: "Keyword to search for a evaluator.",
+        },
       ] as const,
       executable: async (args, _) => {
         if (!args.price) {
@@ -337,6 +360,31 @@ class AcpPlugin {
             );
           }
 
+          const requireValidator = Boolean(args.requireEvaluator);
+          if (requireValidator && !args.evaluatorKeyword) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Missing validator keyword - provide a keyword to search for a validator"
+            );
+          }
+
+          let evaluatorAddress: Address = this.acpClient.walletAddress;
+          if (requireValidator && args.evaluatorKeyword) {
+            const validators = await this.acpClient.browseAgents(
+              args.evaluatorKeyword,
+              this.evaluatorCluster
+            );
+
+            if (validators.length) {
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                "No evaluator found - try a different keyword"
+              );
+            }
+
+            evaluatorAddress = validators[0].walletAddress as Address;
+          }
+
           const price = parseFloat(args.price);
           if (isNaN(price) || price <= 0) {
             return new ExecutableGameFunctionResponse(
@@ -347,6 +395,7 @@ class AcpPlugin {
 
           const jobId = await this.acpClient.createJob(
             args.sellerWalletAddress,
+            evaluatorAddress,
             price,
             args.serviceRequirements
           );

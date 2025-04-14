@@ -15,6 +15,10 @@ export class AcpClient {
     return this.acpToken.getWalletAddress();
   }
 
+  get acpTokenClient() {
+    return this.acpToken;
+  }
+
   async getState(): Promise<AcpState> {
     const response = await this.request(`states/${this.walletAddress}`, {
       method: "get",
@@ -58,19 +62,24 @@ export class AcpClient {
 
   async createJob(
     providerAddress: string,
+    evaluatorAddress: string,
     price: number,
     jobDescription: string
   ) {
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + 1);
 
-    const { jobId } = await this.acpToken.createJob(providerAddress, expiredAt);
+    const { jobId } = await this.acpToken.createJob(
+      providerAddress,
+      evaluatorAddress,
+      expiredAt
+    );
 
     const payload = {
       jobId: jobId,
       clientAddress: this.walletAddress,
       providerAddress: providerAddress,
-      evaluatorAddress: providerAddress,
+      evaluatorAddress: evaluatorAddress,
       description: jobDescription,
       price: price,
       expiredAt: expiredAt.toISOString(),

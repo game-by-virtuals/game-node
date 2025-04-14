@@ -138,6 +138,7 @@ export class AcpToken {
 
   async createJob(
     providerAddress: string,
+    evaluatorAddress: string,
     expireAt: Date
   ): Promise<{ txHash: string; jobId: number }> {
     try {
@@ -146,7 +147,7 @@ export class AcpToken {
         functionName: "createJob",
         args: [
           providerAddress,
-          providerAddress,
+          evaluatorAddress,
           Math.floor(expireAt.getTime() / 1000),
         ],
       });
