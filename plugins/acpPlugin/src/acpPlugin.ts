@@ -360,7 +360,7 @@ class AcpPlugin {
             );
           }
 
-          const requireValidator = Boolean(args.requireEvaluator);
+          const requireValidator = args.requireEvaluator?.toString() === "true";
           if (requireValidator && !args.evaluatorKeyword) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
@@ -624,7 +624,7 @@ class AcpPlugin {
           if (job.phase !== AcpJobPhasesDesc.NEGOTIOATION) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `Cannot pay - job is in '${job.phase}' phase, must be in 'negotiation' phase`
+              `Cannot pay - job is in '${job.phase}' phase, must be in 'pending_payment' phase`
             );
           }
 
@@ -749,7 +749,7 @@ class AcpPlugin {
           if (job.phase !== AcpJobPhasesDesc.TRANSACTION) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `Cannot deliver - job is in '${job.phase}' phase, must be in 'transaction' phase`
+              `Cannot deliver - job is in '${job.phase}' phase, must be in 'in_progress' phase`
             );
           }
 
