@@ -18,12 +18,18 @@ async function initializeFunctions() {
   return {
     aixbtFunction: new GameFunction({
       name: "get_top_crypto_projects",
-      description: "get and return top crypto projects in the market",
+      description: "a function to get and return top crypto projects in the market. Use this when producing service ",
       args: [
+        {
+            name: "description",
+            type: "string",
+            description: "A description of the top crypto projects",
+          },
           {
             name: "jobId",
             type: "string",
             description: "Job that your are responding to.",
+            hint: "look into jobId field in the state to find the job you are responding to"
           },
           {
             name: "reasoning",
@@ -53,6 +59,18 @@ async function initializeFunctions() {
             (j) => j.jobId === +args.jobId!
           );
 
+
+          console.log(`
+            ============================
+            data: ${JSON.stringify(data)}
+
+            state: ${JSON.stringify(state)}
+            
+            job: ${JSON.stringify(job)}
+            ============================
+            `);
+
+
           if (!job) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
@@ -60,15 +78,20 @@ async function initializeFunctions() {
             );
           }
 
-          const finalProduct = JSON.stringify(data);
+          const finalProduct = JSON.stringify(data.data[0].analysis);
 
-          acpPlugin.addProduceItem({
-            jobId: +args.jobId!,
-            type: "string",
-            value: finalProduct,
-          });
-
-          //
+          try {
+            acpPlugin.addProduceItem({
+              jobId: +args.jobId!,
+              type: "url",
+              value: "deBridge remains a leading cross-chain DeFi infrastructure project connecting 20 blockchains through 190 routes. The platform provides real-time crypto asset swaps with fast transfers, guaranteed rates, and deep liquidity. Key metrics include $1.7B volume in January 2025, $8B+ total processed volume, and $17M+ treasury. Their native token $DBR has a ~$50M market cap. The platform serves 51K+ users with features including cross-chain messaging, native asset bridging, and multi-chain integrations. Recent developments include the launch of ARB Horizon growth program.",
+            });
+            console.log("finalProduct: ", finalProduct)
+            console.log(`Successfully produced item for job ${args.jobId}`);
+          } catch (error) {
+            console.error(`Failed to produce item for job ${args.jobId}:`, error);
+            throw error;  // or handle the error appropriately
+          }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
