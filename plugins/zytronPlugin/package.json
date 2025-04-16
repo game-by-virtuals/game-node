@@ -1,0 +1,31 @@
+{
+  "name": "@virtuals-protocol/game-zytron-plugin",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format cjs,esm --out-dir dist"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.10",
+    "tsup": "^8.4.0",
+    "viem": "^2.23.13"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/game-by-virtuals/game-node"
+  }
+}
