@@ -7,7 +7,12 @@ import {
 } from "@virtuals-protocol/game";
 import { AcpClient } from "./acpClient";
 import { AcpToken } from "./acpToken";
-import { AcpJobPhasesDesc, IDeliverable, IInventory } from "./interface";
+import {
+  AcpJob,
+  AcpJobPhasesDesc,
+  IDeliverable,
+  IInventory,
+} from "./interface";
 import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
 import { io, Socket } from "socket.io-client";
 import { Address } from "viem";
@@ -17,6 +22,7 @@ const SocketEvents = {
   LEAVE_EVALUATOR_ROOM: "leaveEvaluatorRoom",
   ON_EVALUATE: "onEvaluate",
   ROOM_JOINED: "roomJoined",
+  ON_PHASE_CHANGE: "onPhaseChange",
 };
 
 interface IAcpPluginOptions {
@@ -50,6 +56,7 @@ class AcpPlugin {
   private evaluatorCluster?: string;
   private twitterClient?: ITweetClient;
   private onEvaluate: (deliverable: IDeliverable) => Promise<EvaluateResult>;
+  private onPhaseChange?: (job: AcpJob) => Promise<void>;
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = new AcpClient(
@@ -87,6 +94,10 @@ class AcpPlugin {
     this.initializeSocket();
   }
 
+  setOnPhaseChange(onPhaseChange: (job: AcpJob) => Promise<void>) {
+    this.onPhaseChange = onPhaseChange;
+  }
+
   private async defaultOnEvaluate(_: IDeliverable) {
     return new EvaluateResult(true, "Evaluated by default");
   }
@@ -122,6 +133,10 @@ class AcpPlugin {
       }
     );
 
+    this.socket.on(SocketEvents.ON_PHASE_CHANGE, async (data: AcpJob) => {
+      await this.onPhaseChange?.(data);
+    });
+
     const cleanup = async () => {
       if (this.socket) {
         this.socket.emit(
@@ -139,6 +154,7 @@ class AcpPlugin {
 
   public addProduceItem(item: IInventory) {
     this.producedInventory.push(item);
+    return item;
   }
 
   public async resetState() {
@@ -183,7 +199,7 @@ class AcpPlugin {
   get agentDescription() {
     return `
     Inventory structure
-      - inventory.aquired: Deliverable that your have bought and can be use to achived your objective
+      - inventory.acquired: Deliverable that your have bought and can be use to achived your objective
       - inventory.produced: Deliverable that needs to be delivered to your seller
 
     Job Structure:

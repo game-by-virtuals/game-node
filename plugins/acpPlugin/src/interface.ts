@@ -61,7 +61,7 @@ export interface IInventory extends IDeliverable {
 
 export interface AcpState {
   inventory: {
-    aquired: IInventory[];
+    acquired: IInventory[];
     produced: IInventory[];
   };
   jobs: {

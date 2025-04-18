@@ -154,6 +154,14 @@ export class AcpClient {
     );
 
     const signedMemoTxHash = await this.acpToken.signMemo(memoId, true, reason);
+
+    const transactionResult = await this.acpToken.createMemo(
+      jobId,
+      `Payment of ${amount} made. ${reason}`,
+      MemoType.MESSAGE,
+      false,
+      AcpJobPhases.EVALUATION
+    );
   }
 
   async deliverJob(jobId: number, deliverable: string) {
