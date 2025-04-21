@@ -45,9 +45,9 @@ export enum FunctionResultStatus {
 }
 
 // Main Chat class
-class Chat {
-  private chatId: string;
-  private client: GAMEClientV2;
+export class Chat {
+  public chatId: string;
+  public client: GAMEClientV2;
   private actionSpace: Record<string, GameFunction<any>> | null;
   private getStateFn: (() => Record<string, any>) | null;
 
