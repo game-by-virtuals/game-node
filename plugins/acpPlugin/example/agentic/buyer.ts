@@ -12,8 +12,8 @@ import { baseSepolia } from "viem/chains";
 import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
 import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
 import axios from "axios";
-import { IDeliverable } from "../src/interface";
-import { EvaluateResult } from "../src";
+import { IDeliverable } from "../../src/interface";
+import { EvaluateResult } from "../../src";
 
 function askQuestion(query: string): Promise<string> {
   const rl = readline.createInterface({
