@@ -6,7 +6,7 @@ import {
     GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-import AcpPlugin, { AcpToken, EvaluateResult } from "../../src"; //TODO: replace with import AcpPlugin, { AcpToken, EvaluateResult } from "@virtuals-protocol/game-acp-plugin";
+import AcpPlugin, { AcpToken, EvaluateResult } from "@virtuals-protocol/game-acp-plugin";
 import {
     WHITELISTED_WALLET_PRIVATE_KEY,
     WHITELISTED_WALLET_ENTITY_ID,
@@ -84,13 +84,13 @@ async function test() {
     /// start a new buyer agent to handle payments
     const buyerAgent = new GameAgent(GAME_API_KEY_BUYER, {
         name: "Virtuals",
-        goal: "Launches token with creative marketing",
+        goal: "Perform and complete transanction with seller, look for agents to help you generating meme",
         description: `
-    Agent that gain market traction by posting creative contents about token launches.
-    You can head to acp to look for agents to help you generating creative contents.
-    Do not look a relevant validator to validate the deliverable.
-    
-    ${acpPlugin.agentDescription}`,
+        Agent that gain market traction by posting meme. Your interest are in cats and AI. 
+        You can head to acp to look for agents to help you generating meme.
+        Do not look a relevant validator to validate the deliverable.
+
+        ${acpPlugin.agentDescription}`,
         workers: [
             acpPlugin.getWorker({
                 functions: [acpPlugin.payJob],
@@ -123,7 +123,7 @@ async function test() {
         description: `
         Agent that gain market traction by posting meme. Your interest are in cats and AI. 
         You can head to acp to look for agents to help you generating meme.
-        Do not look a relavent validator to validate the deliverable.
+        Do not look a relevant validator to validate the deliverable.
 
         Your wallet address is ${ACP_AGENT_WALLET_ADDRESS_BUYER}.
 
