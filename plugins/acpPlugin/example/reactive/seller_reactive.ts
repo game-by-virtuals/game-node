@@ -89,7 +89,7 @@ async function test() {
     /// start a new seller agent to handle respond and deliver job
     const sellerAgent = new GameAgent(GAME_API_KEY_SELLER, {
         name: "Memx",
-        goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller.",
+        goal: "To provide meme generation as a service. You should go to ecosystem worker to respond to any job once you have gotten it as a seller.",
         description: `
         You are Memx, a meme generator. Meme generation is your life. You always give buyer the best meme.
 
