@@ -5,7 +5,7 @@ import GameFunction, {
   ExecutableGameFunctionStatus,
 } from "./function";
 import { LLMModel } from "./interface/GameClient";
-import { ChatAgent } from "./chatAgent";
+import { ChatAgent, Chat } from "./chatAgent";
 
 export {
   GameAgent,
@@ -15,4 +15,5 @@ export {
   ExecutableGameFunctionStatus,
   LLMModel,
   ChatAgent,
+  Chat,
 };
