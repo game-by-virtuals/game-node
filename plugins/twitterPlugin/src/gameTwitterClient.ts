@@ -5,6 +5,8 @@ import {
   UserV2Result,
   TweetUserMentionTimelineV2Paginator,
   UserV2TimelineResult,
+  DmEventsV1Paginator,
+  DirectMessageCreateV1Result,
 } from "twitter-api-v2";
 import { ITweetClient, MediaIdsType } from "./interface";
 
@@ -158,4 +160,32 @@ export class GameTwitterClient implements ITweetClient {
 
     return result.mediaId;
   }
+
+  async getDMEvents(paginationToken?: string): Promise<DmEventsV1Paginator> {
+    let url = "/dm/events";
+    if (paginationToken) {
+      url += `?paginationToken=${paginationToken}`;
+    }
+    return this.fetchAPI<DmEventsV1Paginator>(url, {
+      method: "GET",
+    });
+  }
+
+  async sendDM(recipientId: string, text: string): Promise<DirectMessageCreateV1Result> {
+    if (!recipientId || !text) {
+      throw new Error('recipientId and text are required');
+    }
+    return this.fetchAPI<DirectMessageCreateV1Result>("/dm/send", {
+      method: "POST",
+      body: JSON.stringify({
+        recipientId: recipientId,
+        text: text
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        ...this.headers
+      }
+    });
+  }
+
 }
