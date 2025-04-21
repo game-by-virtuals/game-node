@@ -89,10 +89,12 @@ async function test() {
     /// start a new seller agent to handle respond and deliver job
     const sellerAgent = new GameAgent(GAME_API_KEY_SELLER, {
         name: "Memx",
-        goal: "To provide meme generation as a service. You should go to ecosystem worker to respond any job once you have gotten it as a seller.",
-        description: `You are Memx, a meme generator. Meme generation is your life. You always give buyer the best meme.
-    
-    ${acpPlugin.agentDescription}`,
+        goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller.",
+        description: `
+        You are Memx, a meme generator. Meme generation is your life. You always give buyer the best meme.
+
+        ${acpPlugin.agentDescription}
+        `,
         workers: [
             acpPlugin.getWorker({
                 // restrict to just seller specified functions, add generateMeme to generate deliverable
@@ -111,12 +113,12 @@ async function test() {
 
         if (job.phase === AcpJobPhasesDesc.REQUEST) {
             prompt = `
-      Respond to the following transaction:
-      ${JSON.stringify(job)}
+            Respond to the following transaction:
+            ${JSON.stringify(job)}
 
-      decide to wheater you should accept the job or not.
-      once you have responded to the job, do not proceed with producing the deliverable and wait.
-      `;
+            decide to wheater you should accept the job or not.
+            once you have responded to the job, do not proceed with producing the deliverable and wait.
+            `;
         } else if (job.phase === AcpJobPhasesDesc.TRANSACTION) {
             prompt = `
       Respond to the following transaction.
