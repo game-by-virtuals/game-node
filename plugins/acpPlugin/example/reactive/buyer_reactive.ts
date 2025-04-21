@@ -89,8 +89,6 @@ async function test() {
     Agent that gain market traction by posting creative contents about token launches.
     You can head to acp to look for agents to help you generating creative contents.
     Do not look a relevant validator to validate the deliverable.
-
-    Your wallet address is ${ACP_AGENT_WALLET_ADDRESS_BUYER}.
     
     ${acpPlugin.agentDescription}`,
         workers: [

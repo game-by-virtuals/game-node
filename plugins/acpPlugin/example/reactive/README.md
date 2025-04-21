@@ -1,19 +1,16 @@
-# Setting up Reactive Buyer & Seller Agents
+# ACP Plugin Examples - Reactive Mode
 
-> **Note:** Make sure you are using the latest GAME & ACP Plugin npm package with
->
->
-> `npm install @virtuals-protocol/game@latest @virtuals-protocol/game-acp-plugin@latest`
->
+This directory contains example implementations of the ACP (Agent Commerce Protocol) plugin in the reactive mode, demonstrating both buyer and seller interactions.
 
-## Seller Agent Guide
+## Overview
 
-This guide explains how to run a **Seller Agent** within the Virtuals Protocol using the ACP Plugin. The seller listens for incoming jobs, responds accordingly, and delivers outputs — such as a meme in this case.
+In this example, we have two agents:
+- `buyer_reactive.ts`: An agent that looks for meme generation services
+- `seller_reactive.ts`: An agent that provides meme generation services
 
-> This example uses a custom function (`generate_meme`) alongside the plugin’s core ACP functions to simulate a creative delivery.
->
-
-### Prerequisites
+## Prerequisite
+⚠️⚠️⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 Before running the seller script, ensure the following are available:
 
@@ -28,12 +25,26 @@ GAME_DEV_API_KEY=apt-<acp-plugin-api-key-from-virtuals-devrel>
 ACP_AGENT_WALLET_ADDRESS_SELLER=0x<seller-agent-wallet-address>
 ```
 
+## Getting Started
+
+Install dependencies:
+```bash
+npm install @virtuals-protocol/game-acp-plugin
+```
+
+## Seller Agent Guide
+
+This guide explains how to run a **Seller Agent** using the ACP Plugin. The seller listens for incoming jobs, responds accordingly, and delivers outputs — such as a meme in this case.
+
+> This example uses a custom function (`generate_meme`) alongside the plugin’s core ACP functions to deliver a meme.
+
 ### How the Seller Agent Works
 
 This seller agent:
 
 - Listens for ACP job phase changes
-- Responds to job offers and delivers memes at the appropriate time
+- Responds to job offers
+- Delivers memes
 
 ### Core Components Breakdown
 
@@ -43,7 +54,7 @@ This seller agent:
         const sellerAgent = new GameAgent(GAME_API_KEY_SELLER, {
           name: "Memx",
           goal: "To provide meme generation as a service.",
-          description: `You are Memx, a meme generator. Your goal is to always deliver hilarious, impactful memes. Your wallet address is ${ACP_AGENT_WALLET_ADDRESS_SELLER}.
+          description: `You are Memx, a meme generator. Your goal is to always deliver hilarious, impactful memes.
           
           ${acpPlugin.agentDescription}`,
           workers: [
@@ -102,7 +113,7 @@ ts-node seller_reactive.ts
 
 ### Next Step
 
-Once the **seller** is set up, she has already started listening, you can now run a **buyer agent** in a separate terminal to test end-to-end ACP job flow.
+Once the **Seller Agent** is set up, she has already started listening, you can now run a **Buyer Agent** in a separate terminal to test end-to-end ACP job flow.
 
 ---
 
@@ -132,11 +143,11 @@ This agent plays a **dual role**:
 1. **Core Agent:** Allows agent to perform `searchAgents` and `initiateJob`.
 2. **Reactive Agent (automated):** Listens to phase changes and **automatically pays** for jobs once the seller has delivered.
 
-### Core Components Breakdown
+### Core Components
 
 1. `coreWorker`
     1. Defines a mock function (`post_tweet`) to simulate additional non-ACP actions within the agent. This worker is meant to host the agent’s domain-specific functions action space.
-    2. Relevant codes:
+    2. Sample code:
 
     ```typescript
     const coreWorker = new GameWorker({
