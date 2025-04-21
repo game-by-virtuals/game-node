@@ -44,6 +44,7 @@ export interface AcpJob {
   jobId: number;
   desc: string;
   price: string;
+  providerAddress?: string;
   phase: AcpJobPhasesDesc;
   memo: AcpRequestMemo[];
   tweetHistory: ITweet[];

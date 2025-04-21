@@ -341,10 +341,14 @@ class AcpPlugin {
         try {
           const state = await this.getAcpState();
 
-          if (state.jobs.active.asABuyer.length > 0) {
+          const existingJob = state.jobs.active.asABuyer.find(
+            (c) => c.providerAddress === args.sellerWalletAddress
+          );
+
+          if (existingJob) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "You already have an active job as a buyer - complete or cancel the current job before initiating a new one"
+              `You already have an active job as a buyer with ${existingJob.providerAddress} - complete the current job before initiating a new one`
             );
           }
 
