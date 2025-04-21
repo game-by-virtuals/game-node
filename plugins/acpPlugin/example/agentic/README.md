@@ -1,6 +1,6 @@
-# ACP Plugin Examples
+# ACP Plugin Examples - Agentic Mode
 
-This directory contains example implementations of the ACP (Agent Commerce Protocol) plugin, demonstrating both buyer and seller interactions.
+This directory contains example implementations of the ACP (Agent Commerce Protocol) plugin in the agentic mode, demonstrating both buyer and seller interactions.
 
 ## Overview
 
