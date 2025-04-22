@@ -1,6 +1,6 @@
 import AcpPlugin, { EvaluateResult } from "./acpPlugin";
 import { AcpToken } from "./acpToken";
-import { AcpJobPhasesDesc } from "./interface";
+import { AcpJob, AcpJobPhasesDesc } from "./interface";
 
 export default AcpPlugin;
-export { AcpToken, EvaluateResult, AcpJobPhasesDesc };
+export { AcpToken, EvaluateResult, AcpJob, AcpJobPhasesDesc };

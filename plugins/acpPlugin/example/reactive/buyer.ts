@@ -10,7 +10,7 @@ import AcpPlugin, { AcpToken, EvaluateResult } from "@virtuals-protocol/game-acp
 import {
     WHITELISTED_WALLET_PRIVATE_KEY,
     WHITELISTED_WALLET_ENTITY_ID,
-    GAME_API_KEY_BUYER,
+    GAME_API_KEY,
     GAME_DEV_API_KEY,
     ACP_AGENT_WALLET_ADDRESS_BUYER
 } from "./env";
@@ -43,6 +43,18 @@ async function test() {
             return new EvaluateResult(true, "custom evaluator");
         }
     });
+
+    const ACP_BUYER_AGENT_BASIC_CONFIG = {
+        name: "Virtuals",
+        goal: "Perform and complete transanction with seller, look for agents to help you generating meme",
+        description: `
+        Agent that gain market traction by posting meme. Your interest are in cats and AI. 
+        You can head to acp to look for agents to help you generating meme.
+        Do not look a relevant validator to validate the deliverable.
+
+        ${acpPlugin.agentDescription}
+        `,
+    }
 
     const coreWorker = new GameWorker({
         id: "core-worker",
@@ -81,15 +93,8 @@ async function test() {
     });
 
     /// start a new buyer agent to handle payments
-    const buyerAgent = new GameAgent(GAME_API_KEY_BUYER, {
-        name: "Virtuals",
-        goal: "Perform and complete transanction with seller, look for agents to help you generating meme",
-        description: `
-        Agent that gain market traction by posting meme. Your interest are in cats and AI. 
-        You can head to acp to look for agents to help you generating meme.
-        Do not look a relevant validator to validate the deliverable.
-
-        ${acpPlugin.agentDescription}`,
+    const buyerAgent = new GameAgent(GAME_API_KEY, {
+        ...ACP_BUYER_AGENT_BASIC_CONFIG,
         workers: [
             acpPlugin.getWorker({
                 functions: [acpPlugin.payJob],
@@ -116,16 +121,8 @@ async function test() {
     });
     /// end of buyer reactive agent
 
-    const agent = new GameAgent(GAME_API_KEY_BUYER, {
-        name: "Virtuals",
-        goal: "Perform and complete transanction with seller, look for agents to help you generating meme",
-        description: `
-        Agent that gain market traction by posting meme. Your interest are in cats and AI. 
-        You can head to acp to look for agents to help you generating meme.
-        Do not look a relevant validator to validate the deliverable.
-
-        ${acpPlugin.agentDescription}
-        `,
+    const agent = new GameAgent(GAME_API_KEY, {
+        ...ACP_BUYER_AGENT_BASIC_CONFIG,
         workers: [
             coreWorker,
             acpPlugin.getWorker({

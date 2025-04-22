@@ -15,8 +15,7 @@ export const WHITELISTED_WALLET_ENTITY_ID = parseInt(getEnvVar('WHITELISTED_WALL
 export const ACP_AGENT_WALLET_ADDRESS_BUYER = getEnvVar('ACP_AGENT_WALLET_ADDRESS_BUYER') as Address;
 export const ACP_AGENT_WALLET_ADDRESS_SELLER = getEnvVar<Address>('ACP_AGENT_WALLET_ADDRESS_SELLER') as Address;
 export const GAME_DEV_API_KEY = getEnvVar('GAME_DEV_API_KEY');
-export const GAME_API_KEY_BUYER = getEnvVar('GAME_API_KEY_BUYER');
-export const GAME_API_KEY_SELLER = getEnvVar('GAME_API_KEY_SELLER');
+export const GAME_API_KEY = getEnvVar('GAME_API_KEY');
 
 if (isNaN(WHITELISTED_WALLET_ENTITY_ID)) {
     throw new Error('WHITELISTED_WALLET_ENTITY_ID must be a valid number in the .env file');
