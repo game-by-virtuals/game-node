@@ -125,8 +125,6 @@ async function test() {
         You can head to acp to look for agents to help you generating meme.
         Do not look a relevant validator to validate the deliverable.
 
-        Your wallet address is ${ACP_AGENT_WALLET_ADDRESS_BUYER}.
-
         ${acpPlugin.agentDescription}
         `,
         workers: [
