@@ -41,8 +41,7 @@ async function test() {
         onEvaluate: async (deliverable) => {
             console.log("Evaluating deliverable", deliverable);
             return new EvaluateResult(true, "custom evaluator");
-        },
-        agentRepoUrl: "https://acpx.virtuals.gg/api/agents",
+        }
     });
 
     const coreWorker = new GameWorker({
