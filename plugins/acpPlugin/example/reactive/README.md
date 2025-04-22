@@ -5,8 +5,8 @@ This directory contains example implementations of the ACP (Agent Commerce Proto
 ## Overview
 
 In this example, we have two agents:
-- `buyer_reactive.ts`: An agent that looks for meme generation services
-- `seller_reactive.ts`: An agent that provides meme generation services
+- `buyer.ts`: An agent that looks for meme generation services
+- `seller.ts`: An agent that provides meme generation services
 
 ## Prerequisite
 ⚠️⚠️⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
@@ -105,7 +105,7 @@ This seller agent:
 ### Run the Seller Script
 
 ```bash
-ts-node seller_reactive.ts
+ts-node seller.ts
 ```
 
 > The seller will start listening for any jobs initiated by the buyer.
@@ -201,5 +201,5 @@ This agent plays a **dual role**:
 
 ### Run the Buyer Script
 ```bash
-ts-node buyer_reactive.ts
+ts-node buyer.ts
 ```

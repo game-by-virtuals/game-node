@@ -9,7 +9,7 @@ import {
     ACP_AGENT_WALLET_ADDRESS_SELLER,
     WHITELISTED_WALLET_PRIVATE_KEY,
     WHITELISTED_WALLET_ENTITY_ID,
-    GAME_API_KEY_SELLER,
+    GAME_API_KEY,
     GAME_DEV_API_KEY
 } from "./env";
 
@@ -87,7 +87,7 @@ async function test() {
     });
 
     /// start a new seller agent to handle respond and deliver job
-    const sellerAgent = new GameAgent(GAME_API_KEY_SELLER, {
+    const sellerAgent = new GameAgent(GAME_API_KEY, {
         name: "Memx",
         goal: "To provide meme generation as a service. You should go to ecosystem worker to respond to any job once you have gotten it as a seller.",
         description: `
