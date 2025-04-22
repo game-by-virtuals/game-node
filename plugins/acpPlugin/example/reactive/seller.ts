@@ -4,7 +4,7 @@ import {
     GameAgent,
     GameFunction,
 } from "@virtuals-protocol/game";
-import AcpPlugin, { AcpToken, AcpJob, AcpJobPhasesDesc } from "@virtuals-protocol/game-acp-plugin"
+import AcpPlugin, { AcpToken, AcpJobPhasesDesc } from "@virtuals-protocol/game-acp-plugin"
 import {
     ACP_AGENT_WALLET_ADDRESS_SELLER,
     WHITELISTED_WALLET_PRIVATE_KEY,
@@ -12,35 +12,6 @@ import {
     GAME_API_KEY,
     GAME_DEV_API_KEY
 } from "./env";
-
-async function respondToJob(agent: GameAgent, job: AcpJob) {
-    console.log("reacting to job", job);
-
-    let prompt = "";
-
-    if (job.phase === AcpJobPhasesDesc.REQUEST) {
-        prompt = `
-            Respond to the following transaction:
-            ${JSON.stringify(job)}
-
-            decide to wheater you should accept the job or not.
-            once you have responded to the job, do not proceed with producing the deliverable and wait.
-            `;
-    } else if (job.phase === AcpJobPhasesDesc.TRANSACTION) {
-        prompt = `
-      Respond to the following transaction.
-      ${JSON.stringify(job)}
-
-      you should produce the deliverable and deliver it to the buyer.
-      `;
-    }
-
-    await agent.getWorkerById("acp_worker").runTask(prompt, {
-        verbose: true,
-    });
-
-    console.log("reacting to job done");
-}
 
 async function test() {
     const acpPlugin = new AcpPlugin({
@@ -134,17 +105,34 @@ async function test() {
 
     await sellerAgent.init();
 
-    // check if there is any active job before passive listening
-    const acpState = await acpPlugin.getAcpState();
-    const firstActiveJob = acpState.jobs.active.asASeller[0]
-    if (firstActiveJob) {
-        console.log("First active job", firstActiveJob);
-        await respondToJob(sellerAgent, firstActiveJob);
-    }
-
     /// upon phase change, the seller agent will respond to the job
     acpPlugin.setOnPhaseChange(async (job) => {
-        await respondToJob(sellerAgent, job);
+        console.log("reacting to job", job);
+
+        let prompt = "";
+
+        if (job.phase === AcpJobPhasesDesc.REQUEST) {
+            prompt = `
+            Respond to the following transaction:
+            ${JSON.stringify(job)}
+
+            decide to wheater you should accept the job or not.
+            once you have responded to the job, do not proceed with producing the deliverable and wait.
+            `;
+        } else if (job.phase === AcpJobPhasesDesc.TRANSACTION) {
+            prompt = `
+      Respond to the following transaction.
+      ${JSON.stringify(job)}
+
+      you should produce the deliverable and deliver it to the buyer.
+      `;
+        }
+
+        await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
+            verbose: true,
+        });
+
+        console.log("reacting to job done");
     });
     /// end of seller reactive agent
     console.log("Listening");
