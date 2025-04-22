@@ -8,6 +8,8 @@ import TwitterApi, {
   UserV2TimelineResult,
   FollowersV2ParamsWithoutPaginator,
   EUploadMimeType,
+  DirectMessageCreateV1Result,
+  DmEventsV1Paginator,
 } from "twitter-api-v2";
 import { ITweetClient } from "./interface";
 
@@ -121,5 +123,23 @@ export class TwitterClient implements ITweetClient {
     });
 
     return response;
+  }
+
+  async sendDM(recipientId: string, text: string): Promise<DirectMessageCreateV1Result> {
+    if (!recipientId || !text) {
+      throw new Error('recipientId and text are required');
+    }
+    return this.twitterClient.v1.sendDm({
+      recipient_id: recipientId,
+      text: text
+    });
+  }
+
+  async getDMEvents(paginationToken?: string): Promise<DmEventsV1Paginator> {
+    const options: { cursor?: string } = {};
+    if (paginationToken) {
+      options.cursor = paginationToken;
+    }
+    return this.twitterClient.v1.listDmEvents(options);
   }
 }

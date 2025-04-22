@@ -5,8 +5,8 @@ import {
   UserV2Result,
   TweetUserMentionTimelineV2Paginator,
   UserV2TimelineResult,
-  DmEventsV1Paginator,
   DirectMessageCreateV1Result,
+  DmEventsV1Paginator,
 } from "twitter-api-v2";
 import { ITweetClient, MediaIdsType } from "./interface";
 
@@ -187,5 +187,4 @@ export class GameTwitterClient implements ITweetClient {
       }
     });
   }
-
 }

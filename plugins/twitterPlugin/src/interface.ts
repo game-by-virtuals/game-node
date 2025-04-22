@@ -5,6 +5,8 @@ import {
   UserV2Result,
   TweetUserMentionTimelineV2Paginator,
   UserV2TimelineResult,
+  DirectMessageCreateV1Result,
+  DmEventsV1Paginator,
 } from "twitter-api-v2";
 
 export type MediaIdsType =
@@ -33,4 +35,6 @@ export interface ITweetClient {
   followers(paginationToken?: string): Promise<UserV2TimelineResult>;
   following(paginationToken?: string): Promise<UserV2TimelineResult>;
   uploadMedia(media: Blob): Promise<string>;
+  sendDM(recipientId: string, text: string): Promise<DirectMessageCreateV1Result>;
+  getDMEvents(paginationToken?: string): Promise<DmEventsV1Paginator>;
 }
