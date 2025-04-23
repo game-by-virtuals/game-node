@@ -33,11 +33,17 @@ export class AcpClient {
     return (await response.json()) as AcpState;
   }
 
-  async browseAgents(query: string, cluster?: string) {
+  async browseAgents(query?: string, cluster?: string) {
     const baseUrl =
       this.agentRepoUrl || "https://acpx-staging.virtuals.io/api/agents";
-    let url = `${baseUrl}?search=${encodeURIComponent(query)}`;
 
+    // agent must exclude itself from search result to prevent self-commission
+    let url = `${baseUrl}?filters[walletAddress][$notIn]=${this.walletAddress}`;
+    
+    if (query) {
+      url += `&search=${encodeURIComponent(query)}`
+    }
+      
     if (cluster) {
       url += `&filters[cluster]=${encodeURIComponent(cluster)}`;
     }
