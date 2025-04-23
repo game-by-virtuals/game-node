@@ -64,11 +64,9 @@ export class AcpClient {
     providerAddress: string,
     evaluatorAddress: string,
     price: number,
-    jobDescription: string
+    jobDescription: string,
+    expiredAt: Date
   ) {
-    const expiredAt = new Date();
-    expiredAt.setDate(expiredAt.getDate() + 1);
-
     const { jobId } = await this.acpToken.createJob(
       providerAddress,
       evaluatorAddress,

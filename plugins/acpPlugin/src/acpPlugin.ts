@@ -33,6 +33,7 @@ interface IAcpPluginOptions {
   evaluatorCluster?: string;
   onEvaluate?: (deliverables: IDeliverable) => Promise<EvaluateResult>;
   agentRepoUrl?: string;
+  jobExpiryDurationMins?: number;
 }
 
 export class EvaluateResult {
@@ -57,6 +58,7 @@ class AcpPlugin {
   private twitterClient?: ITweetClient;
   private onEvaluate: (deliverable: IDeliverable) => Promise<EvaluateResult>;
   private onPhaseChange?: (job: AcpJob) => Promise<void>;
+  private jobExpiryDurationMins: number;
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = new AcpClient(
@@ -67,6 +69,7 @@ class AcpPlugin {
     this.cluster = options.cluster;
     this.evaluatorCluster = options.evaluatorCluster;
     this.onEvaluate = options.onEvaluate || this.defaultOnEvaluate;
+    this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -105,7 +108,7 @@ class AcpPlugin {
   private initializeSocket() {
     this.socket = io("https://sdk-dev.game.virtuals.io", {
       auth: {
-        evaluatorAddress: this.acpClient.walletAddress,
+        walletAddress: this.acpClient.walletAddress,
       },
     });
 
@@ -413,11 +416,17 @@ class AcpPlugin {
             );
           }
 
+          const expiredAt = new Date();
+          expiredAt.setMinutes(
+            expiredAt.getMinutes() + this.jobExpiryDurationMins
+          );
+
           const jobId = await this.acpClient.createJob(
             args.sellerWalletAddress,
             evaluatorAddress,
             price,
-            args.serviceRequirements
+            args.serviceRequirements,
+            expiredAt
           );
 
           if (this.twitterClient) {
