@@ -154,7 +154,15 @@ import {
     
     Its goal is to provide top crypto projects as a service/product. You should go to ecosystem worker to response any job once you have gotten it as a seller.
     ${acpPlugin.agentDescription}`,
-        workers: [coreWorker, acpPlugin.getWorker()],
+        workers: [
+          coreWorker,
+          acpPlugin.getWorker({
+            functions: [
+              acpPlugin.respondJob,
+              acpPlugin.deliverJob,
+            ],
+          })
+        ],
         getAgentState: async () => {
           return await acpPlugin.getAcpState();
         },
@@ -245,9 +253,9 @@ import {
         verbose: true,
       });
   
-      console.log('\n Waiting for 1 minute before next step...');
-      // 5 minutes = 5 * 60 * 1000 milliseconds
-      await new Promise(resolve => setTimeout(resolve, 60 * 1000));
+      console.log('\n Waiting for 2 minutes before next step...');
+      // 2 minutes = 2 * 60 * 1000 milliseconds
+      await new Promise(resolve => setTimeout(resolve, 2 * 60 * 1000));
     }
   }
   
