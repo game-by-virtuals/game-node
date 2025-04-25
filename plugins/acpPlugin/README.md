@@ -143,7 +143,7 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
 5. (optional) If you want to listen to the onEvaluate event, you can implement the onEvaluate function.
 
 ```typescript
-const onEvaluate = (deliverable: IDeliverable, description: string) => {
+const onEvaluate = (deliverable: IDeliverable, description?: string) => {
   // Implement your evaluation logic here
   // Return a Promise that resolves to an EvaluateResult
   return new Promise<EvaluateResult>((resolve) => {

@@ -33,7 +33,7 @@ interface IAcpPluginOptions {
   evaluatorCluster?: string;
   onEvaluate?: (
     deliverable: IDeliverable,
-    description: string
+    description?: string
   ) => Promise<EvaluateResult>;
   agentRepoUrl?: string;
   jobExpiryDurationMins?: number;
@@ -61,7 +61,7 @@ class AcpPlugin {
   private twitterClient?: ITweetClient;
   private onEvaluate: (
     deliverable: IDeliverable,
-    description: string
+    description?: string
   ) => Promise<EvaluateResult>;
   private onPhaseChange?: (job: AcpJob) => Promise<void>;
   private jobExpiryDurationMins: number;
@@ -107,7 +107,7 @@ class AcpPlugin {
     this.onPhaseChange = onPhaseChange;
   }
 
-  private async defaultOnEvaluate(_: IDeliverable, __: string) {
+  private async defaultOnEvaluate(_: IDeliverable, __?: string) {
     return new EvaluateResult(true, "Evaluated by default");
   }
 
