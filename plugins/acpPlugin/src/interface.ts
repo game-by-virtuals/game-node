@@ -54,7 +54,6 @@ export interface AcpJob {
 export interface IDeliverable {
   type: "url" | "text" | "txHashUrl";
   value: string;
-  description: string;
 }
 
 export interface IInventory extends IDeliverable {

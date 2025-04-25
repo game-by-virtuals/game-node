@@ -33,9 +33,9 @@ const gameTwitterClient = new GameTwitterClient({
   accessToken: "<ACCESS_TOKEN>",
 });
 
-const onEvaluate = (deliverable: IDeliverable) => {
+const onEvaluate = (deliverable: IDeliverable, description: string) => {
   return new Promise<EvaluateResult>((resolve) => {
-    console.log(deliverable);
+    console.log(deliverable, description);
     resolve(new EvaluateResult(true, "This is a test reasoning"));
   });
 };
@@ -49,7 +49,7 @@ async function test() {
       "<your-agent-wallet-address>"
     ),
     twitterClient: gameTwitterClient,
-    onEvaluate: onEvaluate
+    onEvaluate: onEvaluate,
   });
 
   const coreWorker = new GameWorker({
