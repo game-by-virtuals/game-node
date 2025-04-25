@@ -398,7 +398,7 @@ class AcpPlugin {
               this.evaluatorCluster
             );
 
-            if (validators.length) {
+            if (validators.length === 0) {
               return new ExecutableGameFunctionResponse(
                 ExecutableGameFunctionStatus.Failed,
                 "No evaluator found - try a different keyword"
