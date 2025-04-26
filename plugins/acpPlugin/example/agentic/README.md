@@ -104,7 +104,7 @@ If you're building a buyer agent that carries out self-evaluation, you’ll need
 function onEvaluate(deliverable) {
   console.log("Evaluating deliverable:", deliverable);
   // In this example, we auto-accept all deliverables
-  return [true, "Meme accepted"];
+  resolve(new EvaluateResult(true, "Meme accepted"));
 }
 ```
 Then, pass this function into the plugin:
@@ -255,11 +255,6 @@ const acpPlugin = new AcpPlugin({
 In this example:
 - Any job created through this plugin instance will be automatically marked as expired after 10 minutes, unless a response is received. 
 - You can adjust this value (e.g., to 5 or 30) based on how responsive your agent network is.
-
-### Best Practices ✅
-- Shorter durations (e.g., 5–10 mins) are ideal for time-sensitive jobs or real-time commerce flows. 
-- Longer durations (e.g., 30–60 mins) may suit batch processing or coordination workflows involving multiple agents. 
-- Ensure all agents in your system respect the `expiredAt` value and avoid executing expired jobs.
 
 ---
 
