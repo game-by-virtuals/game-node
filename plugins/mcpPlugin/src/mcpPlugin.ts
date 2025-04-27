@@ -21,8 +21,10 @@ class McpPlugin {
     private mcpClientConfiguration: IMcpClientOptions;
 
     private mcpClient: McpClient;
+    // TODO: To see if other transport options other than StdioClientTransport
     // private mcpClientTransport: StdioClientTransport || ;
     private mcpFunctions: GameFunction<any>[];
+    private mcpFunctionsInitializationPromise: Promise<void> | null = null;
 
     constructor(options: IMcpPluginOptions) {
         this.id = options.id;
@@ -33,11 +35,16 @@ class McpPlugin {
         this.mcpClientConfiguration = options.mcpClientConfiguration;
         this.mcpClient = new McpClient(this.mcpClientConfiguration);
         this.mcpFunctions = [];
-        
-        // Populate the MCP functions for this client
-        this.getMcpFunctions().then(funcs => {
-            this.mcpFunctions = funcs;
-        });
+        this.mcpFunctionsInitializationPromise = this.initializeMcpFunctions();
+    }
+
+    private async initializeMcpFunctions() {
+        try {
+            this.mcpFunctions = await this.getMcpFunctions();
+        } catch (e) {
+            console.error('Failed to initialize MCP functions:', e);
+            throw e; // Re-throw to handle in getWorker
+        }
     }
 
     private async getMcpFunctions() {
@@ -47,12 +54,12 @@ class McpPlugin {
         for (const tool of toolsResult.tools) {
 
             // brave_web_search
-            const name = tool.name;
+            const toolName = tool.name;
             // Performs a web search using the Brave Search API, ideal for general queries, news, articles, and online content. 
             // Use this for broad information gathering, recent events, or when you need diverse web sources. 
             // Supports pagination, content filtering, and freshness controls. 
             // Maximum 20 results per request, with offset for pagination. 
-            const description = tool.description;
+            const toolDescription = tool.description;
             //  {
             //   type: 'object',
             //   properties: {
@@ -73,26 +80,33 @@ class McpPlugin {
             //   },
             //   required: [ 'query' ]
             // }
-            const inputSchema = tool.inputSchema;
+            const toolInputSchema = tool.inputSchema;
             
             // TODO: Fix game args:
-            // this particular mcp argument is only expecting 1 argument, which is an object with threee properties, 
+            // this particular mcp argument is only expecting 1 argument, which is an object with three properties,
             // but we are passing 3 arguments here
-            const game_args = Object.entries(inputSchema.properties || {}).map(([key, value]: [string, any]) => ({
+            const game_args = Object.entries(toolInputSchema.properties || {}).map(([key, value]: [string, any]) => ({
                 name: key,
                 description: value.description || '',
                 type: value.type || 'string'
             }));
 
             this.mcpFunctions.push(new GameFunction({
-                name: name as string,
-                description: description as string,
+                name: toolName as string,
+                description: toolDescription as string,
                 args: game_args,
                 // TODO: Implement the executable function
                 executable: async (args: Record<string, any>, logger) => {
+
+                    const result = await this.mcpClient.callTool(
+                        toolName,
+                        args
+                    );
+
+                    console.log(result);
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Done,
-                        "Done"
+                        `MCP server ${this.name}: ${toolName} executed successfully.`
                     );
                 }
             }));
@@ -101,9 +115,20 @@ class McpPlugin {
         return this.mcpFunctions;
     }
 
-    public getWorker(data: {
+    public async getWorker(data?: {
         getEnvironment?: () => Promise<Record<string, any>>;
-    }): GameWorker {
+    }): Promise<GameWorker> {
+        // TODO: Clean up this Cursor slop
+        // ensure initialization is complete
+        if (this.mcpFunctionsInitializationPromise) {
+            try {
+                await this.mcpFunctionsInitializationPromise;
+            } catch (error: unknown) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(`Failed to initialize MCP functions: ${errorMessage}`);
+            }
+        }
+
         return new GameWorker({
             id: this.id,
             name: this.name,

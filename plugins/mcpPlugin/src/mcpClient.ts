@@ -39,35 +39,19 @@ class McpClient {
         name: "mcp-client-cli", 
         version: "1.0.0" 
     });
+
+    this.connectToServer();
   }
   
   async connectToServer() {
     try {
-    //   this.transport = new StdioClientTransport({
-    //     command: "/usr/local/bin/docker",
-    //     args: [
-    //         "run",
-    //         "-i",
-    //         "--rm",
-    //         "-e",
-    //         "BRAVE_API_KEY",
-    //         "mcp/brave-search"
-    //     ],
-    //     env: {
-    //         "BRAVE_API_KEY": ""
-    //     }
-    //   });
       this.transport = new StdioClientTransport({
           command: this.command,
           args: this.args,
           env: this.env
       });
-      this.mcp.connect(this.transport);
-  
-    //   const toolsResult = await this.mcp.listTools();
+      this.mcp.connect(this.transport);  
       
-
-
     } catch (e) {
       console.log("Failed to connect to MCP server: ", e);
       throw e;
@@ -75,70 +59,18 @@ class McpClient {
   }
 
    async getTools() {
+    // TODO: Implement error handling
     return await this.mcp.listTools();
   }
 
   async callTool(name: string, args: Record<string, any>) {
+    // TODO: Implement error handling
     return await this.mcp.callTool({
       name,
       arguments: args
     });
   }
 
-//   async processQuery(query: string) {
-//     const messages: MessageParam[] = [
-//       {
-//         role: "user",
-//         content: query,
-//       },
-//     ];
-  
-//     const response = await this.anthropic.messages.create({
-//       model: "claude-3-5-sonnet-20241022",
-//       max_tokens: 1000,
-//       messages,
-//       tools: this.tools,
-//     });
-  
-//     const finalText = [];
-//     const toolResults = [];
-  
-//     for (const content of response.content) {
-//       if (content.type === "text") {
-//         finalText.push(content.text);
-//       } else if (content.type === "tool_use") {
-//         const toolName = content.name;
-//         const toolArgs = content.input as { [x: string]: unknown } | undefined;
-  
-//         const result = await this.mcp.callTool({
-//           name: toolName,
-//           arguments: toolArgs,
-//         });
-//         toolResults.push(result);
-//         finalText.push(
-//           `[Calling tool ${toolName} with args ${JSON.stringify(toolArgs)}]`
-//         );
-  
-//         messages.push({
-//           role: "user",
-//           content: result.content as string,
-//         });
-  
-//         const response = await this.anthropic.messages.create({
-//           model: "claude-3-5-sonnet-20241022",
-//           max_tokens: 1000,
-//           messages,
-//         });
-  
-//         finalText.push(
-//           response.content[0].type === "text" ? response.content[0].text : ""
-//         );
-//       }
-//     }
-  
-//     return finalText.join("\n");
-//   }
-  
   async cleanup() {
     await this.mcp.close();
   }
