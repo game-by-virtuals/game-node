@@ -41,7 +41,7 @@ const createAgent = async () => {
   await agent.init();
   // Run the agent for with 60 seconds interval
   // this will stop when agent decides to wait
-  await agent.run(5, { verbose: true });
+  await agent.run(20, { verbose: true });
 };
 
 createAgent();
