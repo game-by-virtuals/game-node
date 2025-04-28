@@ -52,7 +52,7 @@ export interface AcpJob {
 }
 
 export interface IDeliverable {
-  type: "url" | "text";
+  type: "url" | "text" | "txHashUrl";
   value: string;
 }
 

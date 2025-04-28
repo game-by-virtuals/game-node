@@ -31,7 +31,10 @@ interface IAcpPluginOptions {
   twitterClient?: ITweetClient;
   cluster?: string;
   evaluatorCluster?: string;
-  onEvaluate?: (deliverables: IDeliverable) => Promise<EvaluateResult>;
+  onEvaluate?: (
+    deliverable: IDeliverable,
+    description?: string
+  ) => Promise<EvaluateResult>;
   agentRepoUrl?: string;
   jobExpiryDurationMins?: number;
 }
@@ -56,7 +59,10 @@ class AcpPlugin {
   private cluster?: string;
   private evaluatorCluster?: string;
   private twitterClient?: ITweetClient;
-  private onEvaluate: (deliverable: IDeliverable) => Promise<EvaluateResult>;
+  private onEvaluate: (
+    deliverable: IDeliverable,
+    description?: string
+  ) => Promise<EvaluateResult>;
   private onPhaseChange?: (job: AcpJob) => Promise<void>;
   private jobExpiryDurationMins: number;
 
@@ -101,7 +107,7 @@ class AcpPlugin {
     this.onPhaseChange = onPhaseChange;
   }
 
-  private async defaultOnEvaluate(_: IDeliverable) {
+  private async defaultOnEvaluate(_: IDeliverable, __?: string) {
     return new EvaluateResult(true, "Evaluated by default");
   }
 
@@ -114,10 +120,15 @@ class AcpPlugin {
 
     this.socket.on(
       SocketEvents.ON_EVALUATE,
-      async (data: { memoId: number; deliverable: IDeliverable }) => {
+      async (data: {
+        memoId: number;
+        deliverable: IDeliverable;
+        description: string;
+      }) => {
         if (this.onEvaluate) {
           const { isApproved, reasoning } = await this.onEvaluate(
-            data.deliverable
+            data.deliverable,
+            data.description
           );
           if (isApproved) {
             await this.acpClient.acpTokenClient.signMemo(
