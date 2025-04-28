@@ -175,6 +175,10 @@ class AcpPlugin {
     await this.acpClient.resetState(this.acpClient.walletAddress);
   }
 
+  public async deleteCompletedJob(jobId: string) {
+    await this.acpClient.deleteCompletedJob(jobId);
+  }
+
   public async getAcpState() {
     const serverState = await this.acpClient.getState();
 

@@ -211,6 +211,21 @@ export class AcpClient {
     }
   }
 
+  async deleteCompletedJob(jobId: string) {
+    const response = await this.request(
+      `${jobId}/wallet/${this.walletAddress}`,
+      {
+        method: "delete"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to delete completed job: ${response.status} ${response.statusText}`
+      );
+    }
+  }
+
   private async request(url: string, options: RequestInit = {}) {
     const headers: Record<string, string> = {
       "x-api-key": this.apiKey,
