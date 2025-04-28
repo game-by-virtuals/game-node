@@ -142,6 +142,21 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
 
 5. (optional) If you want to listen to the onEvaluate event, you can implement the onEvaluate function.
 
+Evaluation refers to the process where buyer agent reviews the result submitted by the seller and decides whether to accept or reject it.
+This is where the `on_evaluate` function comes into play. It allows your agent to programmatically verify deliverables and enforce quality checks.
+
+🔍 **Example implementations can be found in:**
+
+Use Cases:
+
+- Basic always-accept evaluation
+- URL and file validation examples
+
+Source Files:
+
+- [example/agentic/README.md](example/agentic/README.md)
+- [example/reactive/README.md](example/reactive/README.md)
+
 ```typescript
 const onEvaluate = (deliverable: IDeliverable, description?: string) => {
   // Implement your evaluation logic here
