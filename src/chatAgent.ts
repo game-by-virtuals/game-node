@@ -49,13 +49,13 @@ export class Chat {
   public chatId: string;
   public client: GAMEClientV2;
   private actionSpace: Record<string, GameFunction<any>> | null;
-  private getStateFn: (() => Record<string, any>) | null;
+  private getStateFn: (() => Promise<Record<string, any>>) | null;
 
   constructor(
     chatId: string,
     client: GAMEClientV2,
     actionSpace?: GameFunction<any>[],
-    getStateFn?: () => Record<string, any>
+    getStateFn?: () => Promise<Record<string, any>>
   ) {
     this.chatId = chatId;
     this.client = client;
@@ -128,7 +128,7 @@ export class Chat {
   async updateConversation(message: string): Promise<GameChatResponse> {
     const data = {
       message,
-      state: this.getStateFn ? this.getStateFn() : null,
+      state: this.getStateFn ? JSON.stringify(await this.getStateFn()) : null,
       functions: this.actionSpace
         ? Object.values(this.actionSpace).map((f) => f.toJSON())
         : null,
@@ -179,7 +179,7 @@ export class ChatAgent {
     partnerId: string;
     partnerName: string;
     actionSpace?: GameFunction<any>[];
-    getStateFn?: () => Record<string, any>;
+    getStateFn?: () => Promise<Record<string, any>>;
   }): Promise<Chat> {
     const chat_id = await this.client.createChat({
       prompt: this.prompt,
