@@ -779,6 +779,13 @@ class AcpPlugin {
         try {
           const state = await this.getAcpState();
 
+          if (state.jobs.cancelled.find(c => c.jobId === +args.jobId!)) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Cannot deliver - this job has been cancelled"
+            );
+          }
+
           const job = state.jobs.active.asASeller.find(
             (c) => c.jobId === +args.jobId!
           );
