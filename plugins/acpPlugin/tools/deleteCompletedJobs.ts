@@ -39,18 +39,74 @@ async function deleteCompletedJob(): Promise<void> {
       output: process.stdout
     });
     
-    // Prompt user for job ID
-    rl.question('Enter the job ID you want to delete or "all" to delete all: ', async (jobId) => {
-      if (jobId === "all") {
-        state.jobs?.completed.forEach(async (job: any) => {
-          await acpPlugin.deleteCompletedJob(job.jobId);
-        });
-      } else {
-        await acpPlugin.deleteCompletedJob(jobId);
+    // Display options to the user
+    console.log("\nOptions:");
+    console.log("1. Delete a specific job");
+    console.log("2. Delete ALL completed jobs");
+    console.log("3. Keep N newest jobs and delete the rest\n");
+
+    // Prompt user for choice
+    rl.question('Enter your choice (1-3): ', async (choice) => {
+      switch (choice) {
+        case "1":
+          // Option 1: Delete specific job
+          rl.question('Enter the job ID you want to delete: ', async (jobId) => {
+            await acpPlugin.deleteCompletedJob(jobId);
+            console.log(`Job ID ${jobId} has been deleted.`);
+            console.log(`Operation completed for entity key: ${entityKey}`);
+            rl.close();
+            process.exit(0);
+          });
+          break;
+          
+        case "2":
+          // Option 2: Delete all jobs
+          rl.question('Are you sure you want to delete ALL completed jobs? (y/n): ', async (confirm) => {
+            if (confirm.toLowerCase() === 'y') {
+              for (const job of state.jobs?.completed || []) {
+                await acpPlugin.deleteCompletedJob(job.jobId.toString());
+              }
+              console.log("All completed jobs have been deleted.");
+            } else {
+              console.log("Operation cancelled.");
+            }
+            console.log(`Operation completed for entity key: ${entityKey}`);
+            rl.close();
+            process.exit(0);
+          });
+          break;
+          
+        case "3":
+          // Option 3: Keep N newest jobs
+          rl.question('How many newest jobs do you want to keep? ', async (numStr) => {
+            const keepCount = parseInt(numStr);
+            if (isNaN(keepCount) || keepCount < 0) {
+              console.log("Invalid number. Please enter a positive number.");
+            } else {
+              // Sort jobs by lastUpdated (newest first)
+              const sortedJobs = [...(state.jobs?.completed || [])].sort((a, b) => 
+                (b.lastUpdated || 0) - (a.lastUpdated || 0)
+              );
+              
+              // Keep the newest N jobs, delete the rest
+              const jobsToDelete = sortedJobs.slice(keepCount);
+              console.log(`Keeping the ${keepCount} newest jobs, deleting ${jobsToDelete.length} older jobs.`);
+              
+              for (const job of jobsToDelete) {
+                await acpPlugin.deleteCompletedJob(job.jobId.toString());
+              }
+            }
+            console.log(`Operation completed for entity key: ${entityKey}`);
+            rl.close();
+            process.exit(0);
+          });
+          break;
+          
+        default:
+          console.log("Invalid choice. Please run the script again and select a valid option (1-3).");
+          rl.close();
+          process.exit(1);
       }
-      console.log(`Successfully deleted completed job for entity key: ${entityKey}`);
-      rl.close();
-      process.exit(0);
     });
   } catch (error) {
     console.error(`Failed to delete completed job: ${error}`);
