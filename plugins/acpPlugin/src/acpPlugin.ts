@@ -791,9 +791,10 @@ class AcpPlugin {
           }
 
           if (job.expiredAt && new Date(job.expiredAt) < new Date()) {
+            const expiredDate = new Date(job.expiredAt);
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `Cannot deliver - this job has expired on ${new Date(job.expiredAt).toLocaleString()}. The buyer may need to create a new job request.`
+              `Cannot deliver - this job has expired on ${expiredDate.toISOString()} (UTC). The buyer may need to create a new job request.`
             );
           }
 
