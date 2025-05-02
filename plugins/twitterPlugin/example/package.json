@@ -1,0 +1,15 @@
+{
+  "name": "twitter-plugin-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@virtuals-protocol/game-twitter-plugin": "^0.1.4",
+    "@virtuals-protocol/game-twitter-node": "^0.1.0"
+  }
+}

@@ -11,13 +11,13 @@ const gameTwitterClient = new TwitterApi({
   gameTwitterAccessToken: GAME_TWITTER_ACCESS_TOKEN,
 });
 
-const twitterClient = new TwitterApi({
+/* const twitterClient = new TwitterApi({
   appKey: "xxxx",
   appSecret: "xxxx",
   accessToken: "xxxx",
   accessSecret: "xxxx",
 });
-
+ */
 async function runTwitterActions() {
   try {
     // Fetch current user info
