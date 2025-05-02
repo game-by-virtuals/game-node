@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const GAME_TWITTER_ACCESS_TOKEN = process.env.GAME_TWITTER_ACCESS_TOKEN;
+const GAME_TWITTER_ACCESS_TOKEN = process.env.GAME_TWITTER_ACCESS_TOKEN!;
 const gameTwitterClient = new TwitterApi({
   gameTwitterAccessToken: GAME_TWITTER_ACCESS_TOKEN,
 });
