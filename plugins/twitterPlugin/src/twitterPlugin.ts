@@ -49,7 +49,9 @@ class TwitterPlugin {
   }
 
   public async getMetrics() {
-    const result = await this.twitterClient.v2.me();
+    const result = await this.twitterClient.v2.me({
+      "user.fields": ["public_metrics"],
+    });
 
     return {
       followers: result.data.public_metrics?.followers_count ?? 0,
