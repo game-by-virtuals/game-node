@@ -155,9 +155,9 @@ const gameTwitterClient = new GameTwitterClient({
   accessToken: process.env.GAME_TWITTER_ACCESS_TOKEN!,
 });
 
-const tweet = await gameTwitterClient.post("Hello world from my agent!");
+const tweet = await gameTwitterClient.v2.tweet("Hello world from my agent!");
 console.log("Tweet ID:", tweet.data.id);
-await gameTwitterClient.v2.tweet(tweet.data.id);
+await gameTwitterClient.v2.like(tweet.data.id);
 await gameTwitterClient.v2.reply("This is a reply!", tweet.data.id);
 await gameTwitterClient.v2.quote("Check this out 👇", tweet.data.id);
 ```
