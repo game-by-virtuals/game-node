@@ -2,7 +2,7 @@ import { GameAgent, GameWorker } from "@virtuals-protocol/game";
 import TwitterPlugin from "@virtuals-protocol/game-twitter-plugin";
 import { TwitterApi } from "@virtuals-protocol/game-twitter-node";
 
-const nativeTwitterClient = new TwitterApi({
+const gameTwitterClient = new TwitterApi({
   gameTwitterAccessToken: "xxxx",
 });
 
@@ -19,7 +19,7 @@ const twitterPlugin = new TwitterPlugin({
   name: "Twitter Worker",
   description:
     "A worker that will execute tasks within the Twitter Social Platforms. It is capable of posting, reply, quote and like tweets.",
-  twitterClient: nativeTwitterClient,
+  twitterClient: gameTwitterClient,
 });
 
 // Create an agent with the worker

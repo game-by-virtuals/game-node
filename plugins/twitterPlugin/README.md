@@ -32,7 +32,7 @@ import TwitterPlugin from "@virtuals-protocol/game-twitter-plugin";
    import { TwitterApi } from "@virtuals-protocol/game-twitter-node";
 
    const gameTwitterClient = new TwitterApi({
-     accessToken: "your_game_access_token",
+     gameTwitterAccessToken: "your_game_access_token",
    });
    ```
 
