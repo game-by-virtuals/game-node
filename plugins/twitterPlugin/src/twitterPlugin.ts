@@ -4,20 +4,20 @@ import {
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
 } from "@virtuals-protocol/game";
-import { ITweetClient } from "./interface";
+import { TwitterApi } from "@virtuals-protocol/game-twitter-node";
 
 interface ITwitterPluginOptions {
   id?: string;
   name?: string;
   description?: string;
-  twitterClient: ITweetClient;
+  twitterClient: TwitterApi;
 }
 
 class TwitterPlugin {
   private id: string;
   private name: string;
   private description: string;
-  private twitterClient: ITweetClient;
+  private twitterClient: TwitterApi;
 
   constructor(options: ITwitterPluginOptions) {
     this.id = options.id || "twitter_worker";
@@ -49,7 +49,7 @@ class TwitterPlugin {
   }
 
   public async getMetrics() {
-    const result = await this.twitterClient.me();
+    const result = await this.twitterClient.v2.me();
 
     return {
       followers: result.data.public_metrics?.followers_count ?? 0,
@@ -74,12 +74,15 @@ class TwitterPlugin {
 
           logger(`Searching for: ${args.query}`);
 
-          const tweets = await this.twitterClient.search(args.query);
+          const tweets = await this.twitterClient.v2.search(args.query, {
+            max_results: 10,
+            "tweet.fields": ["public_metrics"],
+          });
 
           const feedbackMessage =
             "Tweets found:\n" +
             JSON.stringify(
-              tweets.data.map((tweet) => ({
+              tweets.data.data.map((tweet) => ({
                 tweetId: tweet.id,
                 content: tweet.text,
                 likes: tweet.public_metrics?.like_count,
@@ -127,7 +130,7 @@ class TwitterPlugin {
 
           logger(`Replying [${args.tweet_id}]: ${args.reply}`);
 
-          await this.twitterClient.reply(args.tweet_id, args.reply);
+          await this.twitterClient.v2.reply(args.reply, args.tweet_id);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -149,6 +152,7 @@ class TwitterPlugin {
       description: "Post a tweet",
       args: [
         { name: "tweet", description: "The tweet content" },
+        { name: "mediaFile", description: "s3.file.url" },
         {
           name: "tweet_reasoning",
           description: "The reasoning behind the tweet",
@@ -165,7 +169,7 @@ class TwitterPlugin {
 
           logger(`Posting tweet: ${args.tweet}`);
 
-          await this.twitterClient.post(args.tweet);
+          await this.twitterClient.v2.tweet(args.tweet);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -197,8 +201,8 @@ class TwitterPlugin {
           }
 
           logger(`Liking tweet id: ${args.tweet_id}`);
-
-          await this.twitterClient.like(args.tweet_id);
+          const me = await this.twitterClient.v2.me();
+          await this.twitterClient.v2.like(me.data.id, args.tweet_id);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -234,7 +238,7 @@ class TwitterPlugin {
 
           logger(`Quoting [${args.tweet_id}]: ${args.quote}`);
 
-          await this.twitterClient.quote(args.tweet_id, args.quote);
+          await this.twitterClient.v2.quote(args.quote, args.tweet_id);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,

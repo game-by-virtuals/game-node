@@ -1,19 +1,17 @@
-import { GameAgent } from "@virtuals-protocol/game";
-import TwitterPlugin, {
-  GameTwitterClient,
-  TwitterClient,
-} from "@virtuals-protocol/game-twitter-plugin";
+import { GameAgent, GameWorker } from "@virtuals-protocol/game";
+import TwitterPlugin from "@virtuals-protocol/game-twitter-plugin";
+import { TwitterApi } from "@virtuals-protocol/game-twitter-node";
 
-const gameTwitterClient = new GameTwitterClient({
-  accessToken: "xxxxxxxxxx",
+const nativeTwitterClient = new TwitterApi({
+  gameTwitterAccessToken: "xxxx",
 });
 
-const nativeTwitterClient = new TwitterClient({
-  apiKey: "xxxxxxx",
-  apiSecretKey: "xxxxxxx",
-  accessToken: "xxxxxxx",
-  accessTokenSecret: "xxxxxxxxx",
-});
+// const nativeTwitterClient = new TwitterApi({
+//   appKey: "xxxxxxx",
+//   appSecret: "xxxxxxx",
+//   accessToken: "xxxxxxx",
+//   accessSecret: "xxxxxxxxx",
+// });
 
 // Create a worker with the functions
 const twitterPlugin = new TwitterPlugin({
@@ -21,29 +19,32 @@ const twitterPlugin = new TwitterPlugin({
   name: "Twitter Worker",
   description:
     "A worker that will execute tasks within the Twitter Social Platforms. It is capable of posting, reply, quote and like tweets.",
-  // twitterClient: nativeTwitterClient,
-  twitterClient: gameTwitterClient, // Use this if you want to use the game client
+  twitterClient: nativeTwitterClient,
 });
 
 // Create an agent with the worker
-const agent = new GameAgent("<GAME_API_KEY>", {
+const agent = new GameAgent("xxxx", {
   name: "Twitter Bot",
   goal: "increase engagement and grow follower count",
   description: "A bot that can post tweets, reply to tweets, and like tweets",
   workers: [
-    twitterPlugin.getWorker({
-      // Define the functions that the worker can perform, by default it will use the all functions defined in the plugin
-      // functions: [
-      //   twitterPlugin.searchTweetsFunction,
-      //   twitterPlugin.replyTweetFunction,
-      //   twitterPlugin.postTweetFunction,
-      // ],
-      // Define the environment variables that the worker can access, by default it will use the metrics defined in the plugin
-      // getEnvironment: async () => ({
-      //   ...(await twitterPlugin.getMetrics()),
-      //   username: "virtualsprotocol",
-      //   token_price: "$100.00",
-      // }),
+    // Use local GameWorker that's compatible with local GameAgent
+    new GameWorker({
+      id: "twitter_worker",
+      name: "Twitter Worker",
+      description: "Twitter integration worker",
+      functions: [
+        twitterPlugin.searchTweetsFunction,
+        //twitterPlugin.replyTweetFunction,
+        twitterPlugin.postTweetFunction,
+      ],
+      getEnvironment: async () => {
+        return {
+          ...(await twitterPlugin.getMetrics()),
+          username: "virtualsprotocol",
+          token_price: "$100.00",
+        };
+      },
     }),
   ],
 });

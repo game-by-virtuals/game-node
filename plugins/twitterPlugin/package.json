@@ -17,10 +17,8 @@
   },
   "dependencies": {
     "@virtuals-protocol/game": "^0.1.7",
-    "commander": "^13.1.0",
-    "open": "^8.4.2",
-    "tsup": "^8.3.5",
-    "twitter-api-v2": "^1.20.2"
+    "@virtuals-protocol/game-twitter-node": "^0.1.0",
+    "@virtuals-protocol/game-twitter-plugin": "^0.1.9"
   },
   "files": [
     "dist"
