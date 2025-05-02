@@ -1,5 +1,10 @@
 import { GameAgent } from "@virtuals-protocol/game";
 import McpPlugin from "./mcpPlugin";
+import dotenv from 'dotenv';
+
+
+dotenv.config();
+
 
 // Create a worker with the functions
 const braveMcpPlugin = new McpPlugin({
@@ -17,13 +22,13 @@ const braveMcpPlugin = new McpPlugin({
             "mcp/brave-search"
         ],
         "env": {
-            "BRAVE_API_KEY": "<BRAVE_API_KEY>"
+            "BRAVE_API_KEY": process.env.BRAVE_API_KEY as string
         }
     },
 });
 
 const createAgent = async () => {
-  const agent = new GameAgent("<GAME_API_KEY>", {
+  const agent = new GameAgent(process.env.GAME_API_KEY as string, {
     name: "Web Search Bot",
     goal: "A bot that will search the web for information.",
     description: "This agent will constantly search the web for information.",
