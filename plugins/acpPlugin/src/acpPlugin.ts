@@ -534,6 +534,13 @@ class AcpPlugin {
         try {
           const state = await this.getAcpState();
 
+          if (state.jobs.cancelled.find(c => c.jobId === +args.jobId!)) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Cannot respond - this job has been cancelled"
+            );
+          }
+
           const job = state.jobs.active.asASeller.find(
             (c) => c.jobId === +args.jobId!
           );
@@ -653,6 +660,13 @@ class AcpPlugin {
 
         try {
           const state = await this.getAcpState();
+
+          if (state.jobs.cancelled.find(c => c.jobId === +args.jobId!)) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Cannot pay - this job has been cancelled"
+            );
+          }
 
           const job = state.jobs.active.asABuyer.find(
             (c) => c.jobId === +args.jobId!
