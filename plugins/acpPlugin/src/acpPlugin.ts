@@ -809,8 +809,8 @@ class AcpPlugin {
           }
 
           const deliverable = JSON.stringify({
-            type: args.deliverableType,
-            value: args.deliverable,
+            type: produced.type || args.deliverableType,
+            value: produced.value || args.deliverable,
           });
 
           await this.acpClient.deliverJob(+args.jobId, deliverable);
