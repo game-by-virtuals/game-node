@@ -75,12 +75,12 @@ export class AcpClient {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(
-        `Failed to browse agents: ${response.status} ${response.statusText}`
+        `Failed to query agent: ${response.status} ${response.statusText}`
       );
     }
 
     const responseJson = await response.json();
-    return (responseJson.data as AcpAgent[]).map((agent) => ({
+    const agents = (responseJson.data as AcpAgent[]).map((agent) => ({
       id: agent.id,
       name: agent.name,
       description: agent.description,
@@ -88,6 +88,7 @@ export class AcpClient {
       twitterHandler: agent.twitterHandle,
       offerings: agent.offerings,
     }));
+    return agents.length > 0 ? agents[0] : undefined;
   }  
 
   async createJob(
