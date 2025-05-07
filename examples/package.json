@@ -2,7 +2,9 @@
   "name": "examples",
   "private": true,
   "dependencies": {
-    "@virtuals-protocol/game": "^0.1.9",
+    "@virtuals-protocol/game": "^0.1.11",
+    "@virtuals-protocol/game-telegram-plugin": "^0.1.4",
+    "@virtuals-protocol/game-twitter-plugin": "^0.1.8",
     "dotenv": "^16.4.7",
     "openai": "^4.81.0",
     "twitter-api-v2": "^1.15.0"
@@ -12,6 +14,6 @@
     "build": "tsc -p ./tsconfig.json",
     "twitter-example": "ts-node twitter-example/twitter.ts",
     "telegram-example": "ts-node telegram-example/tg.ts",
-    "state-management": "ts-node state-management/index.ts" 
+    "state-management": "ts-node state-management/index.ts"
   }
 }

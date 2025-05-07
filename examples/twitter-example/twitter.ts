@@ -1,145 +1,65 @@
-import {
-  ExecutableGameFunctionResponse,
-  ExecutableGameFunctionStatus,
-  GameAgent,
-  GameFunction,
-  GameWorker,
-  LLMModel,
-} from "@virtuals-protocol/game";
-import dotenv from 'dotenv';
-import path from 'path';
+import { GameAgent } from "@virtuals-protocol/game";
+import TwitterPlugin, {
+  GameTwitterClient,
+  TwitterClient,
+} from "@virtuals-protocol/game-twitter-plugin";
 
-// Load environment variables from the correct location
-dotenv.config({ path: path.join(__dirname, '.env') });
-
-const postTweetFunction = new GameFunction({
-  name: "post_tweet",
-  description: "Post a tweet",
-  args: [
-    { name: "tweet", description: "The tweet content" },
-    { name: "tweet_reasoning", description: "The reasoning behind the tweet" },
-  ] as const,
-  executable: async (args, logger) => {
-    try {
-      // TODO: Implement posting tweet
-      logger(`Posting tweet: ${args.tweet}`);
-      logger(`Reasoning: ${args.tweet_reasoning}`);
-
-      return new ExecutableGameFunctionResponse(
-        ExecutableGameFunctionStatus.Done,
-        "Tweet posted"
-      );
-    } catch (e) {
-      return new ExecutableGameFunctionResponse(
-        ExecutableGameFunctionStatus.Failed,
-        "Failed to post tweet"
-      );
-    }
-  },
+const gameTwitterClient = new GameTwitterClient({
+  accessToken: "xxxxxxxxxx",
 });
 
-const searchTweetsFunction = new GameFunction({
-  name: "search_tweets",
-  description: "Search tweets and return results",
-  args: [
-    { name: "query", description: "The query to search for" },
-    { name: "reasoning", description: "The reasoning behind the search" },
-  ] as const,
-  executable: async (args, logger) => {
-    try {
-      const query = args.query;
-
-      //TODO: Implement searching tweets
-      logger(`Searching tweets for query: ${query}`);
-
-      return new ExecutableGameFunctionResponse(
-        ExecutableGameFunctionStatus.Done,
-        // Return the search results as a string
-        "Tweets searched here are the results: [{tweetId: 1, content: 'Hello World'}, {tweetId: 2, content: 'Goodbye World'}]"
-      );
-    } catch (e) {
-      return new ExecutableGameFunctionResponse(
-        ExecutableGameFunctionStatus.Failed,
-        "Failed to search tweets"
-      );
-    }
-  },
-});
-
-const replyToTweetFunction = new GameFunction({
-  name: "reply_to_tweet",
-  description: "Reply to a tweet",
-  args: [
-    { name: "tweet_id", description: "The tweet id to reply to" },
-    { name: "reply", description: "The reply content" },
-  ] as const,
-  executable: async (args, logger) => {
-    try {
-      const tweetId = args.tweet_id;
-      const reply = args.reply;
-
-      //TODO: Implement replying to tweet
-      logger(`Replying to tweet ${tweetId} with ${reply}`);
-
-      return new ExecutableGameFunctionResponse(
-        ExecutableGameFunctionStatus.Done,
-        `Replied to tweet ${tweetId} with ${reply}`
-      );
-    } catch (e) {
-      return new ExecutableGameFunctionResponse(
-        ExecutableGameFunctionStatus.Failed,
-        "Failed to reply to tweet"
-      );
-    }
-  },
+const nativeTwitterClient = new TwitterClient({
+  apiKey: "xxxxxxx",
+  apiSecretKey: "xxxxxxx",
+  accessToken: "xxxxxxx",
+  accessTokenSecret: "xxxxxxxxx",
 });
 
 // Create a worker with the functions
-const postTweetWorker = new GameWorker({
-  id: "twitter_main_worker",
-  name: "Twitter main worker",
-  description: "Worker that posts tweets",
-  functions: [searchTweetsFunction, replyToTweetFunction, postTweetFunction],
-  // Optional: Get the environment
-  getEnvironment: async () => {
-    return {
-      tweet_limit: 15,
-    };
-  },
+const twitterPlugin = new TwitterPlugin({
+  id: "twitter_worker",
+  name: "Twitter Worker",
+  description:
+    "A worker that will execute tasks within the Twitter Social Platforms. It is capable of posting, reply, quote and like tweets.",
+  // twitterClient: nativeTwitterClient,
+  twitterClient: gameTwitterClient, // Use this if you want to use the game client
 });
 
 // Create an agent with the worker
-const agent = new GameAgent(process.env.API_KEY!, {
+const agent = new GameAgent(process.env.GAME_API_KEY || "", {
   name: "Twitter Bot",
-  goal: "Search and reply to tweets",
-  description: "A bot that searches for tweets and replies to them",
-  workers: [postTweetWorker],
-  llmModel: LLMModel.DeepSeek_R1, // Optional: Set the LLM model default (LLMModel.Llama_3_1_405B_Instruct)
-  // Optional: Get the agent state
-  getAgentState: async () => {
-    return {
-      username: "twitter_bot",
-      follower_count: 1000,
-      tweet_count: 10,
-    };
-  },
+  goal: "increase engagement and grow follower count",
+  description: "A bot that can post tweets, reply to tweets, and like tweets",
+  workers: [
+    twitterPlugin.getWorker({
+      // Define the functions that the worker can perform, by default it will use the all functions defined in the plugin
+      // functions: [
+      //   twitterPlugin.searchTweetsFunction,
+      //   twitterPlugin.replyTweetFunction,
+      //   twitterPlugin.postTweetFunction,
+      // ],
+      // Define the environment variables that the worker can access, by default it will use the metrics defined in the plugin
+      // getEnvironment: async () => ({
+      //   ...(await twitterPlugin.getMetrics()),
+      //   username: "virtualsprotocol",
+      //   token_price: "$100.00",
+      // }),
+    }),
+  ],
 });
 
 (async () => {
-  // define custom logger
-  agent.setLogger((agent, msg) => {
+  agent.setLogger((agent, message) => {
     console.log(`-----[${agent.name}]-----`);
-    console.log(msg);
+    console.log(message);
     console.log("\n");
   });
 
-  // Initialize the agent
   await agent.init();
 
-  // Run the agent for with 60 seconds interval
-  // this will stop when agent decides to wait
-  await agent.run(60, { verbose: true }); // verbose will give you more information about the agent's actions
-
-  // if you need more control over the agent, you can use the step method
-  // await agent.step();
+  while (true) {
+    await agent.step({
+      verbose: true,
+    });
+  }
 })();
