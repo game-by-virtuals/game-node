@@ -187,6 +187,10 @@ class AcpPlugin {
     return serverState;
   }
 
+  public async getAcpClient() {
+    return this.acpClient;
+  }
+
   public getWorker(data?: {
     functions?: GameFunction<any>[];
     getEnvironment?: () => Promise<Record<string, any>>;
