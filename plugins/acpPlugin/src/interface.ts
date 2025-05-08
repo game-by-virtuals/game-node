@@ -42,6 +42,7 @@ export interface ITweet {
 
 export interface AcpJob {
   jobId: number;
+  clientName?: string;
   desc: string;
   price: string;
   providerAddress?: string;
@@ -54,6 +55,7 @@ export interface AcpJob {
 export interface IDeliverable {
   type: "url" | "text" | "txHashUrl";
   value: string;
+  clientName?: string;
 }
 
 export interface IInventory extends IDeliverable {
