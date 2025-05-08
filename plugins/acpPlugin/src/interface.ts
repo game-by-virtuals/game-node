@@ -55,11 +55,11 @@ export interface AcpJob {
 export interface IDeliverable {
   type: "url" | "text" | "txHashUrl";
   value: string;
-  clientName?: string;
 }
 
 export interface IInventory extends IDeliverable {
   jobId: number;
+  clientName?: string;
 }
 
 export interface AcpState {
