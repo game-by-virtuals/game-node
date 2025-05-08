@@ -43,6 +43,7 @@ export interface ITweet {
 export interface AcpJob {
   jobId: number;
   clientName?: string;
+  providerName?: string;
   desc: string;
   price: string;
   providerAddress?: string;
@@ -60,6 +61,7 @@ export interface IDeliverable {
 export interface IInventory extends IDeliverable {
   jobId: number;
   clientName?: string;
+  providerName?: string;
 }
 
 export interface AcpState {
