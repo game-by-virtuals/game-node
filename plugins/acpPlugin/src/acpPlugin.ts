@@ -73,6 +73,7 @@ class AcpPlugin {
       options.agentRepoUrl
     );
     this.cluster = options.cluster;
+    this.twitterClient = options.twitterClient;
     this.evaluatorCluster = options.evaluatorCluster;
     this.onEvaluate = options.onEvaluate || this.defaultOnEvaluate;
     this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
