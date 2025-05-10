@@ -534,6 +534,13 @@ class AcpPlugin {
         try {
           const state = await this.getAcpState();
 
+          if (state.jobs.cancelled.find(c => c.jobId === +args.jobId!)) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Cannot respond - this job has been cancelled"
+            );
+          }
+
           const job = state.jobs.active.asASeller.find(
             (c) => c.jobId === +args.jobId!
           );
@@ -653,6 +660,13 @@ class AcpPlugin {
 
         try {
           const state = await this.getAcpState();
+
+          if (state.jobs.cancelled.find(c => c.jobId === +args.jobId!)) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Cannot pay - this job has been cancelled"
+            );
+          }
 
           const job = state.jobs.active.asABuyer.find(
             (c) => c.jobId === +args.jobId!
@@ -779,6 +793,13 @@ class AcpPlugin {
         try {
           const state = await this.getAcpState();
 
+          if (state.jobs.cancelled.find(c => c.jobId === +args.jobId!)) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Cannot deliver - this job has been cancelled"
+            );
+          }
+
           const job = state.jobs.active.asASeller.find(
             (c) => c.jobId === +args.jobId!
           );
@@ -787,6 +808,14 @@ class AcpPlugin {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
               "job not found in your seller jobs - check the ID and verify you're the seller"
+            );
+          }
+
+          if (job.expiredAt && new Date(job.expiredAt) < new Date()) {
+            const expiredDate = new Date(job.expiredAt);
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              `Cannot deliver - this job has expired on ${expiredDate.toISOString()} (UTC). The buyer may need to create a new job request.`
             );
           }
 
