@@ -66,6 +66,54 @@ export class AcpClient {
     }));
   }
 
+  async negotiateJobOngoing(
+    jobId: number,
+    proposedPrice: number,
+    message: string
+  ) {
+    // Create a memo with the negotiation proposal
+    const memoContent = JSON.stringify({
+      type: "NEGOTIATION_PROPOSAL",
+      price: proposedPrice,
+      message: message
+    });
+    
+    const result = await this.acpToken.createMemo(
+      jobId,
+      memoContent,
+      MemoType.MESSAGE,
+      false,
+      AcpJobPhases.NEGOTIOATION
+    );
+    
+    return result;
+  }
+
+  async negotiateJobDone(
+    jobId: number,
+    accept: boolean,
+    message: string
+  ) {
+    // Create a memo with the negotiation result
+    const memoContent = JSON.stringify({
+      type: accept ? "NEGOTIATION_ACCEPT" : "NEGOTIATION_REJECT",
+      message: message
+    });
+    
+    const nextPhase = accept ? AcpJobPhases.TRANSACTION : AcpJobPhases.REJECTED;
+    
+    const result = await this.acpToken.createMemo(
+      jobId,
+      memoContent,
+      MemoType.MESSAGE,
+      false,
+      nextPhase
+    );
+    
+    return result;
+  }
+
+
   async createJob(
     providerAddress: string,
     evaluatorAddress: string,

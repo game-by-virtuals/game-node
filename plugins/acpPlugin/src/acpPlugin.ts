@@ -65,8 +65,19 @@ class AcpPlugin {
   ) => Promise<EvaluateResult>;
   private onPhaseChange?: (job: AcpJob) => Promise<void>;
   private jobExpiryDurationMins: number;
+  private jobMessages: Record<number, Array<{
+    fromAgentId: string;
+    message: string;
+    intention?: string;
+    timestamp: string;
+    read: Record<string, boolean>;
+  }>> = {};
 
   constructor(options: IAcpPluginOptions) {
+      console.log("*************************************");
+    console.log("* LOCAL VERSION OF AcpPlugin CONSTRUCTOR CALLED *");
+    console.log("* BUILD TIME: " + new Date().toISOString() + " *");
+    console.log("*************************************");
     this.acpClient = new AcpClient(
       options.apiKey,
       options.acpTokenClient,
@@ -84,6 +95,7 @@ class AcpPlugin {
 
     1. RESPONDING to Buy/Sell Needs
       - Find sellers when YOU need to buy something
+      - negotiate with the seller if you think the price is too high
       - Handle incoming purchase requests when others want to buy from YOU
       - NO prospecting or client finding
 
@@ -126,6 +138,7 @@ class AcpPlugin {
         description: string;
       }) => {
         if (this.onEvaluate) {
+          console.log("in evaluate");
           const { isApproved, reasoning } = await this.onEvaluate(
             data.deliverable,
             data.description
@@ -136,12 +149,14 @@ class AcpPlugin {
               true,
               reasoning
             );
+            console.log("signed memo");
           } else {
             await this.acpClient.acpTokenClient.signMemo(
               data.memoId,
               false,
               reasoning
             );
+            console.log("signed memo 2");
           }
         }
       }
@@ -187,6 +202,109 @@ class AcpPlugin {
     return serverState;
   }
 
+  public async sendJobMessage(jobId: number, message: string, intention?: string) {
+    const agentId = this.acpClient.walletAddress;
+    
+    // Initialize message array if it doesn't exist
+    if (!this.jobMessages[jobId]) {
+      this.jobMessages[jobId] = [];
+    }
+    
+    // Add the new message
+    const newMessage = {
+      fromAgentId: agentId,
+      message,
+      intention,
+      timestamp: new Date().toISOString(),
+      read: { [agentId]: true } // sender has read their own message
+    };
+    
+    this.jobMessages[jobId].push(newMessage);
+    
+    // Also create a memo to persist the message
+    const memoContent = JSON.stringify({
+      type: "JOB_MESSAGE",
+      ...newMessage
+    });
+    await this.acpClient.negotiateJobOngoing(
+      jobId,
+      0, // Price not relevant for general message
+      memoContent
+    );
+    return newMessage;
+  }
+
+  public getJobMessages(jobId: number) {
+    return this.jobMessages[jobId] || [];
+  }
+
+  public hasUnreadMessages(jobId: number) {
+    const agentId = this.acpClient.walletAddress;
+    const messages = this.jobMessages[jobId] || [];
+    
+    return messages.some(msg => 
+      msg.fromAgentId !== agentId && // not from this agent
+      (!msg.read[agentId]) // not marked as read by this agent
+    );
+  }
+
+  public markMessagesAsRead(jobId: number) {
+    const agentId = this.acpClient.walletAddress;
+    const messages = this.jobMessages[jobId] || [];
+    
+    messages.forEach(msg => {
+      msg.read[agentId] = true;
+    });
+    
+    // Also update memos if needed
+    // This would depend on your memo system implementation
+  }
+
+  private async loadJobMessages() {
+    try {
+      const state = await this.getAcpState();
+      
+      // Process all active jobs
+      const allJobs = [
+        ...state.jobs.active.asABuyer,
+        ...state.jobs.active.asASeller
+      ];
+      
+      for (const job of allJobs) {
+        // Get all memos for this job
+        const memos = await this.acpClient.acpTokenClient.getMemos(job.jobId);
+        
+        // Filter and parse message memos
+        const messages = memos
+          .filter((memo: {content: string}) => {
+            try {
+              const content = JSON.parse(memo.content);
+              return content.type === "JOB_MESSAGE";
+            } catch {
+              return false;
+            }
+          })
+          .map((memo: any) => {
+            const content = JSON.parse(memo.content);
+            return {
+              fromAgentId: content.fromAgentId,
+              message: content.message,
+              intention: content.intention,
+              timestamp: content.timestamp,
+              read: content.read || { [this.acpClient.walletAddress]: false }
+            };
+          })
+          .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        
+        if (messages.length > 0) {
+          this.jobMessages[job.jobId] = messages;
+        }
+      }
+    } catch (error) {
+      console.error("Error loading job messages:", error);
+    }
+  }
+
   public getWorker(data?: {
     functions?: GameFunction<any>[];
     getEnvironment?: () => Promise<Record<string, any>>;
@@ -201,6 +319,7 @@ class AcpPlugin {
         this.respondJob,
         this.payJob,
         this.deliverJob,
+        this.negotiateJob
       ],
       getEnvironment: async () => {
         const environment = data?.getEnvironment
@@ -307,6 +426,7 @@ class AcpPlugin {
           name: "sellerWalletAddress",
           type: "string",
           description: "The seller's agent wallet address you want to buy from",
+          hint: "Address must be a hex value of 20 bytes (40 hex characters)"
         },
         {
           name: "price",
@@ -445,10 +565,11 @@ class AcpPlugin {
           );
 
           if (this.twitterClient) {
+            console.log("posting tweet");
             const tweet = await this.twitterClient?.post(args.tweetContent);
             await this.acpClient.addTweet(
               jobId,
-              tweet.data.id,
+              tweet.data?.id,
               args.tweetContent
             );
           }
@@ -469,6 +590,194 @@ class AcpPlugin {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
             `System error while initiating job - try again after a short delay. ${e}`
+          );
+        }
+      },
+    });
+  }
+
+  get negotiateJob() {
+    return new GameFunction({
+      name: 'negotiate_job',
+      description: 'Send a message during job negotiation',
+      args: [
+        {
+          name: 'jobId',
+          type: 'string',
+          description: 'The ID of the job being negotiated'
+        },
+        {
+          name: 'intention',
+          type: 'string',
+          description: `Your intention for this negotiation (COUNTER, AGREE, CANCEL, GENERAL)`
+        },
+        {
+          name: 'quantity',
+          type: 'number',
+          description: 'Quantity being proposed',
+          optional: true,
+        },
+        {
+          name: 'pricePerUnit',
+          type: 'string',
+          description: 'Price per unit being proposed',
+          optional: true,
+        },
+        {
+          name: 'requirements',
+          type: 'string',
+          description: 'Requirements being proposed',
+          optional: true,
+        },
+        {
+          name: 'message',
+          type: 'string',
+          description: 'Your negotiation message',
+        }
+      ] as const,
+      executable: async (args, _) => {
+        if (!args.jobId) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Missing job ID - specify which job you're negotiating"
+          );
+        }
+        
+        if (!args.message) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Missing message - provide content for your negotiation"
+          );
+        }
+        
+        if (!args.intention || !['COUNTER', 'AGREE', 'CANCEL', 'GENERAL'].includes(args.intention)) {
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            "Invalid intention - must be one of: COUNTER, AGREE, CANCEL, GENERAL"
+          );
+        }
+        
+        try {
+          const state = await this.getAcpState();
+          
+          // Find the job in either buyer or seller active jobs
+          const buyerJob = state.jobs.active.asABuyer.find(c => c.jobId === +(args.jobId || 0));
+          const sellerJob = state.jobs.active.asASeller.find(c => c.jobId === +(args.jobId || 0));
+          const job = buyerJob || sellerJob;
+          
+          if (!job) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              "Job not found - check the ID and verify you're involved in this job"
+            );
+          }
+          
+          // Check if job is in negotiation phase
+          if (job.phase !== AcpJobPhasesDesc.NEGOTIOATION) {
+            return new ExecutableGameFunctionResponse(
+              ExecutableGameFunctionStatus.Failed,
+              `Cannot negotiate - job is in '${job.phase}' phase, must be in 'negotiation' phase`
+            );
+          }
+          
+          // Handle different intentions
+          if (args.intention === 'COUNTER' || args.intention === 'AGREE') {
+            // These intentions require terms
+            if (!args.quantity || !args.pricePerUnit || !args.requirements) {
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Failed,
+                `${args.intention} requires all terms (quantity, pricePerUnit, requirements) to be specified`
+              );
+            }
+          }
+          
+          // Handle the negotiation based on intention
+          switch (args.intention) {
+            case 'CANCEL':
+              // End negotiation with rejection
+              await this.acpClient.negotiateJobDone(
+                +args.jobId,
+                false, // reject
+                args.message
+              );
+              
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Done,
+                JSON.stringify({
+                  jobId: args.jobId,
+                  intention: args.intention,
+                  status: 'Negotiation cancelled',
+                  timestamp: Date.now()
+                })
+              );
+              
+            case 'AGREE':
+              // End negotiation with acceptance
+              await this.acpClient.negotiateJobDone(
+                +args.jobId,
+                true, // accept
+                args.message
+              );
+              
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Done,
+                JSON.stringify({
+                  jobId: args.jobId,
+                  intention: args.intention,
+                  status: 'Terms accepted, proceeding to transaction',
+                  timestamp: Date.now()
+                })
+              );
+              
+            case 'COUNTER':
+              // Continue negotiation with new price proposal
+              const proposedPrice = parseFloat(args.pricePerUnit!) * parseFloat(args.quantity!);
+              
+              await this.acpClient.negotiateJobOngoing(
+                +args.jobId,
+                proposedPrice,
+                `${args.message}\n\nProposed terms: ${args.quantity} units at ${args.pricePerUnit} each. Requirements: ${args.requirements}`
+              );
+              
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Done,
+                JSON.stringify({
+                  jobId: args.jobId,
+                  intention: args.intention,
+                  status: 'Counter-offer sent',
+                  proposedTerms: {
+                    quantity: args.quantity,
+                    pricePerUnit: args.pricePerUnit,
+                    requirements: args.requirements
+                  },
+                  timestamp: Date.now()
+                })
+              );
+              
+            case 'GENERAL':
+            default:
+              // Just send a message without changing terms
+              await this.acpClient.negotiateJobOngoing(
+                +args.jobId,
+                parseFloat(job.price), // convert price string to number
+                args.message
+              );
+              return new ExecutableGameFunctionResponse(
+                ExecutableGameFunctionStatus.Done,
+                JSON.stringify({
+                  jobId: args.jobId,
+                  intention: args.intention,
+                  status: 'Negotiation message sent successfully',
+                  timestamp: Date.now()
+                })
+              );
+          }
+        } catch (e) {
+          console.error(e);
+          
+          return new ExecutableGameFunctionResponse(
+            ExecutableGameFunctionStatus.Failed,
+            `System error while negotiating job - try again after a short delay. ${e}`
           );
         }
       },
@@ -505,6 +814,8 @@ class AcpPlugin {
         },
       ] as const,
       executable: async (args, _) => {
+
+        console.log("ARGS===>: ", args);
         if (!args.jobId) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
@@ -531,6 +842,8 @@ class AcpPlugin {
           );
         }
 
+        console.log("HERE");
+
         try {
           const state = await this.getAcpState();
 
@@ -552,12 +865,20 @@ class AcpPlugin {
             );
           }
 
-          await this.acpClient.responseJob(
-            +args.jobId,
-            args.decision === "ACCEPT",
-            job.memo[0].id,
-            args.reasoning
-          );
+          console.log("Job:", job);
+          console.log("Job memo:", job.memo);
+
+          if (job.memo && job.memo.length > 0) {
+            console.log("job memo id: ", job.memo[0].id);
+            await this.acpClient.responseJob(
+              +args.jobId,
+              args.decision === "ACCEPT",
+              job.memo[0].id,
+              args.reasoning
+            );
+          } else {
+            console.log("No memo found for job");
+          }
 
           if (this.twitterClient) {
             const tweetId = job.tweetHistory.pop()?.tweetId;
