@@ -112,26 +112,12 @@ async function fetchProjectsWithNonEmptyFields(limit = 3, chainFilter?: string) 
         .slice(0, limit);
     
     // If we still don't have enough projects with non-empty fields,
-    // fall back to the original data without filtering
+    // return empty array
     if (topProjects.length === 0) {
-        // Fetch top projects without filtering
-        const fallbackUrl = 'https://api.aixbt.tech/v1/projects?limit=3';
-        const fallbackResponse = await fetch(fallbackUrl, {
-            headers: {
-                'x-api-key': process.env.AIXBT_API_KEY || '',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!fallbackResponse.ok) {
-            throw new Error('Failed to fetch fallback crypto projects');
-        }
-        
-        const fallbackData = await fallbackResponse.json();
         return {
             status: 200,
-            error: "No projects with non-empty tokens and tickers found. Showing top projects instead.",
-            data: fallbackData.data || []
+            error: "No alpha",
+            data: []
         };
     }
     
