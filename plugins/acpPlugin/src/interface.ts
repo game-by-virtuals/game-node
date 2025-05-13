@@ -51,6 +51,7 @@ export interface AcpJob {
   memo: AcpRequestMemo[];
   tweetHistory: ITweet[];
   lastUpdated: number;
+  expiredAt?: string;
 }
 
 export interface IDeliverable {
