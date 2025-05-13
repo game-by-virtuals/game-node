@@ -6,20 +6,54 @@ import {
   ATTR_SERVICE_VERSION,
 } from "@opentelemetry/semantic-conventions";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { SimpleLogRecordProcessor } from "@opentelemetry/sdk-logs";
+import {
+  ConsoleLogRecordExporter,
+  SimpleLogRecordProcessor,
+} from "@opentelemetry/sdk-logs";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-proto";
-import { trace } from "@opentelemetry/api";
+import { ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base";
+import { trace, metrics } from "@opentelemetry/api";
+import {
+  ConsoleMetricExporter,
+  PeriodicExportingMetricReader,
+} from "@opentelemetry/sdk-metrics";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
+interface InstrumentationConfig {
+  useConsoleExporter?: boolean;
+  useMetric?: boolean;
+}
 
-const sdk = new NodeSDK({
-  resource: resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: "otel-plugin",
-    [ATTR_SERVICE_VERSION]: "0.0.1",
-  }),
-  traceExporter: new OTLPTraceExporter(),
-  logRecordProcessors: [new SimpleLogRecordProcessor(new OTLPLogExporter())],
-  instrumentations: [getNodeAutoInstrumentations()],
-});
+function initializeVirtualsOtel(config: InstrumentationConfig = {}) {
+  const traceExporter = config.useConsoleExporter
+    ? new ConsoleSpanExporter()
+    : new OTLPTraceExporter();
 
-sdk.start();
+  const metricReader = new PeriodicExportingMetricReader({
+    exporter: config.useConsoleExporter
+      ? new ConsoleMetricExporter()
+      : new OTLPMetricExporter(),
+  });
 
-export { trace };
+  const logRecordProcessors = [
+    new SimpleLogRecordProcessor(
+      config.useConsoleExporter
+        ? new ConsoleLogRecordExporter()
+        : new OTLPLogExporter()
+    ),
+  ];
+
+  const sdk = new NodeSDK({
+    resource: resourceFromAttributes({
+      [ATTR_SERVICE_NAME]: "otel-plugin",
+      [ATTR_SERVICE_VERSION]: "0.0.1",
+    }),
+    traceExporter,
+    ...(config.useMetric && metricReader),
+    logRecordProcessors,
+    instrumentations: [getNodeAutoInstrumentations()],
+  });
+
+  sdk.start();
+}
+
+export { trace, metrics, initializeVirtualsOtel };
