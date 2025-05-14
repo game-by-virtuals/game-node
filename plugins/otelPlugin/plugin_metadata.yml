@@ -1,0 +1,23 @@
+# General Information
+plugin_name: "Otel Plugin"
+author: "Virtuals"
+logo_url: ""
+release_date: "2025-05"
+
+# Description
+short_description: "The Otel Plugin integrates OpenTelemetry into your application, enabling the collection and export of telemetry data such as traces, metrics, and logs." # One-liner description for listings
+detailed_description: "The Otel Plugin allows integration of OpenTelemetry into your application, providing the capability to collect and export telemetry data including traces, metrics, and logs. It supports both console and log exporters, configurable via the instrumentation.ts file. The plugin requires Docker for running the OpenTelemetry Collector when using the log exporter. It offers functions for tracing and metrics, such as getTracer, startActiveSpan, setAttribute, addEvent, getMeter, createCounter, createHistogram, and createObservableGauge. This plugin is essential for applications needing robust telemetry data collection and export capabilities." # Full description with features and benefits
+
+# Media & Assets
+plugin_logo_url: ""
+screenshots:
+  - ""
+  - ""
+demo_video_url: ""
+documentation_url: ""
+changelog_url: ""
+
+# Contact & Support
+x_account_handle: ""
+support_contact: ""
+community_url: ""
