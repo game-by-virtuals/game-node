@@ -39,13 +39,13 @@ import TwitterPlugin from "@virtuals-protocol/game-twitter-plugin";
    To get the access token, run the following command:
 
    ```bash
-   npx @virtuals-protocol/game-twitter-node auth -k <GAME_API_KEY>
+   npx @virtuals-protocol/game-twitter-plugin auth -k <GAME_API_KEY>
    ```
 
    Here is an example run:
 
    ```bash
-   npx @virtuals-protocol/game-twitter-node auth -k apt-xxxxxxxxxx
+   npx @virtuals-protocol/game-twitter-plugin auth -k apt-xxxxxxxxxx
    ```
 
    You will see the following output:
