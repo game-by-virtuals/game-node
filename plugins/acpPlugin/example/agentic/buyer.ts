@@ -6,14 +6,28 @@ import {
   GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-// import AcpPlugin from "./acpPlugin";
-// import { AcpToken } from "./acpToken";
-import { baseSepolia } from "viem/chains";
+import AcpPlugin, { AcpToken, EvaluateResult, IDeliverable } from "@virtuals-protocol/game-acp-plugin";
+import {
+  WHITELISTED_WALLET_PRIVATE_KEY,
+  WHITELISTED_WALLET_ENTITY_ID,
+  BUYER_AGENT_WALLET_ADDRESS,
+  GAME_API_KEY,
+  GAME_DEV_API_KEY,
+} from "./env";
+
+// GAME Twitter Plugin import
 import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
-import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
-import axios from "axios";
-import { IDeliverable } from "../../src/interface";
-import { EvaluateResult } from "../../src";
+import { BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
+
+// Native Twitter Plugin imports
+// import { TwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+// import {
+//   BUYER_AGENT_TWITTER_ACCESS_TOKEN,
+//   BUYER_AGENT_TWITTER_API_KEY,
+//   BUYER_AGENT_TWITTER_API_SECRET_KEY,
+//   BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
+// } from "./env";
+
 
 function askQuestion(query: string): Promise<string> {
   const rl = readline.createInterface({
@@ -29,11 +43,19 @@ function askQuestion(query: string): Promise<string> {
   );
 }
 
-const gameTwitterClient = new GameTwitterClient({
-  accessToken: "<ACCESS_TOKEN>",
+const twitterClient = new GameTwitterClient({
+  accessToken: BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
 });
 
-const onEvaluate = (deliverable: IDeliverable, description: string) => {
+// Native Twitter Plugin
+// const twitterClient = new TwitterClient({
+//     apiKey: BUYER_AGENT_TWITTER_API_KEY,
+//     apiSecretKey: BUYER_AGENT_TWITTER_API_SECRET_KEY,
+//     accessToken: BUYER_AGENT_TWITTER_ACCESS_TOKEN,
+//     accessTokenSecret: BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
+// });
+
+const onEvaluate = (deliverable: IDeliverable, description: string | undefined) => {
   return new Promise<EvaluateResult>((resolve) => {
     console.log(deliverable, description);
     resolve(new EvaluateResult(true, "This is a test reasoning"));
@@ -42,13 +64,13 @@ const onEvaluate = (deliverable: IDeliverable, description: string) => {
 
 async function test() {
   const acpPlugin = new AcpPlugin({
-    apiKey: "<GAME_API_KEY>",
+    apiKey: GAME_DEV_API_KEY,
     acpTokenClient: await AcpToken.build(
-      "<your-whitelisted-wallet-private-key>",
-      "<your-session-entity-key-id>",
-      "<your-agent-wallet-address>"
+      WHITELISTED_WALLET_PRIVATE_KEY,
+      WHITELISTED_WALLET_ENTITY_ID,
+      BUYER_AGENT_WALLET_ADDRESS,
     ),
-    twitterClient: gameTwitterClient,
+    twitterClient: twitterClient,
     onEvaluate: onEvaluate,
   });
 
@@ -88,7 +110,7 @@ async function test() {
     },
   });
 
-  const agent = new GameAgent("<YOUR_API_KEY>", {
+  const agent = new GameAgent(GAME_API_KEY, {
     name: "Virtuals",
     goal: "Finding the best meme to do tweet posting",
     description: `

@@ -6,9 +6,27 @@ import {
   GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-import { baseSepolia } from "viem/chains";
-import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
 import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
+import {
+  GAME_API_KEY,
+  GAME_DEV_API_KEY,
+  SELLER_AGENT_WALLET_ADDRESS,
+  WHITELISTED_WALLET_ENTITY_ID,
+  WHITELISTED_WALLET_PRIVATE_KEY,
+} from "./env";
+
+// GAME Twitter Plugin import
+import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+import { SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
+
+// Native Twitter Plugin imports
+// import { TwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+// import {
+//   SELLER_AGENT_TWITTER_ACCESS_TOKEN,
+//   SELLER_AGENT_TWITTER_API_KEY,
+//   SELLER_AGENT_TWITTER_API_SECRET_KEY,
+//   SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
+// } from "./env";
 
 function askQuestion(query: string): Promise<string> {
   const rl = readline.createInterface({
@@ -24,19 +42,26 @@ function askQuestion(query: string): Promise<string> {
   );
 }
 
-const gameTwitterClient = new GameTwitterClient({
-  accessToken: "<ACCESS_TOKEN>",
+const twitterClient = new GameTwitterClient({
+  accessToken: SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
 });
+
+// const twitterClient = new TwitterClient({
+//     apiKey: SELLER_AGENT_TWITTER_API_KEY,
+//     apiSecretKey: SELLER_AGENT_TWITTER_API_SECRET_KEY,
+//     accessToken: SELLER_AGENT_TWITTER_ACCESS_TOKEN,
+//     accessTokenSecret: SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
+// })
 
 async function test() {
   const acpPlugin = new AcpPlugin({
-    apiKey: "<GAME_API_KEY>",
+    apiKey: GAME_DEV_API_KEY,
     acpTokenClient: await AcpToken.build(
-      "<your-whitelisted-wallet-private-key>",
-      "<your-session-entity-key-id>",
-      "<your-agent-wallet-address>"
+      WHITELISTED_WALLET_PRIVATE_KEY,
+      WHITELISTED_WALLET_ENTITY_ID,
+      SELLER_AGENT_WALLET_ADDRESS,
     ),
-    // twitterClient: gameTwitterClient,
+    twitterClient: twitterClient,
   });
 
   const coreWorker = new GameWorker({
@@ -108,7 +133,7 @@ async function test() {
     },
   });
 
-  const agent = new GameAgent("<YOUR_API_KEY>", {
+  const agent = new GameAgent(GAME_API_KEY, {
     name: "Memx",
     goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller.",
     description: `You are Memx, a meme generator. Meme generation is your life. You always give buyer the best meme.

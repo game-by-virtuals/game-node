@@ -6,12 +6,36 @@ import {
 } from "@virtuals-protocol/game";
 import AcpPlugin, { AcpToken, AcpJob, AcpJobPhasesDesc } from "@virtuals-protocol/game-acp-plugin"
 import {
-    ACP_AGENT_WALLET_ADDRESS_SELLER,
+    GAME_API_KEY,
+    GAME_DEV_API_KEY,
+    SELLER_AGENT_WALLET_ADDRESS,
     WHITELISTED_WALLET_PRIVATE_KEY,
     WHITELISTED_WALLET_ENTITY_ID,
-    GAME_API_KEY,
-    GAME_DEV_API_KEY
 } from "./env";
+
+// GAME Twitter Plugin import
+import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+import { SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
+
+// Native Twitter Plugin imports
+// import { TwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+// import {
+//   SELLER_AGENT_TWITTER_ACCESS_TOKEN,
+//   SELLER_AGENT_TWITTER_API_KEY,
+//   SELLER_AGENT_TWITTER_API_SECRET_KEY,
+//   SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
+// } from "./env";
+
+const twitterClient = new GameTwitterClient({
+    accessToken: SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
+});
+
+// const twitterClient = new TwitterClient({
+//     apiKey: SELLER_AGENT_TWITTER_API_KEY,
+//     apiSecretKey: SELLER_AGENT_TWITTER_API_SECRET_KEY,
+//     accessToken: SELLER_AGENT_TWITTER_ACCESS_TOKEN,
+//     accessTokenSecret: SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
+// })
 
 async function test() {
     const acpPlugin = new AcpPlugin({
@@ -19,8 +43,9 @@ async function test() {
         acpTokenClient: await AcpToken.build(
             WHITELISTED_WALLET_PRIVATE_KEY,
             WHITELISTED_WALLET_ENTITY_ID,
-            ACP_AGENT_WALLET_ADDRESS_SELLER
+            SELLER_AGENT_WALLET_ADDRESS
         ),
+        twitterClient: twitterClient
     });
 
     const generateMeme = new GameFunction({
