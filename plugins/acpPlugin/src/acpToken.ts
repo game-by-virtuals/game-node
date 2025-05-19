@@ -92,7 +92,7 @@ export class AcpToken {
         rpcUrl: "https://alchemy-proxy.virtuals.io/api/proxy/rpc",
       }),
       signer: sessionKeySigner,
-      policyId: "0f2ca493-af82-41cf-99a6-8534d668f160",
+      policyId: "186aaa4a-5f57-4156-83fb-e456365a8820",
       accountAddress: this.agentWalletAddress,
       signerEntity: {
         entityId: this.sessionEntityKeyId,
