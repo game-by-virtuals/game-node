@@ -42,7 +42,7 @@ async function test() {
       ACP_AGENT_WALLET_ADDRESS_BUYER
     ),
     evaluatorCluster: "999",
-    onEvaluate: async (deliverable: IDeliverable, description: string) => {
+    onEvaluate: async (deliverable: IDeliverable, description?: string) => {
       console.log("Evaluating deliverable", deliverable, description);
       return new EvaluateResult(true, "custom evaluator");
     },
