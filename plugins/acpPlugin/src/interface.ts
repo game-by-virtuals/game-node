@@ -1,3 +1,6 @@
+import { baseSepolia, base } from "@account-kit/infra";
+import { Address } from "viem";
+
 export interface AcpAgent {
   id: string;
   name: string;
@@ -77,4 +80,14 @@ export interface AcpState {
     completed: AcpJob[];
     cancelled: AcpJob[];
   };
+}
+
+export interface IAcpConfig {
+  sdkUrl: string;
+  registryUrl: string;
+  alchemyRpcUrl: string;
+  alchemyPolicyId: string;
+  chain: typeof baseSepolia | typeof base;
+  acpContractAddress: Address;
+  virtualsTokenAddress: Address;
 }

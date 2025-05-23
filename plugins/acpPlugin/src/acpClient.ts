@@ -1,15 +1,19 @@
-import { AcpAgent, AcpJobPhases, AcpState } from "./interface";
+import { AcpAgent, AcpJobPhases, AcpState, IAcpConfig } from "./interface";
 import { AcpToken, MemoType } from "./acpToken";
 import { parseEther } from "viem";
 
 export class AcpClient {
-  private baseUrl = "https://sdk-dev.game.virtuals.io/acp";
+  private baseUrl;
+  private registryUrl;
 
   constructor(
     private apiKey: string,
     private acpToken: AcpToken,
-    private agentRepoUrl?: string
-  ) {}
+    config: IAcpConfig
+  ) {
+    this.baseUrl = config.sdkUrl;
+    this.registryUrl = config.registryUrl;
+  }
 
   get walletAddress() {
     return this.acpToken.getWalletAddress();
@@ -34,16 +38,15 @@ export class AcpClient {
   }
 
   async browseAgents(query?: string, cluster?: string) {
-    const baseUrl =
-      this.agentRepoUrl || "https://acpx-staging.virtuals.io/api/agents";
+    const baseUrl = this.registryUrl;
 
     // agent must exclude itself from search result to prevent self-commission
     let url = `${baseUrl}?filters[walletAddress][$notIn]=${this.walletAddress}`;
-    
+
     if (query) {
-      url += `&search=${encodeURIComponent(query)}`
+      url += `&search=${encodeURIComponent(query)}`;
     }
-      
+
     if (cluster) {
       url += `&filters[cluster]=${encodeURIComponent(cluster)}`;
     }
@@ -215,7 +218,7 @@ export class AcpClient {
     const response = await this.request(
       `${jobId}/wallet/${this.walletAddress}`,
       {
-        method: "delete"
+        method: "delete",
       }
     );
 
@@ -241,7 +244,7 @@ export class AcpClient {
       headers["x-package-version"] = process.env.npm_package_version;
     }
 
-    return fetch(`${this.baseUrl}/${url}`, {
+    return fetch(`${this.baseUrl}/acp/${url}`, {
       ...options,
       headers,
     });

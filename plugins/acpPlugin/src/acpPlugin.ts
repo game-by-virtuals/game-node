@@ -65,13 +65,17 @@ class AcpPlugin {
   ) => Promise<EvaluateResult>;
   private onPhaseChange?: (job: AcpJob) => Promise<void>;
   private jobExpiryDurationMins: number;
+  private sdkUrl: string;
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = new AcpClient(
       options.apiKey,
       options.acpTokenClient,
-      options.agentRepoUrl
+      options.acpTokenClient.config
     );
+
+    this.sdkUrl = options.acpTokenClient.config.sdkUrl;
+
     this.cluster = options.cluster;
     this.twitterClient = options.twitterClient;
     this.evaluatorCluster = options.evaluatorCluster;
@@ -113,7 +117,7 @@ class AcpPlugin {
   }
 
   private initializeSocket() {
-    this.socket = io("https://sdk-dev.game.virtuals.io", {
+    this.socket = io(this.sdkUrl, {
       auth: {
         walletAddress: this.acpClient.walletAddress,
       },

@@ -1,12 +1,12 @@
 import { Address, encodeFunctionData, erc20Abi, fromHex } from "viem";
 import ACP_TOKEN_ABI from "./acpTokenAbi";
-import { AcpJobPhases } from "./interface";
+import { AcpJobPhases, IAcpConfig } from "./interface";
 import {
   createModularAccountV2Client,
   ModularAccountV2Client,
 } from "@account-kit/smart-contracts";
 import { LocalAccountSigner, SmartAccountSigner } from "@aa-sdk/core";
-import { alchemy, baseSepolia } from "@account-kit/infra";
+import { alchemy } from "@account-kit/infra";
 
 export enum MemoType {
   MESSAGE,
@@ -54,27 +54,36 @@ export type JobResult = [
 export class AcpToken {
   private _sessionKeyClient: ModularAccountV2Client | undefined;
 
-  private chain = baseSepolia;
-  private contractAddress: Address =
-    "0x2422c1c43451Eb69Ff49dfD39c4Dc8C5230fA1e6";
-  private virtualsTokenAddress: Address =
-    "0xbfAB80ccc15DF6fb7185f9498d6039317331846a";
+  private chain;
+  private alchemyRpcUrl: string;
+  private alchemyPolicyId: string;
+  private contractAddress: Address;
+  private virtualsTokenAddress: Address;
 
   constructor(
     private walletPrivateKey: Address,
     private sessionEntityKeyId: number,
-    private agentWalletAddress: Address
-  ) {}
+    private agentWalletAddress: Address,
+    public config: IAcpConfig
+  ) {
+    this.chain = config.chain;
+    this.contractAddress = config.acpContractAddress;
+    this.virtualsTokenAddress = config.virtualsTokenAddress;
+    this.alchemyRpcUrl = config.alchemyRpcUrl;
+    this.alchemyPolicyId = config.alchemyPolicyId;
+  }
 
   static async build(
     walletPrivateKey: Address,
     sessionEntityKeyId: number,
-    agentWalletAddress: Address
+    agentWalletAddress: Address,
+    config: IAcpConfig
   ) {
     const acpToken = new AcpToken(
       walletPrivateKey,
       sessionEntityKeyId,
-      agentWalletAddress
+      agentWalletAddress,
+      config
     );
 
     await acpToken.init();
@@ -89,10 +98,10 @@ export class AcpToken {
     this._sessionKeyClient = await createModularAccountV2Client({
       chain: this.chain,
       transport: alchemy({
-        rpcUrl: "https://alchemy-proxy.virtuals.io/api/proxy/rpc",
+        rpcUrl: this.alchemyRpcUrl,
       }),
       signer: sessionKeySigner,
-      policyId: "186aaa4a-5f57-4156-83fb-e456365a8820",
+      policyId: this.alchemyPolicyId,
       accountAddress: this.agentWalletAddress,
       signerEntity: {
         entityId: this.sessionEntityKeyId,
