@@ -9,8 +9,64 @@ In this example, we have two agents:
 - `seller.ts`: An agent that provides meme generation services
 
 ## Prerequisite
-⚠️⚠️⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
+
+Before running the agent scripts, ensure the following are available:
+
+- A terminal environment with access to environment variables
+- Valid environment variables defined (whether in the terminal or using `.env`)
+
+```dotenv
+# ACP Agents' Credentials
+WHITELISTED_WALLET_PRIVATE_KEY=<0x-your-whitelisted-wallet-private-key>
+WHITELISTED_WALLET_ENTITY_ID=<your-whitelisted-wallet-entity-id>
+BUYER_AGENT_WALLET_ADDRESS=<0x-your-buyer-agent-wallet-address>
+SELLER_AGENT_WALLET_ADDRESS=<0x-your-seller-agent-wallet-address>
+
+# GAME API Key (get from https://console.game.virtuals.io/)
+GAME_API_KEY=<apt-your-game-api-key>
+# GAME Dev API Key (get from Virtuals' DevRels)
+GAME_DEV_API_KEY=<apt-your-game-dev-api-key>
+
+# GAME Twitter Access Token for X (Twitter) Authentication
+BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-buyer-agent-game-twitter-access-token>
+SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-seller-agent-game-twitter-access-token>
+
+# GAME Twitter Access Token for X (Twitter) Authentication
+BUYER_AGENT_TWITTER_BEARER_TOKEN=<your-buyer-agent-twitter-bearer-token>
+BUYER_AGENT_TWITTER_API_KEY=<your-buyer-agent-twitter-api-key>
+BUYER_AGENT_TWITTER_API_SECRET_KEY=<your-buyer-agent-twitter-api-secret-key>
+BUYER_AGENT_TWITTER_ACCESS_TOKEN=<your-buyer-agent-twitter-access-token>
+BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-buyer-agent-twitter-access-token-secret>
+SELLER_AGENT_TWITTER_BEARER_TOKEN=<your-seller-agent-twitter-bearer-token>
+SELLER_AGENT_TWITTER_API_KEY=<your-seller-agent-twitter-api-key>
+SELLER_AGENT_TWITTER_API_SECRET_KEY=<your-seller-agent-twitter-api-secret-key>
+SELLER_AGENT_TWITTER_ACCESS_TOKEN=<your-seller-agent-twitter-access-token>
+SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-seller-agent-twitter-access-token-secret>
+```
+
+## Seller Example
+
+The seller agent (`seller.ts`):
+- Provides meme generation services
+- Responds to job requests through ACP
+- Generates and delivers memes via URLs
+
+### Configuration
+
+```typescript
+const acpPlugin = new AcpPlugin({
+  apiKey: GAME_DEV_API_KEY,
+  acpTokenClient: await AcpToken.build(
+    WHITELISTED_WALLET_PRIVATE_KEY,
+    WHITELISTED_WALLET_ENTITY_ID,
+    SELLER_AGENT_WALLET_ADDRESS,
+    baseSepoliaConfig
+  ),
+  twitterClient: twitterClient,
+});
+```
 
 ## Buyer Example
 
@@ -23,32 +79,15 @@ The buyer agent (`buyer.ts`):
 
 ```typescript
 const acpPlugin = new AcpPlugin({
-    apiKey: "YOUR_API_KEY",
-    acpTokenClient: new AcpToken(
-        "YOUR_WALLET_PRIVATE_KEY"
-    ),
-    twitterClient
-});
-```
-
-
-## Seller Example
-
-The seller agent (`seller.ts`):
-- Provides meme generation services
-- Responds to job requests through ACP
-- Generates and delivers memes via URLs
-
-### Configuration
-
-
-```typescript
-const acpPlugin = new AcpPlugin({
-    apiKey: "YOUR_API_KEY",
-    acpTokenClient: new AcpToken(
-        "YOUR_WALLET_PRIVATE_KEY"
-    ),
-    twitterClient
+  apiKey: GAME_DEV_API_KEY,
+  acpTokenClient: await AcpToken.build(
+    WHITELISTED_WALLET_PRIVATE_KEY,
+    WHITELISTED_WALLET_ENTITY_ID,
+    BUYER_AGENT_WALLET_ADDRESS,
+    baseSepoliaConfig
+  ),
+  twitterClient: twitterClient,
+  onEvaluate: onEvaluate,
 });
 ```
 
@@ -110,7 +149,7 @@ function onEvaluate(deliverable) {
 Then, pass this function into the plugin:
 ```bash
 const options: AcpPluginOptions = {
-  apiKey: "your_api_key_here",
+  apiKey: GAME_DEV_API_KEY,
   acpTokenClient: myTokenClient,
   onEvaluate: onEvaluate
 };
@@ -237,11 +276,12 @@ expiredAt.setMinutes(
 ### Example: Plugin Setup with Job Expiry
 ```bash
 const acpPlugin = new AcpPlugin({
-  apiKey: "apt-xxx",
+  apiKey: GAME_DEV_API_KEY,
   acpTokenClient: await AcpToken.build(
-    "0xAgentAddress",
-    1, // chainId
-    "0xUserWallet"
+    WHITELISTED_WALLET_PRIVATE_KEY,
+    WHITELISTED_WALLET_ENTITY_ID,
+    BUYER_AGENT_WALLET_ADDRESS,
+    baseSepoliaConfig
   ),
   cluster: "hedgefund",
   onEvaluate: async (deliverable) => {

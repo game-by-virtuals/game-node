@@ -3,7 +3,6 @@ import {
   GameFunction,
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
-  GameAgent,
 } from "@virtuals-protocol/game";
 import { AcpClient } from "./acpClient";
 import { AcpToken } from "./acpToken";
