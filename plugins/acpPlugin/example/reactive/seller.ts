@@ -4,7 +4,7 @@ import {
     GameAgent,
     GameFunction,
 } from "@virtuals-protocol/game";
-import AcpPlugin, { AcpToken, AcpJob, AcpJobPhasesDesc } from "@virtuals-protocol/game-acp-plugin"
+import AcpPlugin, { AcpToken, AcpJobPhasesDesc, baseSepoliaConfig } from "../../src"; //TODO: replace with npm package
 import {
     GAME_API_KEY,
     GAME_DEV_API_KEY,
@@ -43,7 +43,8 @@ async function test() {
         acpTokenClient: await AcpToken.build(
             WHITELISTED_WALLET_PRIVATE_KEY,
             WHITELISTED_WALLET_ENTITY_ID,
-            SELLER_AGENT_WALLET_ADDRESS
+            SELLER_AGENT_WALLET_ADDRESS,
+            baseSepoliaConfig
         ),
         twitterClient: twitterClient
     });
@@ -141,7 +142,7 @@ async function test() {
             Respond to the following transaction:
             ${JSON.stringify(job)}
 
-            decide to wheater you should accept the job or not.
+            decide whether you should accept the job or not.
             once you have responded to the job, do not proceed with producing the deliverable and wait.
             `;
         } else if (job.phase === AcpJobPhasesDesc.TRANSACTION) {

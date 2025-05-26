@@ -11,7 +11,8 @@ import AcpPlugin, {
   AcpToken,
   EvaluateResult,
   IDeliverable,
-} from "@virtuals-protocol/game-acp-plugin";
+  baseSepoliaConfig
+} from "../../src"; //TODO: replace with npm package
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
   WHITELISTED_WALLET_ENTITY_ID,
@@ -73,7 +74,8 @@ async function test() {
     acpTokenClient: await AcpToken.build(
       WHITELISTED_WALLET_PRIVATE_KEY,
       WHITELISTED_WALLET_ENTITY_ID,
-      BUYER_AGENT_WALLET_ADDRESS
+      BUYER_AGENT_WALLET_ADDRESS,
+      baseSepoliaConfig
     ),
     twitterClient: twitterClient,
     onEvaluate: onEvaluate,
