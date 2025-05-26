@@ -6,13 +6,13 @@ import {
   GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-import AcpPlugin, {
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient, {
+  AcpContractClient,
   AcpJob,
-  AcpToken,
-  EvaluateResult,
-  IDeliverable,
-  baseSepoliaConfig
-} from "../../src"; //TODO: replace with npm package
+  AcpJobPhases,
+  baseSepoliaAcpConfig
+} from "@virtuals-protocol/acp-node";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
   WHITELISTED_WALLET_ENTITY_ID,
@@ -61,31 +61,41 @@ const twitterClient = new GameTwitterClient({
 //     accessTokenSecret: BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
 // });
 
-const onEvaluate = (deliverable: IDeliverable, description: string | undefined) => {
-  return new Promise<EvaluateResult>((resolve) => {
-    console.log(deliverable, description);
-    resolve(new EvaluateResult(true, "This is a test reasoning"));
-  });
-};
-
 async function test() {
   const acpPlugin = new AcpPlugin({
     apiKey: GAME_DEV_API_KEY,
-    acpTokenClient: await AcpToken.build(
-      WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
-      BUYER_AGENT_WALLET_ADDRESS,
-      baseSepoliaConfig
-    ),
-    twitterClient: twitterClient,
-    onEvaluate: onEvaluate,
+    acpClient: new AcpClient({
+      acpContractClient: await AcpContractClient.build(
+        WHITELISTED_WALLET_PRIVATE_KEY,
+        WHITELISTED_WALLET_ENTITY_ID,
+        BUYER_AGENT_WALLET_ADDRESS,
+        baseSepoliaAcpConfig
+      ),
+      onNewTask: async (job: AcpJob) => {
+        if (
+          job.phase === AcpJobPhases.NEGOTIATION &&
+          job.memos.find((m) => m.nextPhase === AcpJobPhases.TRANSACTION)
+        ) {
+          const prompt = `Pay for the following job: ${JSON.stringify(job)}`;
+          await buyerAgent.getWorkerById("acp_worker").runTask(prompt, {
+            verbose: true,
+          });
+          buyerAgent.log(`${buyerAgent.name} has responded to the job #${job.id}`);
+        }
+      },
+      onEvaluate: async (job: AcpJob) => {
+        console.log(job.deliverable, job.serviceRequirement);
+        await job.evaluate(true, "This is a test reasoning");
+      },
+    }),
+    twitterClient: twitterClient
   });
 
   const ACP_BUYER_AGENT_BASIC_CONFIG = {
     name: "Virtuals",
     goal: "Perform and complete transanction with seller, look for agents to help you generating meme",
     description: `
-        Agent that gain market traction by posting meme. Your interest are in cats and AI. 
+        Agent that gain market traction by posting meme. Your interest are in cats and AI.
         You can head to acp to look for agents to help you generating meme.
         Do not look a relevant validator to validate the deliverable.
 
@@ -141,22 +151,6 @@ async function test() {
 
   await buyerAgent.init();
 
-  // upon phase change, the buyer agent will respond to the transaction
-  acpPlugin.setOnPhaseChange(async (job: AcpJob) => {
-    console.log("buyer agent reacting to job", job);
-
-    await buyerAgent.getWorkerById("acp_worker").runTask(
-      `
-          Respond to the following transaction: 
-          ${JSON.stringify(job)}`,
-      {
-        verbose: true,
-      }
-    );
-
-    console.log("buyer agent has responded to the job");
-  });
-  /// end of buyer reactive agent
 
   const agent = new GameAgent(GAME_API_KEY, {
     ...ACP_BUYER_AGENT_BASIC_CONFIG,

@@ -1,15 +1,5 @@
-import AcpPlugin, { EvaluateResult } from "./acpPlugin";
-import { AcpToken } from "./acpToken";
-import { baseConfig, baseSepoliaConfig } from "./config";
-import { AcpJob, AcpJobPhasesDesc, IDeliverable } from "./interface";
+import AcpPlugin from "./acpPlugin";
+import { AcpJobPhasesDesc, IDeliverable, IAcpJob } from "./interface";
 
 export default AcpPlugin;
-export {
-  AcpToken,
-  EvaluateResult,
-  AcpJob,
-  AcpJobPhasesDesc,
-  IDeliverable,
-  baseConfig,
-  baseSepoliaConfig,
-};
+export { AcpJobPhasesDesc, IDeliverable, IAcpJob };
