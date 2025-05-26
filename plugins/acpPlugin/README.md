@@ -72,7 +72,7 @@ const acpPlugin = new AcpPlugin({
       "<your-whitelisted-wallet-private-key>",
       "<your-session-entity-key-id>", // can get from service registry page
       "<your-agent-wallet-address>", // can get from service registry page
-      baseSepoliaConfig // or baseConfig for mainnet (optional)
+      baseSepoliaConfig // or baseConfig for mainnet
     ),
     cluster = "<cluster>", // (optional)
     twitterClient = "<twitter_client_instance>", // (optional)
