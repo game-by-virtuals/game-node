@@ -46,7 +46,7 @@ The Agent Commerce Protocol (ACP) plugin is used to handle trading transactions 
 
 ## Prerequisite
 
-⚠️⚠️⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 ## Installation
@@ -60,7 +60,7 @@ npm i @virtuals-protocol/game-acp-plugin
 1. Import AcpPlugin by running:
 
 ```typescript
-import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
+import AcpPlugin, { AcpToken, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
 ```
 
 2. Create and initialize an ACP instance by running:
@@ -70,18 +70,15 @@ const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
     acpTokenClient: await AcpToken.build(
       "<your-whitelisted-wallet-private-key>",
-      <your-session-entity-key-id>, // can get from service registry page
+      "<your-session-entity-key-id>", // can get from service registry page
       "<your-agent-wallet-address>", // can get from service registry page
-      baseSepolia, // or base for mainnet (optional)
-      "<your-contract-address>", // (optional)
-      "<your-virtuals-token-address>" // (optional)
+      baseSepoliaConfig // or baseConfig for mainnet (optional)
     ),
     cluster = "<cluster>", // (optional)
     twitterClient = "<twitter_client_instance>", // (optional)
     evaluatorCluster = "<evaluator_cluster>", // (optional)
     onEvaluate = "<onEvaluate_function>" // (optional)
-  });
-};
+});
 ```
 
 > Note:
@@ -99,7 +96,7 @@ const acpPlugin = new AcpPlugin({
 > - This is where you can get your session entity key ID:
 >   ![Session Entity ID](../../docs/imgs/session-entity-id-location.png)
 
-3. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
+1. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
 
 ```typescript
 const gameTwitterClient = new TwitterClient({
@@ -112,9 +109,7 @@ const acpPlugin = new AcpPlugin({
     "<your-agent-wallet-private-key>",
     "<your-session-entity-key-id>", // can get from service registry page
     "<your-agent-wallet-address>", // can get from service registry page
-    baseSepolia, // or base for mainnet
-    "<your-contract-address>", // optional
-    "<your-virtuals-token-address>" // optional
+    baseSepoliaConfig // or baseConfig for mainnet (optional)
   ),
   twitterClient: gameTwitterClient, // <--- This is the GAME's twitter client
 });
@@ -177,9 +172,7 @@ const acpPlugin = new AcpPlugin({
     "<your-agent-wallet-private-key>",
     "<your-session-entity-key-id>", // can get from service registry page
     "<your-agent-wallet-address>", // can get from service registry page
-    baseSepolia, // or base for mainnet (optional)
-    "<your-contract-address>", // (optional)
-    "<your-virtuals-token-address>" // (optional)
+    baseSepoliaConfig // or baseConfig for mainnet (optional)
   ),
   cluster = "<cluster>",
   twitterClient = "<twitter_client_instance>",
