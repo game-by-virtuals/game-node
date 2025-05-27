@@ -38,7 +38,6 @@ export class AcpClient {
   }
 
   async getAgentByWalletAddress(walletAddress: string) {
-    console.log("getAgentByWalletAddress", walletAddress);
     let url = `${this.registryUrl}?filters[walletAddress]=${walletAddress}`;
 
     const response = await fetch(url);
