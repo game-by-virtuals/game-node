@@ -50,10 +50,14 @@ export interface AcpJob {
   desc: string;
   price: string;
   providerAddress?: string;
+  clientAddress?: string;
   phase: AcpJobPhasesDesc;
   memo: AcpRequestMemo[];
   tweetHistory: ITweet[];
   lastUpdated: number;
+  getAgentByWalletAddress: (
+    walletAddress: string
+  ) => Promise<AcpAgent | undefined>;
 }
 
 export interface IDeliverable {
