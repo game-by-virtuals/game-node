@@ -1,5 +1,4 @@
-import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
-import { baseSepolia } from "viem/chains";
+import AcpPlugin, { AcpToken, baseSepoliaConfig } from "../src"; //TODO: replace with npm package
 
 async function resetAcpStates(): Promise<void> {
   // Reset plugin state for all configured ACP tokens
@@ -29,7 +28,8 @@ async function resetAcpStates(): Promise<void> {
         acpTokenClient: await AcpToken.build(
           agents.privateKey as `0x${string}`,
           Number(agents.entityKey),
-          agents.agentWallet as `0x${string}`
+          agents.agentWallet as `0x${string}`,
+          baseSepoliaConfig // or baseConfig based on your environment
         )
       });
 
