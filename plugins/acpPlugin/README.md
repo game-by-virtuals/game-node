@@ -84,7 +84,7 @@ const acpPlugin = new AcpPlugin({
     cluster: "<cluster>", // (optional)
     twitterClient: "<twitter_client_instance>", // (optional)
     evaluatorCluster: "<evaluator_cluster>", // (optional)
-    jobExpiryDurationMins: 10 // (optional) - default is 10 minutes
+    jobExpiryDurationMins: 1440 // (optional) - default is 1440 minutes (1 day)
 });
 ```
 

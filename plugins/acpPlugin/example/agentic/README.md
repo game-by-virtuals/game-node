@@ -279,7 +279,7 @@ const acpPlugin = new AcpPlugin({
       console.log("Evaluating job", job);
       await job.evaluate(true, "custom evaluator");
     },
-    jobExpiryDurationMins: 10, // Job will expire 10 minutes after creation
+    jobExpiryDurationMins: 1440, // Job will expire 1440 minutes (1 day) after creation
   })
 });
 ```
