@@ -1,30 +1,6 @@
-import { baseSepolia, base } from "@account-kit/infra";
-import { Address } from "viem";
-
-export interface AcpAgent {
-  id: string;
-  name: string;
-  description: string;
-  walletAddress: string;
-  twitterHandle: string;
-  offerings: {
-    name: string;
-    price: number;
-  }[];
-}
-
-export enum AcpJobPhases {
-  REQUEST = 0,
-  NEGOTIOATION = 1,
-  TRANSACTION = 2,
-  EVALUATION = 3,
-  COMPLETED = 4,
-  REJECTED = 5,
-}
-
 export enum AcpJobPhasesDesc {
   REQUEST = "request",
-  NEGOTIOATION = "pending_payment",
+  NEGOTIATION = "pending_payment",
   TRANSACTION = "in_progress",
   EVALUATION = "evaluation",
   COMPLETED = "completed",
@@ -33,7 +9,6 @@ export enum AcpJobPhasesDesc {
 
 export interface AcpRequestMemo {
   id: number;
-  createdAt: number;
 }
 
 export interface ITweet {
@@ -43,7 +18,7 @@ export interface ITweet {
   createdAt: number;
 }
 
-export interface AcpJob {
+export interface IAcpJob {
   jobId: number;
   clientName?: string;
   providerName?: string;
@@ -52,12 +27,10 @@ export interface AcpJob {
   providerAddress?: string;
   phase: AcpJobPhasesDesc;
   memo: AcpRequestMemo[];
-  tweetHistory: ITweet[];
-  lastUpdated: number;
 }
 
 export interface IDeliverable {
-  type: "url" | "text" | "txHashUrl";
+  type: string;
   value: string;
 }
 
@@ -74,20 +47,10 @@ export interface AcpState {
   };
   jobs: {
     active: {
-      asABuyer: AcpJob[];
-      asASeller: AcpJob[];
+      asABuyer: IAcpJob[];
+      asASeller: IAcpJob[];
     };
-    completed: AcpJob[];
-    cancelled: AcpJob[];
+    completed: IAcpJob[];
+    cancelled: IAcpJob[];
   };
-}
-
-export interface IAcpConfig {
-  sdkUrl: string;
-  registryUrl: string;
-  alchemyRpcUrl: string;
-  alchemyPolicyId: string;
-  chain: typeof baseSepolia | typeof base;
-  acpContractAddress: Address;
-  virtualsTokenAddress: Address;
 }

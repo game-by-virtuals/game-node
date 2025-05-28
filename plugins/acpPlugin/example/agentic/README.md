@@ -9,7 +9,7 @@ In this example, we have two agents:
 - `seller.ts`: An agent that provides meme generation services
 
 ## Prerequisite
-⚠️️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️️ Important: Before testing your agent's services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 Before running the agent scripts, ensure the following are available:
@@ -32,18 +32,6 @@ GAME_DEV_API_KEY=<apt-your-game-dev-api-key>
 # GAME Twitter Access Token for X (Twitter) Authentication
 BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-buyer-agent-game-twitter-access-token>
 SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-seller-agent-game-twitter-access-token>
-
-# GAME Twitter Access Token for X (Twitter) Authentication
-BUYER_AGENT_TWITTER_BEARER_TOKEN=<your-buyer-agent-twitter-bearer-token>
-BUYER_AGENT_TWITTER_API_KEY=<your-buyer-agent-twitter-api-key>
-BUYER_AGENT_TWITTER_API_SECRET_KEY=<your-buyer-agent-twitter-api-secret-key>
-BUYER_AGENT_TWITTER_ACCESS_TOKEN=<your-buyer-agent-twitter-access-token>
-BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-buyer-agent-twitter-access-token-secret>
-SELLER_AGENT_TWITTER_BEARER_TOKEN=<your-seller-agent-twitter-bearer-token>
-SELLER_AGENT_TWITTER_API_KEY=<your-seller-agent-twitter-api-key>
-SELLER_AGENT_TWITTER_API_SECRET_KEY=<your-seller-agent-twitter-api-secret-key>
-SELLER_AGENT_TWITTER_ACCESS_TOKEN=<your-seller-agent-twitter-access-token>
-SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-seller-agent-twitter-access-token-secret>
 ```
 
 ## Seller Example
@@ -58,13 +46,14 @@ The seller agent (`seller.ts`):
 ```typescript
 const acpPlugin = new AcpPlugin({
   apiKey: GAME_DEV_API_KEY,
-  acpTokenClient: await AcpToken.build(
-    WHITELISTED_WALLET_PRIVATE_KEY,
-    WHITELISTED_WALLET_ENTITY_ID,
-    SELLER_AGENT_WALLET_ADDRESS,
-    baseSepoliaConfig
-  ),
-  twitterClient: twitterClient,
+  acpClient: new AcpClient({
+    acpContractClient: await AcpContractClient.build(
+      WHITELISTED_WALLET_PRIVATE_KEY,
+      WHITELISTED_WALLET_ENTITY_ID,
+      SELLER_AGENT_WALLET_ADDRESS,
+      baseSepoliaAcpConfig
+    )
+  }),
 });
 ```
 
@@ -80,14 +69,18 @@ The buyer agent (`buyer.ts`):
 ```typescript
 const acpPlugin = new AcpPlugin({
   apiKey: GAME_DEV_API_KEY,
-  acpTokenClient: await AcpToken.build(
-    WHITELISTED_WALLET_PRIVATE_KEY,
-    WHITELISTED_WALLET_ENTITY_ID,
-    BUYER_AGENT_WALLET_ADDRESS,
-    baseSepoliaConfig
-  ),
-  twitterClient: twitterClient,
-  onEvaluate: onEvaluate,
+  acpClient: new AcpClient({
+    acpContractClient: await AcpContractClient.build(
+      WHITELISTED_WALLET_PRIVATE_KEY,
+      WHITELISTED_WALLET_ENTITY_ID,
+      BUYER_AGENT_WALLET_ADDRESS,
+      baseSepoliaAcpConfig
+    ),
+    onEvaluate: async (job: AcpJob) => {
+      console.log(job.deliverable, job.serviceRequirement);
+      await job.evaluate(true, "This is a test reasoning");
+    },
+  })
 });
 ```
 
@@ -126,33 +119,35 @@ The `onEvaluate` parameter in the AcpPlugin configuration is crucial for real-ti
 - Users can either approve the result (completing the transaction) or reject it (canceling the transaction)
 - Example implementation:
 
-```bash
-const onEvaluate = (deliverable: IDeliverable) => {
-  return new Promise<EvaluateResult>((resolve) => {
-    console.log(deliverable);
-    resolve(new EvaluateResult(true, "This is a test reasoning"));
-  });
-};
-```
-### How it works?
-Here’s a minimal example to get started with evaluation.
-
-If you're building a buyer agent that carries out self-evaluation, you’ll need to define an `onEvaluate` callback when initializing the AcpPlugin. This function will be triggered when the agent receives a deliverable to review.
-
-```bash
-function onEvaluate(deliverable) {
-  console.log("Evaluating deliverable:", deliverable);
-  // In this example, we auto-accept all deliverables
-  resolve(new EvaluateResult(true, "Meme accepted"));
+```typescript
+onEvaluate: async (job: AcpJob) => {
+  console.log(job.deliverable, job.serviceRequirement);
+  await job.evaluate(true, "This is a test reasoning");
 }
 ```
+
+### How it works?
+Here's a minimal example to get started with evaluation.
+
+If you're building a buyer agent that carries out self-evaluation, you'll need to define an `onEvaluate` callback when initializing the AcpPlugin. This function will be triggered when the agent receives a deliverable to review.
+
+```typescript
+const onEvaluate = async (job: AcpJob) {
+  console.log("Evaluating job:", job);
+  // In this example, we auto-accept all deliverables
+  await job.evaluate(true, "Meme accepted");
+}
+```
+
 Then, pass this function into the plugin:
-```bash
-const options: AcpPluginOptions = {
+```typescript
+const acpPlugin = new AcpPlugin({
   apiKey: GAME_DEV_API_KEY,
-  acpTokenClient: myTokenClient,
-  onEvaluate: onEvaluate
-};
+  acpClient: new AcpClient({
+    acpContractClient: myContractClient,
+    onEvaluate: onEvaluate
+  }),
+});
 ```
 
 ### More realistic examples
@@ -161,69 +156,65 @@ You can customize the logic:
 1️⃣ Example: Check url link exists:
 
 This function ensures that the submitted deliverable contains a valid URL by checking if it starts with either `http://` or `https://`.
-```bash
-import AcpPlugin, { EvaluateResult } from "@virtuals-protocol/game-acp-plugin";
-
+```typescript
 const acpPlugin = new AcpPlugin({
-  .
-  .
-  onEvaluate: async (deliverable) => {
-    console.log("Evaluating deliverable:", deliverable);
-    const url = deliverable?.value || "";
+  apiKey: GAME_DEV_API_KEY,
+  acpClient: new AcpClient({
+    acpContractClient: myContractClient,
+    onEvaluate: async (job: AcpJob) => {
+      console.log("Evaluating job:", job);
+      const url = job.deliverable?.value || "";
 
-    if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
-      console.log(`✅ URL link looks valid: ${url}`);
-      return new EvaluateResult(true, "URL link looks valid");
-    } else {
-      console.log(`❌ Invalid or missing URL: ${url}`);
-      return new EvaluateResult(false, "Invalid or missing URL");
+      if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
+        console.log(`✅ URL link looks valid: ${url}`);
+        await job.evaluate(true, "URL link looks valid");
+      } else {
+        console.log(`❌ Invalid or missing URL: ${url}`);
+        await job.evaluate(false, "Invalid or missing URL");
+      }
     }
-  }
+  })
 });
-}
 ```
 
 Sample Output:
 ```bash
-Evaluating deliverable: { type: 'url', value: 'https://example.com/resource' }
+Evaluating job: {..., deliverable: { type: 'url', value: 'https://example.com/resource' }, serviceRequirement: {...}, ...}
 ✅ URL link looks valid: https://example.com/resource
-Evaluation Result: EvaluateResult { accepted: true, reason: 'URL link looks valid' }
 ```
 
 2️⃣ Check File Extension (e.g. only allow `.png` or `.jpg` or `.jpeg`):
-```bash
-import AcpPlugin, { EvaluateResult } from '@virtuals-protocol/game-acp-plugin';
-
+```typescript
 const acpPlugin = new AcpPlugin({
-  .
-  .
-  onEvaluate: async (deliverable) => {
-    console.log("Evaluating deliverable:", deliverable);
+  apiKey: GAME_DEV_API_KEY,
+  acpClient: new AcpClient({
+    acpContractClient: myContractClient,
+    onEvaluate: async (job: AcpJob) => {
+      console.log("Evaluating job:", job);
 
-    const url: string = deliverable?.value || "";
-    const allowedExtensions = [".png", ".jpg", ".jpeg"];
-    const isAllowedFormat = allowedExtensions.some(ext => url.toLowerCase().endsWith(ext));
+      const url: string = job.deliverable?.value || "";
+      const allowedExtensions = [".png", ".jpg", ".jpeg"];
+      const isAllowedFormat = allowedExtensions.some(ext => url.toLowerCase().endsWith(ext));
 
-    if (isAllowedFormat) {
-      console.log(`✅ Image format is allowed: ${url}`);
-      return new EvaluateResult(true, "Image format is allowed");
-    } else {
-      console.log(`❌ Unsupported image format — only PNG/JPG/JPEG are allowed: ${url}`);
-      return new EvaluateResult(false, "Unsupported image format — only PNG and JPG are allowed");
+      if (isAllowedFormat) {
+        console.log(`✅ Image format is allowed: ${url}`);
+        await job.evaluate(true, "Image format is allowed");
+      } else {
+        console.log(`❌ Unsupported image format — only PNG/JPG/JPEG are allowed: ${url}`);
+        await job.evaluate(false, "Unsupported image format — only PNG and JPG are allowed");
+      }
     }
-  }
+  }),
 });
-}
 ```
 
 Sample Output:
 ```bash
-Evaluating deliverable: { type: 'image', value: 'https://cdn.example.com/meme_final.jpg' }
+Evaluating job: {..., deliverable: { type: 'image', value: 'https://cdn.example.com/meme_final.jpg' }, serviceRequirement: {...}, ...}
 ✅ Image format is allowed: https://cdn.example.com/meme_final.jpg
-Evaluation Result: EvaluateResult { accepted: true, reason: 'Image format is allowed' }
 ```
 
-These are just simple, self-defined examples of custom evaluator logic. You’re encouraged to tweak and expand these based on the complexity of your use case. Evaluators are a powerful way to gatekeep quality and ensure consistency in jobs submitted by seller agents.
+These are just simple, self-defined examples of custom evaluator logic. You're encouraged to tweak and expand these based on the complexity of your use case. Evaluators are a powerful way to gatekeep quality and ensure consistency in jobs submitted by seller agents.
 
 👉 Moving forward, we are building four in-house evaluator agent clusters (work in progress):
 
@@ -232,7 +223,7 @@ These are just simple, self-defined examples of custom evaluator logic. You’re
 - Hedgefund Evaluator Agent
 - Mediahouse Evaluator Agent 
 
-These evaluators will handle more advanced logic and domain-specific validations. But feel free to build your own lightweight ones until they’re fully live!
+These evaluators will handle more advanced logic and domain-specific validations. But feel free to build your own lightweight ones until they're fully live!
 
 ---
 
@@ -266,7 +257,7 @@ Setting an expiry time ensures that:
 
 ### How It Works
 Internally, `jobExpiryDurationMins` is used to compute a future timestamp (expiredAt) relative to the current time:
-```bash
+```typescript
 const expiredAt = new Date();
 expiredAt.setMinutes(
   expiredAt.getMinutes() + this.jobExpiryDurationMins
@@ -274,21 +265,22 @@ expiredAt.setMinutes(
 ```
 
 ### Example: Plugin Setup with Job Expiry
-```bash
+```typescript
 const acpPlugin = new AcpPlugin({
   apiKey: GAME_DEV_API_KEY,
-  acpTokenClient: await AcpToken.build(
-    WHITELISTED_WALLET_PRIVATE_KEY,
-    WHITELISTED_WALLET_ENTITY_ID,
-    BUYER_AGENT_WALLET_ADDRESS,
-    baseSepoliaConfig
-  ),
-  cluster: "hedgefund",
-  onEvaluate: async (deliverable) => {
-    console.log("Evaluating deliverable", deliverable);
-    return new EvaluateResult(true, "custom evaluator");
-  },
-  jobExpiryDurationMins: 10, // Job will expire 10 minutes after creation
+  acpClient: new AcpClient({
+    acpContractClient: await AcpContractClient.build(
+      WHITELISTED_WALLET_PRIVATE_KEY,
+      WHITELISTED_WALLET_ENTITY_ID,
+      BUYER_AGENT_WALLET_ADDRESS,
+      baseSepoliaAcpConfig
+    ),
+    onEvaluate: async (job: AcpJob) => {
+      console.log("Evaluating job", job);
+      await job.evaluate(true, "custom evaluator");
+    },
+    jobExpiryDurationMins: 1440, // Job will expire 1440 minutes (1 day) after creation
+  })
 });
 ```
 
