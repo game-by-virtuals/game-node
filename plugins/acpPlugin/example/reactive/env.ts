@@ -17,9 +17,9 @@ export const WHITELISTED_WALLET_ENTITY_ID = parseInt(getEnvVar('WHITELISTED_WALL
 export const BUYER_AGENT_WALLET_ADDRESS = getEnvVar('BUYER_AGENT_WALLET_ADDRESS') as Address;
 export const SELLER_AGENT_WALLET_ADDRESS = getEnvVar<Address>('SELLER_AGENT_WALLET_ADDRESS') as Address;
 
-// GAME API Key
-export const GAME_DEV_API_KEY = getEnvVar('GAME_DEV_API_KEY');
 // GAME Dev API Key
+export const GAME_DEV_API_KEY = getEnvVar('GAME_DEV_API_KEY');
+// GAME API Key
 export const GAME_API_KEY = getEnvVar('GAME_API_KEY');
 
 // GAME Twitter Access Token for X (Twitter) Authentication
