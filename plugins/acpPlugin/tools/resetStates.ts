@@ -1,4 +1,4 @@
-import AcpPlugin, { AcpToken, baseSepoliaConfig } from "../src"; //TODO: replace with npm package
+import AcpPlugin, { AcpToken, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
 
 async function resetAcpStates(): Promise<void> {
   // Reset plugin state for all configured ACP tokens

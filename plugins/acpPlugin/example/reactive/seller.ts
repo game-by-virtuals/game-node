@@ -4,7 +4,7 @@ import {
     GameAgent,
     GameFunction,
 } from "@virtuals-protocol/game";
-import AcpPlugin, { AcpToken, AcpJobPhasesDesc, baseSepoliaConfig } from "../../src"; //TODO: replace with npm package
+import AcpPlugin, { AcpToken, AcpJobPhasesDesc, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
 import {
     GAME_API_KEY,
     GAME_DEV_API_KEY,
