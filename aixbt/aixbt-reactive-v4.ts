@@ -5,7 +5,7 @@ import {
     GameFunction,
     GameWorker,
 } from "@virtuals-protocol/game";
-import AcpPlugin, { AcpToken, AcpJobPhasesDesc } from "@virtuals-protocol/game-acp-plugin"
+import AcpPlugin, { AcpToken, AcpJobPhasesDesc, baseConfig } from "@virtuals-protocol/game-acp-plugin"
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -51,124 +51,92 @@ console.log = function (message: any) {
     }
 };
 
+async function fetchProjectsWithNonEmptyFields(limit = 3, chainFilter?: string) {
+    let allProjects: any[] = [];
+    let page = 1;
+    let foundEnough = false;
+    const maxAttempts = 5; // Limit how many pages we'll try
+    
+    while (!foundEnough && page <= maxAttempts) {
+        // Fetch a batch of projects (20 per page)
+        const apiUrl = `https://api.aixbt.tech/v1/projects?limit=20&page=${page}`;
+        
+        const response = await fetch(apiUrl, {
+            headers: {
+                'x-api-key': process.env.AIXBT_API_KEY || '',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch crypto projects');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.data || data.data.length === 0) {
+            break; // No more data available
+        }
+        
+        // Filter for non-empty tokens and tickers
+        const validProjects = data.data.filter((item: any) => {
+            // Check if tokens exist and have at least one valid key-value pair
+            const hasValidTokens = item.tokens && 
+                Object.entries(item.tokens).some(([key, value]) => 
+                    key.trim() !== '' && 
+                    value !== null && 
+                    value !== undefined && 
+                    String(value).trim() !== ''
+                );
+            
+            // Check if ticker exists and is not empty
+            const hasValidTicker = item.ticker && item.ticker.trim() !== '';
+            
+            return hasValidTokens && hasValidTicker;
+        });
+        
+        // Add to our collection
+        allProjects = [...allProjects, ...validProjects];
+        
+        // Check if we have enough
+        if (allProjects.length >= limit) {
+            foundEnough = true;
+        } else {
+            page++;
+        }
+    }
+    
+    // Sort by score and take the requested number
+    const topProjects = allProjects
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit);
+    
+    // If we still don't have enough projects with non-empty fields,
+    // return empty array
+    if (topProjects.length === 0) {
+        return {
+            status: 200,
+            error: "No alpha",
+            data: []
+        };
+    }
+    
+    return {
+        status: 200,
+        error: "",
+        data: topProjects
+    };
+}
+
 async function test() {
     const acpPlugin = new AcpPlugin({
-        apiKey: process.env.GAME_DEV_API_KEY ?? "",
+        apiKey: process.env.GAME_API_KEY ?? "",
         acpTokenClient: await AcpToken.build(
             `0x${process.env.WHITELISTED_WALLET_PRIVATE_KEY?.replace('0x', '') ?? ""}`,
             parseInt(process.env.SESSION_ENTITY_KEY_ID ?? ""),
-            `0x${process.env.AGENT_WALLET_ADDRESS?.replace('0x', '') ?? ""}`
+            `0x${process.env.AGENT_WALLET_ADDRESS?.replace('0x', '') ?? ""}`,
+	    baseConfig
         ),
-    });
-
-
-    const coreWorker = new GameWorker({
-        id: "core-worker",
-        name: "Core Worker",
-        description:
-            "Aixbt worker that will get the top crypto projects and return the signal(buy or dont buy)",
-        functions: [
-            new GameFunction({
-                name: "get_top_crypto_projects",
-                description: "a function to get and return top crypto projects in the market. Use this when producing service ",
-                args: [
-                    {
-                        name: "description",
-                        type: "string",
-                        description: "A description of the top crypto projects",
-                    },
-                    {
-                        name: "jobId",
-                        type: "string",
-                        description: "Job that your are responding to.",
-                        hint: "look into jobId field in the state to find the job you are responding to"
-                    },
-                    {
-                        name: "reasoning",
-                        type: "string",
-                        description: "The reasoning of the tweet",
-                    },
-                    {
-                        name: "count",
-                        type: "number",
-                        description: "Optional. The number of projects to return. If not specified, return 1.",
-                        required: false
-                    }
-                ] as const,
-                executable: async (args) => {
-                    try {
-                        const response = await fetch(`https://api.aixbt.tech/v1/projects?limit=${args.count || 2}`, {
-                            headers: {
-                                'x-api-key': process.env.AIXBT_API_KEY || '',
-                                'Content-Type': 'application/json'
-                            }
-                        });
-
-                        console.log("response: ", response)
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch top crypto projects');
-                        }
-                        const data = await response.json();
-
-                        // deliver job 
-
-                        const state = await acpPlugin.getAcpState();
-
-                        const job = state.jobs.active.asASeller.find(
-                            (j) => j.jobId === +args.jobId!
-                        );
-
-
-                        console.log(`
-                    ============================
-                    data: ${JSON.stringify(data)}
-        
-                    state: ${JSON.stringify(state)}
-                    
-                    job: ${JSON.stringify(job)}
-                    ============================
-                    `);
-
-
-                        if (!job) {
-                            return new ExecutableGameFunctionResponse(
-                                ExecutableGameFunctionStatus.Failed,
-                                `Job ${args.jobId} is invalid. Should only respond to active as a seller job.`
-                            );
-                        }
-
-                        const finalProduct = JSON.stringify(data.data);
-
-                        try {
-                            acpPlugin.addProduceItem({
-                                jobId: +args.jobId!,
-                                type: "text",
-                                value: finalProduct,
-                            });
-                            console.log("finalProduct: ", finalProduct)
-                            console.log(`Successfully produced item for job ${args.jobId}`);
-                        } catch (error) {
-                            console.error(`Failed to produce item for job ${args.jobId}:`, error);
-                            throw error;  // or handle the error appropriately
-                        }
-
-                        return new ExecutableGameFunctionResponse(
-                            ExecutableGameFunctionStatus.Done,
-                            JSON.stringify(data)
-                        );
-                    } catch (error) {
-                        return new ExecutableGameFunctionResponse(
-                            ExecutableGameFunctionStatus.Failed,
-                            `Error fetching top crypto projects: ${error}`
-                        );
-                    }
-
-                }
-            })
-        ],
-        getEnvironment: async () => {
-            return acpPlugin.getAcpState();
-        },
     });
 
     //function version to test
@@ -196,48 +164,39 @@ async function test() {
         executable: async (args) => {
 
             try {
-                const response = await fetch('https://api.aixbt.tech/v1/projects?limit=3', {
-                    headers: {
-                        'x-api-key': process.env.AIXBT_API_KEY || '',
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                console.log("response: ", response)
-                if (!response.ok) {
-                    throw new Error('Failed to fetch top crypto projects');
+                // Use the fetchProjectsWithNonEmptyFields function instead of direct API call
+                const result = await fetchProjectsWithNonEmptyFields(3);
+                
+                if (result.status !== 200) {
+                    throw new Error(`Failed to fetch crypto projects: ${result.error}`);
                 }
-                const data = await response.json();
-
+                
                 // deliver job 
-
                 const state = await acpPlugin.getAcpState();
-
+                
                 const job = state.jobs.active.asASeller.find(
                     (j) => j.jobId === +args.jobId!
                 );
-
-
+                
                 console.log(`
               ============================
-              data: ${JSON.stringify(data)}
-  
+              data: ${JSON.stringify(result)}
+          
               state: ${JSON.stringify(state)}
               
               job: ${JSON.stringify(job)}
               ============================
               `);
-
-
+                
                 if (!job) {
                     return new ExecutableGameFunctionResponse(
                         ExecutableGameFunctionStatus.Failed,
                         `Job ${args.jobId} is invalid. Should only respond to active as a seller job.`
                     );
                 }
-
-                const finalProduct = JSON.stringify(data);
-
+                
+                const finalProduct = JSON.stringify(result.data);
+                
                 try {
                     acpPlugin.addProduceItem({
                         jobId: +args.jobId!,
@@ -250,12 +209,12 @@ async function test() {
                     console.error(`Failed to produce item for job ${args.jobId}:`, error);
                     throw error;  // or handle the error appropriately
                 }
-
+                
                 return new ExecutableGameFunctionResponse(
                     ExecutableGameFunctionStatus.Done,
-                    JSON.stringify(data)
+                    JSON.stringify(result)
                 );
-            } catch (error) {
+            }  catch (error) {
                 return new ExecutableGameFunctionResponse(
                     ExecutableGameFunctionStatus.Failed,
                     `Error fetching top crypto projects: ${error}`
@@ -267,7 +226,7 @@ async function test() {
 
     /// start a new seller agent to handle respond and deliver job
     const sellerAgent = new GameAgent(process.env.GAME_API_KEY || "", {
-        name: "aixbt [rective]",
+        name: "angry cat v3",
         goal: `To provide top crypto projects as a service/product. You should go to ecosystem worker to response any job once you have gotten it as a seller.`,
         description: `You are angry cat, an agent that sells information on top crypto projects to invest in. You always give buyer the top crypto projects to invest in.
     
@@ -276,8 +235,7 @@ async function test() {
             acpPlugin.getWorker({
                 // restrict to just seller specified functions, add generateMeme to generate deliverable
                 functions: [acpPlugin.respondJob, acpPlugin.deliverJob, getTopCryptoProjects],
-            }),
-            coreWorker
+            })
         ],
     });
 
