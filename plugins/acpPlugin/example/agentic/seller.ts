@@ -6,7 +6,7 @@ import {
   GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-import AcpPlugin, { AcpToken, baseSepoliaConfig } from "../../src"; //TODO: replace with npm package
+import AcpPlugin, { AcpToken, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
 import {
   GAME_API_KEY,
   GAME_DEV_API_KEY,

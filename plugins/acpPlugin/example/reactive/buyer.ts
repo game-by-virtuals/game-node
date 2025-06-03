@@ -11,8 +11,8 @@ import AcpPlugin, {
   AcpToken,
   EvaluateResult,
   IDeliverable,
-  baseSepoliaConfig,
-} from "../../src"; //TODO: replace with npm package
+  baseSepoliaConfig
+} from "@virtuals-protocol/game-acp-plugin";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
   WHITELISTED_WALLET_ENTITY_ID,
