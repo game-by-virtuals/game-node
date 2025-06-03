@@ -106,9 +106,14 @@ class AcpPlugin {
 
     this.initializeSocket();
   }
-
   setOnPhaseChange(onPhaseChange: (job: AcpJob) => Promise<void>) {
-    this.onPhaseChange = onPhaseChange;
+    this.onPhaseChange = (job: AcpJob) => {
+      return onPhaseChange({
+        ...job,
+        getAgentByWalletAddress: (walletAddress: string) =>
+          this.acpClient.getAgentByWalletAddress(walletAddress),
+      });
+    };
   }
 
   private async defaultOnEvaluate(_: IDeliverable, __?: string) {
@@ -216,6 +221,10 @@ class AcpPlugin {
         };
       },
     });
+  }
+
+  public async getAgentByWalletAddress(walletAddress: string) {
+    return await this.acpClient.getAgentByWalletAddress(walletAddress);
   }
 
   get agentDescription() {

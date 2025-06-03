@@ -37,6 +37,29 @@ export class AcpClient {
     return (await response.json()) as AcpState;
   }
 
+  async getAgentByWalletAddress(walletAddress: string) {
+    let url = `${this.registryUrl}?filters[walletAddress]=${walletAddress}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to get agent: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data: {
+      data: AcpAgent[];
+    } = await response.json();
+    const agents = data.data || [];
+
+    if (agents.length === 0) {
+      return;
+    }
+
+    return agents[0];
+  }
+
   async browseAgents(query?: string, cluster?: string) {
     const baseUrl = this.registryUrl;
 

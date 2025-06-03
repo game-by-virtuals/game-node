@@ -18,7 +18,7 @@ import {
   WHITELISTED_WALLET_ENTITY_ID,
   BUYER_AGENT_WALLET_ADDRESS,
   GAME_API_KEY,
-  GAME_DEV_API_KEY
+  GAME_DEV_API_KEY,
 } from "./env";
 
 // GAME Twitter Plugin import
@@ -33,7 +33,6 @@ import { BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
 //   BUYER_AGENT_TWITTER_API_SECRET_KEY,
 //   BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
 // } from "./env";
-
 
 function askQuestion(query: string): Promise<string> {
   const rl = readline.createInterface({
@@ -61,7 +60,10 @@ const twitterClient = new GameTwitterClient({
 //     accessTokenSecret: BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
 // });
 
-const onEvaluate = (deliverable: IDeliverable, description: string | undefined) => {
+const onEvaluate = (
+  deliverable: IDeliverable,
+  description: string | undefined
+) => {
   return new Promise<EvaluateResult>((resolve) => {
     console.log(deliverable, description);
     resolve(new EvaluateResult(true, "This is a test reasoning"));
@@ -144,6 +146,10 @@ async function test() {
   // upon phase change, the buyer agent will respond to the transaction
   acpPlugin.setOnPhaseChange(async (job: AcpJob) => {
     console.log("buyer agent reacting to job", job);
+
+    //get the seller agent twitter handle
+    const sellerAgent = await job.getAgentByWalletAddress(job.providerAddress!);
+    console.log("seller agent twitter handle", sellerAgent?.twitterHandle);
 
     await buyerAgent.getWorkerById("acp_worker").runTask(
       `
