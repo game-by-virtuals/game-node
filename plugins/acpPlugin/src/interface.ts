@@ -1,3 +1,5 @@
+import { AcpJobPhases } from "@virtuals-protocol/acp-node";
+
 export enum AcpJobPhasesDesc {
   REQUEST = "request",
   NEGOTIATION = "pending_payment",
@@ -6,6 +8,15 @@ export enum AcpJobPhasesDesc {
   COMPLETED = "completed",
   REJECTED = "rejected",
 }
+
+export const ACP_JOB_PHASE_MAP: Record<AcpJobPhases, AcpJobPhasesDesc> = {
+  [AcpJobPhases.REQUEST]: AcpJobPhasesDesc.REQUEST,
+  [AcpJobPhases.NEGOTIATION]: AcpJobPhasesDesc.NEGOTIATION,
+  [AcpJobPhases.TRANSACTION]: AcpJobPhasesDesc.TRANSACTION,
+  [AcpJobPhases.EVALUATION]: AcpJobPhasesDesc.EVALUATION,
+  [AcpJobPhases.COMPLETED]: AcpJobPhasesDesc.COMPLETED,
+  [AcpJobPhases.REJECTED]: AcpJobPhasesDesc.REJECTED,
+};
 
 export interface AcpRequestMemo {
   id: number;

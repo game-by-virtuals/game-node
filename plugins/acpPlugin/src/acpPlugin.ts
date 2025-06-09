@@ -1,6 +1,5 @@
 import AcpClient, {
   AcpJob,
-  AcpJobPhases,
   AcpMemo
 } from "@virtuals-protocol/acp-node";
 import {
@@ -13,6 +12,7 @@ import {
   AcpJobPhasesDesc,
   AcpState,
   IInventory,
+  ACP_JOB_PHASE_MAP
 } from "./interface";
 import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
 import { Address } from "viem";
@@ -75,6 +75,21 @@ class AcpPlugin {
     return item;
   }
 
+  private async toStateAcpJob(job: AcpJob) {
+    return {
+      jobId: job.id,
+      clientName: (await job.clientAgent)?.name || "",
+      providerName: (await job.providerAgent)?.name || "",
+      desc: job.serviceRequirement || "",
+      price: job.price.toString(),
+      phase: ACP_JOB_PHASE_MAP[job.phase],
+      memo: job.memos.reverse().map((memo: AcpMemo) => ({
+        id: memo.id,
+      })),
+      providerAddress: job.providerAddress,
+    };
+  }
+
   public async getAcpState(): Promise<AcpState> {
     const [activeJobs, completedJobs, cancelledJobs] = await Promise.all([
       this.acpClient.getActiveJobs(),
@@ -82,52 +97,36 @@ class AcpPlugin {
       this.acpClient.getCancelledJobs(),
     ]);
 
-    const toStateAcpJob = async (job: AcpJob) => {
-      const phaseMap: Record<AcpJobPhases, AcpJobPhasesDesc> = {
-        [AcpJobPhases.REQUEST]: AcpJobPhasesDesc.REQUEST,
-        [AcpJobPhases.NEGOTIATION]: AcpJobPhasesDesc.NEGOTIATION,
-        [AcpJobPhases.TRANSACTION]: AcpJobPhasesDesc.TRANSACTION,
-        [AcpJobPhases.EVALUATION]: AcpJobPhasesDesc.EVALUATION,
-        [AcpJobPhases.COMPLETED]: AcpJobPhasesDesc.COMPLETED,
-        [AcpJobPhases.REJECTED]: AcpJobPhasesDesc.REJECTED,
-      };
-
-      return {
-        jobId: job.id,
-        clientName: (await job.clientAgent)?.name || "",
-        providerName: (await job.providerAgent)?.name || "",
-        desc: job.serviceRequirement || "",
-        price: job.price.toString(),
-        phase: phaseMap[job.phase],
-        memo: job.memos.reverse().map((memo: AcpMemo) => ({
-          id: memo.id,
-        })),
-        providerAddress: job.providerAddress,
-      };
-    };
-
-    const walletAddress =
+    const agentAddr =
       this.acpClient.acpContractClient.walletAddress.toLowerCase();
 
-    const activeAsABuyer = await Promise.all(
-      activeJobs
-        .filter(
-          (job: AcpJob) => job.clientAddress.toLowerCase() === walletAddress,
-        )
-        .map(toStateAcpJob),
+    const activeAsABuyer = [];
+    const activeAsASeller = [];
+
+    const processedActiveJobs = await Promise.all(
+      activeJobs.map(async (job) => ({
+        processed: await this.toStateAcpJob(job),
+        clientAddr: job.clientAddress.toLowerCase(),
+        providerAddr: job.providerAddress.toLowerCase(),
+      }))
+    )
+
+    for (const job of processedActiveJobs) {
+      if (job.clientAddr === agentAddr) {
+        activeAsABuyer.push(job.processed);
+      }
+      if (job.providerAddr === agentAddr) {
+        activeAsASeller.push(job.processed);
+      }
+    }
+
+    const completed = await Promise.all(
+      completedJobs.map((job) => this.toStateAcpJob(job))
     );
 
-    const activeAsASeller = await Promise.all(
-      activeJobs
-        .filter(
-          (job: AcpJob) => job.providerAddress.toLowerCase() === walletAddress,
-        )
-        .map(toStateAcpJob),
+    const cancelled = await Promise.all(
+      cancelledJobs.map((job) => this.toStateAcpJob(job))
     );
-
-    const completed = await Promise.all(completedJobs.map(toStateAcpJob));
-
-    const cancelled = await Promise.all(cancelledJobs.map(toStateAcpJob));
 
     const state: AcpState = {
       inventory: {
