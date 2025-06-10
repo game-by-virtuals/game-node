@@ -1,0 +1,21 @@
+{
+  "name": "mcpplugin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.2",
+    "@virtuals-protocol/game": "^0.1.14",
+    "dotenv": "^16.5.0",
+    "ts-node": "^10.9.2"
+  }
+}
