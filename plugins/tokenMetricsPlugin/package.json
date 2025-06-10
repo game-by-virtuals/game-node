@@ -1,0 +1,75 @@
+{
+  "name": "tokenmetrics-virtuals-plugin",
+  "version": "1.0.0",
+  "description": "Complete TokenMetrics integration plugin for Virtuals Protocol",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE",
+    "env.example"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/examples/example.fullAgent.js",
+    "dev": "ts-node src/examples/example.fullAgent.ts",
+    "chat": "ts-node src/chat.ts",
+    
+    "test:setup": "ts-node tests/test-setup.ts",
+    "test:individual": "ts-node tests/test-individual.ts",
+    "test:integration": "ts-node tests/test-integration.ts",
+    "test:all": "npm run test:individual && npm run test:integration",
+    
+    "demo:trading-bot": "ts-node tests/test-scenarios/trading-bot.ts",
+    "demo:research-agent": "ts-node tests/test-scenarios/research-agent.ts",
+    "demo:new-endpoints": "ts-node tests/test-scenarios/new-endpoints-demo.ts",
+    "demo:indices": "ts-node tests/test-scenarios/indices-endpoints-demo.ts",
+    
+    "example:tokens": "ts-node src/examples/example.tokens.ts",
+    "example:trader-grades": "ts-node src/examples/example.traderGrades.ts",
+    "example:investor-grades": "ts-node src/examples/example.investorGrades.ts",
+    "example:trading-signals": "npx tsx src/examples/example.tradingSignals.ts",
+    "example:hourly-trading-signals": "ts-node src/examples/example.hourlyTradingSignals.ts",
+    "example:market-metrics": "npx tsx src/examples/example.marketMetrics.ts",
+    "example:price-data": "ts-node src/examples/example.priceData.ts",
+    "example:quantmetrics": "ts-node src/examples/example.quantmetrics.ts",
+    "example:hourly-ohlcv": "ts-node src/examples/example.hourlyOhlcv.ts",
+    "example:daily-ohlcv": "ts-node src/examples/example.dailyOhlcv.ts",
+    "example:ai-reports": "ts-node src/examples/example.aiReports.ts",
+    "example:crypto-investors": "ts-node src/examples/example.cryptoInvestors.ts",
+    "example:resistance-support": "ts-node src/examples/example.resistanceSupport.ts",
+    "example:top-market-cap": "ts-node src/examples/example.topMarketCap.ts",
+    "example:tokenmetrics-ai": "ts-node src/examples/example.tokenmetricsAi.ts",
+    "example:sentiments": "ts-node src/examples/example.sentiments.ts",
+    "example:scenario-analysis": "ts-node src/examples/example.scenarioAnalysis.ts",
+    "example:correlation": "ts-node src/examples/example.correlation.ts",
+    "example:indices": "ts-node src/examples/example.indices.ts",
+    "example:indices-holdings": "ts-node src/examples/example.indicesHoldings.ts",
+    "example:indices-performance": "ts-node src/examples/example.indicesPerformance.ts",
+    "example:full-agent": "ts-node src/examples/example.fullAgent.ts"
+  },
+  "keywords": ["tokenmetrics", "virtuals-protocol", "crypto", "ai", "trading", "blockchain", "defi", "game-framework"],
+  "author": "TokenMetrics",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tokenmetrics/tokenmetrics-virtuals-plugin.git"
+  },
+  "homepage": "https://github.com/tokenmetrics/tokenmetrics-virtuals-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/tokenmetrics/tokenmetrics-virtuals-plugin/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "latest",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  }
+}
