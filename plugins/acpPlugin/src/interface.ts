@@ -38,6 +38,7 @@ export interface IAcpJob {
   providerAddress?: string;
   phase: AcpJobPhasesDesc;
   memo: AcpRequestMemo[];
+  tweetHistory: ITweet[];
 }
 
 export interface IDeliverable {

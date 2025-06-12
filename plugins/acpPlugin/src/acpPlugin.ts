@@ -12,15 +12,16 @@ import {
   AcpJobPhasesDesc,
   AcpState,
   IInventory,
-  ACP_JOB_PHASE_MAP
+  ITweet,
+  ACP_JOB_PHASE_MAP,
 } from "./interface";
-import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
+import { TwitterApi } from "@virtuals-protocol/game-twitter-node"
 import { Address } from "viem";
 
 interface IAcpPluginOptions {
   apiKey: string;
   acpClient: AcpClient;
-  twitterClient?: ITweetClient;
+  twitterClient?: TwitterApi;
   cluster?: string;
   evaluatorCluster?: string;
   agentRepoUrl?: string;
@@ -35,7 +36,7 @@ class AcpPlugin {
   private producedInventory: IInventory[] = [];
   private cluster?: string;
   private evaluatorCluster?: string;
-  private twitterClient?: ITweetClient;
+  private twitterClient?: TwitterApi;
   private jobExpiryDurationMins: number;
 
   constructor(options: IAcpPluginOptions) {
@@ -87,6 +88,12 @@ class AcpPlugin {
         id: memo.id,
       })),
       providerAddress: job.providerAddress,
+      tweetHistory: (job.context?.tweets?.reverse() || []).map((tweet: ITweet) => ({
+        type: tweet.type,
+        tweetId: tweet.tweetId,
+        content: tweet.content,
+        createdAt: tweet.createdAt
+      }))
     };
   }
 
@@ -421,14 +428,9 @@ class AcpPlugin {
             expiredAt,
           );
 
-          // if (this.twitterClient) {
-          //   const tweet = await this.twitterClient?.post(args.tweetContent);
-          //   await this.acpClient.addTweet(
-          //     jobId,
-          //     tweet.data.id,
-          //     args.tweetContent
-          //   );
-          // }
+          if (this.twitterClient) {
+            await this.tweetJob(jobId, `${args.tweetContent} #${jobId}`)
+          }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -536,20 +538,12 @@ class AcpPlugin {
             args.reasoning,
           );
 
-          // if (this.twitterClient) {
-          //   const tweetId = job.tweetHistory.pop()?.tweetId;
-          //   if (tweetId) {
-          //     const tweet = await this.twitterClient.reply(
-          //       tweetId,
-          //       args.tweetContent,
-          //     );
-          //     await this.acpClient.addTweet(
-          //       +args.jobId,
-          //       tweet.data.id,
-          //       args.tweetContent
-          //     );
-          //   }
-          // }
+          if (this.twitterClient) {
+            const tweetId = job.tweetHistory[0]?.tweetId;
+            if (tweetId) {
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+            }
+          }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -656,20 +650,12 @@ class AcpPlugin {
             args.reasoning,
           );
 
-          // if (this.twitterClient) {
-          //   const tweetId = job.tweetHistory.pop()?.tweetId;
-          //   if (tweetId) {
-          //     const tweet = await this.twitterClient.reply(
-          //       tweetId,
-          //       args.tweetContent,
-          //     );
-          //     await this.acpClient.addTweet(
-          //       +args.jobId,
-          //       tweet.data.id,
-          //       args.tweetContent
-          //     );
-          //   }
-          // }
+          if (this.twitterClient) {
+            const tweetId = job.tweetHistory[0]?.tweetId;
+            if (tweetId) {
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+            }
+          }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -796,20 +782,12 @@ class AcpPlugin {
             (item) => item.jobId !== job.jobId,
           );
 
-          // if (this.twitterClient) {
-          //   const tweetId = job.tweetHistory.pop()?.tweetId;
-          //   if (tweetId) {
-          //     const tweet = await this.twitterClient.reply(
-          //       tweetId,
-          //       args.tweetContent,
-          //     );
-          //     await this.acpClient.addTweet(
-          //       +args.jobId,
-          //       tweet.data.id,
-          //       args.tweetContent
-          //     );
-          //   }
-          // }
+          if (this.twitterClient) {
+            const tweetId = job.tweetHistory[0]?.tweetId;
+            if (tweetId) {
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+            }
+          }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -830,6 +808,56 @@ class AcpPlugin {
         }
       },
     });
+  }
+
+  private async tweetJob(
+    jobId: number,
+    content: string,
+    tweetId?: string
+  ): Promise<void> {
+    if (!this.twitterClient) return;
+
+    const job = await this.acpClient.getJobById(jobId)
+    if (!job) throw new Error("ERROR (tweetJob): Job not found");
+
+    console.log(`(tweetJob) TWEETING...`)
+    const tweet = tweetId
+      ? await this.twitterClient.v2.reply(content, tweetId)
+      : await this.twitterClient.v2.tweet(content)
+    console.log(`(tweetJob) TWEETING...`)
+
+    const role = job.clientAddress.toLowerCase() === this.acpClient.acpContractClient.walletAddress.toLowerCase()
+      ? "buyer"
+      : "seller";
+
+    const context = {
+      ...job.context,
+      tweets: [
+        ...(job.context?.tweets || []),
+        {
+          type: role,
+          tweetId: tweet.data.id,
+          content,
+          createdAt: Date.now()
+        },
+      ],
+    };
+
+    const response = await fetch(
+      `${this.acpClient.acpContractClient.config.acpUrl}/api/jobs/${jobId}/context`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "wallet-address": this.acpClient.acpContractClient.walletAddress,
+        },
+        body: JSON.stringify({ data: { context } }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`ERROR (tweetJob): ${response.status} ${response.body}`);
+    }
   }
 }
 
