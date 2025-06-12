@@ -820,11 +820,9 @@ class AcpPlugin {
     const job = await this.acpClient.getJobById(jobId)
     if (!job) throw new Error("ERROR (tweetJob): Job not found");
 
-    console.log(`(tweetJob) TWEETING...`)
     const tweet = tweetId
       ? await this.twitterClient.v2.reply(content, tweetId)
       : await this.twitterClient.v2.tweet(content)
-    console.log(`(tweetJob) TWEETING...`)
 
     const role = job.clientAddress.toLowerCase() === this.acpClient.acpContractClient.walletAddress.toLowerCase()
       ? "buyer"
