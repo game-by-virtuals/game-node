@@ -193,7 +193,8 @@ async function test() {
                     );
                 }
                 
-                const finalProduct = JSON.stringify(result.data);
+                // Format the data as a clean string without double stringification
+                const finalProduct = JSON.stringify(result.data, null, 2);
                 
                 try {
                     acpPlugin.addProduceItem({
