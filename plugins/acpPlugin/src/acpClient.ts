@@ -92,6 +92,31 @@ export class AcpClient {
     }));
   }
 
+  async queryAgent(address: string) {
+    const baseUrl =
+      this.agentRepoUrl || "https://acpx-staging.virtuals.io/api/agents";
+
+    let url = `${baseUrl}?filters[walletAddress][$eq]=${address}`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to query agent: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const responseJson = await response.json();
+    const agents = (responseJson.data as AcpAgent[]).map((agent) => ({
+      id: agent.id,
+      name: agent.name,
+      description: agent.description,
+      walletAddress: agent.walletAddress,
+      twitterHandler: agent.twitterHandle,
+      offerings: agent.offerings,
+    }));
+    return agents.length > 0 ? agents[0] : undefined;
+  }  
+
   async createJob(
     providerAddress: string,
     evaluatorAddress: string,
