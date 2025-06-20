@@ -242,6 +242,9 @@ async function test() {
                             active: {
                                 asASeller: fullState.jobs.active.asASeller.slice(-3) // Only the 3 most recent jobs
                             }
+                        },
+                        inventory: {
+                            produced: fullState.inventory?.produced?.slice(-2) || [] // Only the 2 most recent produced items
                         }
                     };
                 }
