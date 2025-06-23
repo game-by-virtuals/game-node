@@ -342,7 +342,7 @@ async function test() {
                             }
                         },
                         inventory: {
-                            produced: fullState.inventory?.produced?.slice(-2) || [] // Only the 2 most recent produced items
+                            produced: fullState.inventory?.produced?.slice(-1) || [] // Only the 1 most recent produced items
                         }
                     };
                 }
