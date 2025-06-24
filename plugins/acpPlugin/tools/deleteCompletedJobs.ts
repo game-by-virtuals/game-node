@@ -1,9 +1,7 @@
 // import AcpPlugin, { AcpToken } from "@virtuals-protocol/game-acp-plugin";
 import * as readline from 'readline';
 import * as dotenv from 'dotenv';
-import { baseSepolia } from "viem/chains";
-import AcpPlugin from "../src/acpPlugin";
-import { AcpToken } from "../src/acpToken";
+import AcpPlugin, { AcpToken, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
 // Load environment variables
 dotenv.config();
 
@@ -23,7 +21,8 @@ async function deleteCompletedJob(): Promise<void> {
       acpTokenClient: await AcpToken.build(
         privateKey,
         entityKey,
-        agentWallet
+        agentWallet,
+        baseSepoliaConfig // or baseConfig based on your environment
       )
     });
     
