@@ -333,24 +333,48 @@ async function test() {
                 // restrict to just seller specified functions, add generateMeme to generate deliverable
                 functions: [acpPlugin.respondJob, acpPlugin.deliverJob, getTopCryptoProjects],
                 getEnvironment: async () => {
-                    // Return only essential environment data, not the full inventory
+                    // Get the full state and clean up the inventory data
                     const fullState = await acpPlugin.getAcpState();
-                    return {
-                        jobs: {
-                            active: {
-                                asASeller: fullState.jobs.active.asASeller.slice(-3) // Only the 3 most recent jobs
-                            }
-                        },
-                        inventory: {
-                            produced: fullState.inventory?.produced?.slice(-1) || [] // Only the 1 most recent produced items
+                    
+                    // Clean up inventory to prevent 413 error
+                    if (fullState.inventory && fullState.inventory.produced) {
+                        // Keep only the last 1 produced item
+                        if (fullState.inventory.produced.length > 1) {
+                            fullState.inventory.produced = fullState.inventory.produced.slice(-1);
                         }
-                    };
+                        
+                        // Truncate large values to prevent oversized payloads
+                        fullState.inventory.produced = fullState.inventory.produced.map((item: any) => ({
+                            ...item,
+                            value: typeof item.value === 'string' && item.value.length > 200 
+                                ? item.value.substring(0, 200) + '... (truncated)'
+                                : item.value
+                        }));
+                    }
+                    
+                    // Clean up active jobs to keep only the most recent one
+                    if (fullState.jobs && fullState.jobs.active) {
+                        if (fullState.jobs.active.asASeller && fullState.jobs.active.asASeller.length > 1) {
+                            fullState.jobs.active.asASeller = fullState.jobs.active.asASeller.slice(-1);
+                        }
+                        if (fullState.jobs.active.asABuyer && fullState.jobs.active.asABuyer.length > 1) {
+                            fullState.jobs.active.asABuyer = fullState.jobs.active.asABuyer.slice(-1);
+                        }
+                    }
+                    
+                    return fullState;
                 }
             })
-        ],
+        ]
     });
 
     await sellerAgent.init();
+
+    // Clean up completed jobs and keep only the 3 newest ones BEFORE setting up phase change
+    await deleteCompletedJobsKeepNewest(acpPlugin, 3);
+    
+    // Safely reset state if it's very large and no active jobs exist
+    await safeResetStateIfNeeded(acpPlugin);
 
     /// upon phase change, the seller agent will respond to the job
     acpPlugin.setOnPhaseChange(async (job) => {
