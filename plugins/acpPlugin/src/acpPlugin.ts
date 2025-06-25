@@ -233,7 +233,7 @@ class AcpPlugin {
 
         try {
           const availableAgents = await this.acpClient.browseAgents(
-            "0xFe7d96d64c23E37526Da3657D2BFf60459E8dF6D",
+            args.keyword,
             this.cluster,
           );
 
