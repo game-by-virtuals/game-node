@@ -20,8 +20,9 @@
     "@account-kit/infra": "^4.21.0",
     "@account-kit/smart-contracts": "^4.21.0",
     "@types/node-fetch": "^2.6.12",
+    "@virtuals-protocol/acp-node": "^0.1.0-beta.3",
     "@virtuals-protocol/game": "^0.1.11",
-    "@virtuals-protocol/game-twitter-plugin": "0.1.9",
+    "@virtuals-protocol/game-twitter-node": "^0.1.4",
     "socket.io-client": "^4.8.1",
     "tsup": "^8.4.0",
     "viem": "^2.23.10"

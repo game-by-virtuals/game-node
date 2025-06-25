@@ -9,7 +9,7 @@ In this example, we have two agents:
 - `seller.ts`: An agent that provides meme generation services
 
 ## Prerequisite
-⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️ Important: Before testing your agent's services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 Before running the agent scripts, ensure the following are available:
@@ -32,18 +32,6 @@ GAME_DEV_API_KEY=<apt-your-game-dev-api-key>
 # GAME Twitter Access Token for X (Twitter) Authentication
 BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-buyer-agent-game-twitter-access-token>
 SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-seller-agent-game-twitter-access-token>
-
-# GAME Twitter Access Token for X (Twitter) Authentication
-BUYER_AGENT_TWITTER_BEARER_TOKEN=<your-buyer-agent-twitter-bearer-token>
-BUYER_AGENT_TWITTER_API_KEY=<your-buyer-agent-twitter-api-key>
-BUYER_AGENT_TWITTER_API_SECRET_KEY=<your-buyer-agent-twitter-api-secret-key>
-BUYER_AGENT_TWITTER_ACCESS_TOKEN=<your-buyer-agent-twitter-access-token>
-BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-buyer-agent-twitter-access-token-secret>
-SELLER_AGENT_TWITTER_BEARER_TOKEN=<your-seller-agent-twitter-bearer-token>
-SELLER_AGENT_TWITTER_API_KEY=<your-seller-agent-twitter-api-key>
-SELLER_AGENT_TWITTER_API_SECRET_KEY=<your-seller-agent-twitter-api-secret-key>
-SELLER_AGENT_TWITTER_ACCESS_TOKEN=<your-seller-agent-twitter-access-token>
-SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-seller-agent-twitter-access-token-secret>
 ```
 
 ## Getting Started
@@ -55,73 +43,79 @@ npm install @virtuals-protocol/game-acp-plugin
 
 ## Seller Agent Guide
 
-This guide explains how to run a **Seller Agent** using the ACP Plugin. The seller listens for incoming jobs, responds accordingly, and delivers outputs — such as a meme in this case.
-
-> This example uses a custom function (`generate_meme`) alongside the plugin’s core ACP functions to deliver a meme.
+This guide explains how to run a **Seller Agent** using the ACP Plugin in reactive mode. The seller automatically listens for incoming jobs, responds accordingly, and delivers outputs — such as a meme in this case.
 
 ### How the Seller Agent Works
 
 This seller agent:
 
-- Listens for ACP job phase changes
-- Responds to job offers
-- Delivers memes
+- Automatically listens for ACP job phase changes using `onNewTask`
+- Responds to job offers when in REQUEST phase
+- Generates and delivers memes when in TRANSACTION phase
+- Uses event-driven architecture for automatic job handling
 
 ### Core Components Breakdown
 
-  1. Setup the Seller Agent
+1. Setup the Seller Agent with Reactive Handler
     
-        ```typescript
-        const sellerAgent = new GameAgent(GAME_API_KEY, {
-          name: "Memx",
-          goal: "To provide meme generation as a service.",
-          description: `You are Memx, a meme generator. Your goal is to always deliver hilarious, impactful memes.
-          
-          ${acpPlugin.agentDescription}`,
-          workers: [
-            acpPlugin.getWorker({
-              functions: [
-                acpPlugin.respondJob,
-                acpPlugin.deliverJob,
-                generateMeme, // attach your custom meme generation function
-              ],
-            }),
-          ],
-        });
-        ```
-
-  2. Handle Phase Changes
-    1. When a job progresses through phases (e.g., `REQUEST`, `TRANSACTION`), the agent will:
-        1. **Phase: `REQUEST`** — respond to job availability
-        2. **Phase: `TRANSACTION`** — generate and deliver meme
-
-        ```typescript
-        acpPlugin.setOnPhaseChange(async (job) => {
+    ```typescript
+    const acpPlugin = new AcpPlugin({
+      apiKey: GAME_DEV_API_KEY,
+      acpClient: new AcpClient({
+        acpContractClient: await AcpContractClient.build(
+          WHITELISTED_WALLET_PRIVATE_KEY,
+          WHITELISTED_WALLET_ENTITY_ID,
+          SELLER_AGENT_WALLET_ADDRESS,
+          baseSepoliaAcpConfig
+        ),
+        onNewTask: async (job: AcpJob) => {
           let prompt = "";
-        
-          if (job.phase === AcpJobPhasesDesc.REQUEST) {
+
+          if (job.phase === AcpJobPhases.REQUEST) {
             prompt = `
-        Respond to the following transaction:
-        ${JSON.stringify(job)}
-        
-        Decide whether to accept the job.
-        Do not deliver the item yet.`;
-          } else if (job.phase === AcpJobPhasesDesc.TRANSACTION) {
+              Respond to the following transaction:
+              ${JSON.stringify(job)}
+
+              Decide whether to accept the job or not.
+              Once you have responded to the job, do not proceed with producing the deliverable and wait.
+            `;
+          } else if (job.phase === AcpJobPhases.TRANSACTION) {
             prompt = `
-        Respond to the following transaction:
-        ${JSON.stringify(job)}
-        
-        Proceed to generate the deliverable and deliver it.`;
+              Respond to the following transaction:
+              ${JSON.stringify(job)}
+
+              You should produce the deliverable and deliver it to the buyer.
+            `;
           }
-        
+
           await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
             verbose: true,
           });
-        
-          console.log("✅ Seller has responded to job.");
-        });
-        ```
+        }
+      })
+    });
+    ```
 
+2. Configure the Seller Agent with Required Functions
+
+    ```typescript
+    const sellerAgent = new GameAgent(GAME_API_KEY, {
+      name: "Memx",
+      goal: "To provide meme generation as a service.",
+      description: `You are Memx, a meme generator. Your goal is to always deliver hilarious, impactful memes.
+      
+      ${acpPlugin.agentDescription}`,
+      workers: [
+        acpPlugin.getWorker({
+          functions: [
+            acpPlugin.respondJob,
+            acpPlugin.deliverJob,
+            generateMeme // custom meme generation function
+          ],
+        }),
+      ],
+    });
+    ```
 
 ### Run the Seller Script
 
@@ -129,33 +123,30 @@ This seller agent:
 ts-node seller.ts
 ```
 
-> The seller will start listening for any jobs initiated by the buyer.
->
+> The seller will automatically start listening for any jobs initiated by the buyer and respond accordingly.
 
 ### Next Step
 
-Once the **Seller Agent** is set up, she has already started listening, you can now run a **Buyer Agent** in a separate terminal to test end-to-end ACP job flow.
+Once the **Seller Agent** is set up and listening, you can now run a **Buyer Agent** in a separate terminal to test end-to-end ACP job flow.
 
 ---
 
 ## Buyer Agent Setup Guide
 
-This guide walks you through setting up the **Buyer Agent** that initiates jobs and handles payments via the ACP Plugin.
+This guide walks you through setting up the **Buyer Agent** that initiates jobs and handles payments via the ACP Plugin in reactive mode.
 
 ### How the Buyer Agent Works
 
-This agent plays a **dual role**:
+This agent uses a **dual-agent architecture**:
 
-1. **Core Agent:** Allows agent to perform `searchAgents` and `initiateJob`.
-2. **Reactive Agent (automated):** Listens to phase changes and **automatically pays** for jobs once the seller has delivered.
-> Note that the currency of transaction is in \$VIRTUAL, the native token of the Virtuals Protocol. Therefore, please ensure you have enough $VIRTUAL in your buyer agent wallet to pay for the job. In case of testnet, you can reach out to the Virtuals team to get some testnet tokens.
+1. **Core Agent:** Handles searching for agents and initiating jobs
+2. **Reactive Agent:** Automatically handles payments and job evaluation
+
+> Note: The currency of transaction is in $VIRTUAL, the native token of the Virtuals Protocol. Please ensure you have enough $VIRTUAL in your buyer agent wallet to pay for the job. For testnet, you can reach out to the Virtuals team to get some testnet tokens.
 
 ### Core Components
 
-1. `coreWorker`
-    1. Defines a mock function (`post_tweet`) to simulate additional non-ACP actions within the agent. This worker is meant to host the agent’s domain-specific functions action space.
-    2. Sample code:
-
+1. Core Worker for Domain-Specific Functions
     ```typescript
     const coreWorker = new GameWorker({
       id: "core-worker",
@@ -164,9 +155,7 @@ This agent plays a **dual role**:
     });
     ```
 
-2. Reactive Buyer Agent
-    1. This part automatically pays for a job once a deliverable is received.
-
+2. Reactive Buyer Agent for Payments
     ```typescript
     const buyerAgent = new GameAgent(GAME_API_KEY, {
       name: "Virtuals",
@@ -179,19 +168,7 @@ This agent plays a **dual role**:
     });
     ```
 
-   You also need to bind this agent to react on job phase change:
-
-    ```typescript
-    acpPlugin.setOnPhaseChange(async (job) => {
-      await buyerAgent.getWorkerById("acp_worker").runTask(
-        `Respond to the following transaction:\n${JSON.stringify(job)}`,
-        { verbose: true }
-      );
-    });
-    ```
-
-3. Initiating and Searching for Jobs
-
+3. Main Buyer Agent for Search and Initiation
     ```typescript
     const agent = new GameAgent(GAME_API_KEY, {
       ...
@@ -204,6 +181,36 @@ This agent plays a **dual role**:
     });
     ```
 
+4. Automatic Job Phase Handling with onNewTask
+    ```typescript
+    const acpPlugin = new AcpPlugin({
+      apiKey: GAME_DEV_API_KEY,
+      acpClient: new AcpClient({
+        acpContractClient: await AcpContractClient.build(
+          WHITELISTED_WALLET_PRIVATE_KEY,
+          WHITELISTED_WALLET_ENTITY_ID,
+          BUYER_AGENT_WALLET_ADDRESS,
+          baseSepoliaAcpConfig
+        ),
+        onNewTask: async (job: AcpJob) => {
+          if (
+            job.phase === AcpJobPhases.NEGOTIATION &&
+            job.memos.find((m) => m.nextPhase === AcpJobPhases.TRANSACTION)
+          ) {
+            const prompt = `Pay for the following job: ${JSON.stringify(job)}`;
+            await buyerAgent.getWorkerById("acp_worker").runTask(prompt, {
+              verbose: true,
+            });
+            buyerAgent.log(`${buyerAgent.name} has responded to the job #${job.id}`);
+          }
+        },
+        onEvaluate: async (job: AcpJob) => {
+          console.log(job.deliverable, job.serviceRequirement);
+          await job.evaluate(true, "This is a test reasoning");
+        },
+      }),
+    });
+    ```
 
 ### Run the Buyer Script
 ```bash
@@ -211,6 +218,26 @@ ts-node buyer.ts
 ```
 
 ---
+
+## Understanding Job Phases
+
+The reactive mode automatically handles different job phases through the `onNewTask` handler:
+
+1. **REQUEST Phase**
+   - Buyer initiates a job request
+   - Seller's `onNewTask` handler automatically evaluates and responds
+
+2. **NEGOTIATION Phase**
+   - Seller accepts the job
+   - Buyer's `onNewTask` handler automatically proceeds with payment
+
+3. **TRANSACTION Phase**
+   - Seller's `onNewTask` handler generates and delivers the meme
+   - Buyer automatically evaluates the deliverable
+
+4. **EVALUATION Phase**
+   - Buyer automatically evaluates the deliverable
+   - Transaction completes upon successful evaluation
 
 ## Understanding the `onEvaluate` Function
 
@@ -222,33 +249,35 @@ The `onEvaluate` parameter in the AcpPlugin configuration is crucial for real-ti
 - Users can either approve the result (completing the transaction) or reject it (canceling the transaction)
 - Example implementation:
 
-```bash
-const onEvaluate = (deliverable: IDeliverable) => {
-  return new Promise<EvaluateResult>((resolve) => {
-    console.log(deliverable);
-    resolve(new EvaluateResult(true, "This is a test reasoning"));
-  });
-};
-```
-### How it works?
-Here’s a minimal example to get started with evaluation.
-
-If you're building a buyer agent that carries out self-evaluation, you’ll need to define an `onEvaluate` callback when initializing the AcpPlugin. This function will be triggered when the agent receives a deliverable to review.
-
-```bash
-function onEvaluate(deliverable) {
-  console.log("Evaluating deliverable:", deliverable);
-  // In this example, we auto-accept all deliverables
-  resolve(new EvaluateResult(true, "Meme accepted"));
+```typescript
+onEvaluate: async (job: AcpJob) => {
+  console.log(job.deliverable, job.serviceRequirement);
+  await job.evaluate(true, "This is a test reasoning");
 }
 ```
+
+### How it works?
+Here's a minimal example to get started with evaluation.
+
+If you're building a buyer agent that carries out self-evaluation, you'll need to define an `onEvaluate` callback when initializing the AcpPlugin. This function will be triggered when the agent receives a deliverable to review.
+
+```typescript
+const onEvaluate = async (job: AcpJob) {
+  console.log("Evaluating job:", job);
+  // In this example, we auto-accept all deliverables
+  await job.evaluate(true, "Meme accepted");
+}
+```
+
 Then, pass this function into the plugin:
-```bash
-const options: AcpPluginOptions = {
+```typescript
+const acpPlugin = new AcpPlugin({
   apiKey: GAME_DEV_API_KEY,
-  acpTokenClient: myTokenClient,
-  onEvaluate: onEvaluate
-};
+  acpClient: new AcpClient({
+    acpContractClient: myContractClient,
+    onEvaluate: onEvaluate
+  }),
+});
 ```
 
 ### More realistic examples
@@ -257,69 +286,65 @@ You can customize the logic:
 1️⃣ Example: Check url link exists:
 
 This function ensures that the submitted deliverable contains a valid URL by checking if it starts with either `http://` or `https://`.
-```bash
-import AcpPlugin, { EvaluateResult } from "@virtuals-protocol/game-acp-plugin";
-
+```typescript
 const acpPlugin = new AcpPlugin({
-  .
-  .
-  onEvaluate: async (deliverable) => {
-    console.log("Evaluating deliverable:", deliverable);
-    const url = deliverable?.value || "";
+  apiKey: GAME_DEV_API_KEY,
+  acpClient: new AcpClient({
+    acpContractClient: myContractClient,
+    onEvaluate: async (job: AcpJob) => {
+      console.log("Evaluating job:", job);
+      const url = job.deliverable?.value || "";
 
-    if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
-      console.log(`✅ URL link looks valid: ${url}`);
-      return new EvaluateResult(true, "URL link looks valid");
-    } else {
-      console.log(`❌ Invalid or missing URL: ${url}`);
-      return new EvaluateResult(false, "Invalid or missing URL");
+      if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
+        console.log(`✅ URL link looks valid: ${url}`);
+        await job.evaluate(true, "URL link looks valid");
+      } else {
+        console.log(`❌ Invalid or missing URL: ${url}`);
+        await job.evaluate(false, "Invalid or missing URL");
+      }
     }
-  }
+  })
 });
-}
 ```
 
 Sample Output:
 ```bash
-Evaluating deliverable: { type: 'url', value: 'https://example.com/resource' }
+Evaluating job: {..., deliverable: { type: 'url', value: 'https://example.com/resource' }, serviceRequirement: {...}, ...}
 ✅ URL link looks valid: https://example.com/resource
-Evaluation Result: EvaluateResult { accepted: true, reason: 'URL link looks valid' }
 ```
 
 2️⃣ Check File Extension (e.g. only allow `.png` or `.jpg` or `.jpeg`):
-```bash
-import AcpPlugin, { EvaluateResult } from '@virtuals-protocol/game-acp-plugin';
-
+```typescript
 const acpPlugin = new AcpPlugin({
-  .
-  .
-  onEvaluate: async (deliverable) => {
-    console.log("Evaluating deliverable:", deliverable);
+  apiKey: GAME_DEV_API_KEY,
+  acpClient: new AcpClient({
+    acpContractClient: myContractClient,
+    onEvaluate: async (job: AcpJob) => {
+      console.log("Evaluating job:", job);
 
-    const url: string = deliverable?.value || "";
-    const allowedExtensions = [".png", ".jpg", ".jpeg"];
-    const isAllowedFormat = allowedExtensions.some(ext => url.toLowerCase().endsWith(ext));
+      const url: string = job.deliverable?.value || "";
+      const allowedExtensions = [".png", ".jpg", ".jpeg"];
+      const isAllowedFormat = allowedExtensions.some(ext => url.toLowerCase().endsWith(ext));
 
-    if (isAllowedFormat) {
-      console.log(`✅ Image format is allowed: ${url}`);
-      return new EvaluateResult(true, "Image format is allowed");
-    } else {
-      console.log(`❌ Unsupported image format — only PNG/JPG/JPEG are allowed: ${url}`);
-      return new EvaluateResult(false, "Unsupported image format — only PNG and JPG are allowed");
+      if (isAllowedFormat) {
+        console.log(`✅ Image format is allowed: ${url}`);
+        await job.evaluate(true, "Image format is allowed");
+      } else {
+        console.log(`❌ Unsupported image format — only PNG/JPG/JPEG are allowed: ${url}`);
+        await job.evaluate(false, "Unsupported image format — only PNG and JPG are allowed");
+      }
     }
-  }
+  }),
 });
-}
 ```
 
 Sample Output:
 ```bash
-Evaluating deliverable: { type: 'image', value: 'https://cdn.example.com/meme_final.jpg' }
+Evaluating job: {..., deliverable: { type: 'image', value: 'https://cdn.example.com/meme_final.jpg' }, serviceRequirement: {...}, ...}
 ✅ Image format is allowed: https://cdn.example.com/meme_final.jpg
-Evaluation Result: EvaluateResult { accepted: true, reason: 'Image format is allowed' }
 ```
 
-These are just simple, self-defined examples of custom evaluator logic. You’re encouraged to tweak and expand these based on the complexity of your use case. Evaluators are a powerful way to gatekeep quality and ensure consistency in jobs submitted by seller agents.
+These are just simple, self-defined examples of custom evaluator logic. You're encouraged to tweak and expand these based on the complexity of your use case. Evaluators are a powerful way to gatekeep quality and ensure consistency in jobs submitted by seller agents.
 
 👉 Moving forward, we are building four in-house evaluator agent clusters (work in progress):
 
@@ -328,7 +353,7 @@ These are just simple, self-defined examples of custom evaluator logic. You’re
 - Hedgefund Evaluator Agent
 - Mediahouse Evaluator Agent 
 
-These evaluators will handle more advanced logic and domain-specific validations. But feel free to build your own lightweight ones until they’re fully live!
+These evaluators will handle more advanced logic and domain-specific validations. But feel free to build your own lightweight ones until they're fully live!
 
 ---
 
@@ -362,7 +387,7 @@ Setting an expiry time ensures that:
 
 ### How It Works
 Internally, `jobExpiryDurationMins` is used to compute a future timestamp (expiredAt) relative to the current time:
-```bash
+```typescript
 const expiredAt = new Date();
 expiredAt.setMinutes(
   expiredAt.getMinutes() + this.jobExpiryDurationMins
@@ -370,30 +395,33 @@ expiredAt.setMinutes(
 ```
 
 ### Example: Plugin Setup with Job Expiry
-```bash
+```typescript
 const acpPlugin = new AcpPlugin({
   apiKey: GAME_DEV_API_KEY,
-  acpTokenClient: await AcpToken.build(
-    WHITELISTED_WALLET_PRIVATE_KEY,
-    WHITELISTED_WALLET_ENTITY_ID,
-    BUYER_AGENT_WALLET_ADDRESS,
-    baseSepoliaConfig
-  ),
-  cluster: "hedgefund",
-  onEvaluate: async (deliverable) => {
-    console.log("Evaluating deliverable", deliverable);
-    return new EvaluateResult(true, "custom evaluator");
-  },
-  jobExpiryDurationMins: 10, // Job will expire 10 minutes after creation
+  acpClient: new AcpClient({
+    acpContractClient: await AcpContractClient.build(
+      WHITELISTED_WALLET_PRIVATE_KEY,
+      WHITELISTED_WALLET_ENTITY_ID,
+      BUYER_AGENT_WALLET_ADDRESS,
+      baseSepoliaAcpConfig
+    ),
+    onEvaluate: async (job: AcpJob) => {
+      console.log("Evaluating job", job);
+      await job.evaluate(true, "custom evaluator");
+    },
+    jobExpiryDurationMins: 1440, // Job will expire 1440 minutes (1 day) after creation
+  })
 });
 ```
 
 In this example:
 - Any job created through this plugin instance will be automatically marked as expired after 10 minutes, unless a response is received. 
 - You can adjust this value (e.g., to 5 or 30) based on how responsive your agent network is.
+
 ---
 
 ## Note
 - Make sure to replace placeholder API keys and private keys with your own
 - You can use a testnet wallet to test the examples
+- The reactive mode is designed for automated workflows, while the agentic mode provides more manual control
 - Twitter integration requires a valid access token (check out [Twitter Plugin](https://github.com/game-by-virtuals/game-node/blob/main/plugins/twitterPlugin/README.md) for more instructions)

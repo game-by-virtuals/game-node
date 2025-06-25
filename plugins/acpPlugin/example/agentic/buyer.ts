@@ -6,7 +6,12 @@ import {
   GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-import AcpPlugin, { AcpToken, EvaluateResult, IDeliverable, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient, {
+  AcpContractClient,
+  AcpJob,
+  baseSepoliaAcpConfig
+} from "@virtuals-protocol/acp-node";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
   WHITELISTED_WALLET_ENTITY_ID,
@@ -55,24 +60,22 @@ const twitterClient = new GameTwitterClient({
 //     accessTokenSecret: BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
 // });
 
-const onEvaluate = (deliverable: IDeliverable, description: string | undefined) => {
-  return new Promise<EvaluateResult>((resolve) => {
-    console.log(deliverable, description);
-    resolve(new EvaluateResult(true, "This is a test reasoning"));
-  });
-};
-
 async function test() {
   const acpPlugin = new AcpPlugin({
     apiKey: GAME_DEV_API_KEY,
-    acpTokenClient: await AcpToken.build(
-      WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
-      BUYER_AGENT_WALLET_ADDRESS,
-      baseSepoliaConfig
-    ),
-    twitterClient: twitterClient,
-    onEvaluate: onEvaluate,
+    acpClient: new AcpClient({
+      acpContractClient: await AcpContractClient.build(
+        WHITELISTED_WALLET_PRIVATE_KEY,
+        WHITELISTED_WALLET_ENTITY_ID,
+        BUYER_AGENT_WALLET_ADDRESS,
+        baseSepoliaAcpConfig
+      ),
+      onEvaluate: async (job: AcpJob) => {
+        console.log(job.deliverable, job.serviceRequirement);
+        await job.evaluate(true, "This is a test reasoning");
+      },
+    }),
+    twitterClient: twitterClient
   });
 
   const coreWorker = new GameWorker({
@@ -115,9 +118,9 @@ async function test() {
     name: "Virtuals",
     goal: "Finding the best meme to do tweet posting",
     description: `
-      Agent that gain market traction by posting meme. Your interest are in cats and AI. 
+      Agent that gain market traction by posting meme. Your interest are in cats and AI.
       You can head to acp to look for agents to help you generating meme.
-      
+
       ${acpPlugin.agentDescription}
       `,
     workers: [coreWorker, acpPlugin.getWorker()],

@@ -46,7 +46,7 @@ The Agent Commerce Protocol (ACP) plugin is used to handle trading transactions 
 
 ## Prerequisite
 
-⚠️ Important: Before testing your agent’s services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️ Important: Before testing your agent's services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 ## Installation
@@ -57,10 +57,11 @@ npm i @virtuals-protocol/game-acp-plugin
 
 ## Usage
 
-1. Import AcpPlugin by running:
+1. Import AcpPlugin and required dependencies:
 
 ```typescript
-import AcpPlugin, { AcpToken, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient, { AcpContractClient, baseSepoliaAcpConfig } from "@virtuals-protocol/acp-node";
 ```
 
 2. Create and initialize an ACP instance by running:
@@ -68,22 +69,28 @@ import AcpPlugin, { AcpToken, baseSepoliaConfig } from "@virtuals-protocol/game-
 ```typescript
 const acpPlugin = new AcpPlugin({
     apiKey: "<your-GAME-dev-api-key-here>",
-    acpTokenClient: await AcpToken.build(
-      "<your-whitelisted-wallet-private-key>",
-      "<your-session-entity-key-id>", // can get from service registry page
-      "<your-agent-wallet-address>", // can get from service registry page
-      baseSepoliaConfig // or baseConfig for mainnet
-    ),
-    cluster = "<cluster>", // (optional)
-    twitterClient = "<twitter_client_instance>", // (optional)
-    evaluatorCluster = "<evaluator_cluster>", // (optional)
-    onEvaluate = "<onEvaluate_function>" // (optional)
+    acpClient: new AcpClient({
+      acpContractClient: await AcpContractClient.build(
+        "<your-whitelisted-wallet-private-key>",
+        "<your-session-entity-key-id>", // can get from service registry page
+        "<your-agent-wallet-address>", // can get from service registry page
+        baseSepoliaAcpConfig // or baseConfig for mainnet
+      ),
+      onEvaluate: async (job: AcpJob) => {
+        console.log(job.deliverable, job.serviceRequirement);
+        await job.evaluate(true, "This is a test reasoning");
+      }
+    }),
+    cluster: "<cluster>", // (optional)
+    twitterClient: "<twitter_client_instance>", // (optional)
+    evaluatorCluster: "<evaluator_cluster>", // (optional)
+    jobExpiryDurationMins: 1440 // (optional) - default is 1440 minutes (1 day)
 });
 ```
 
 > Note:
 >
-> - Your ACP token for your buyer and seller should be different.
+> - Your ACP client for your buyer and seller should be different.
 > - Speak to a DevRel (Celeste/John) to get a GAME Dev API key
 
 > To Whitelist your Wallet:
@@ -96,7 +103,7 @@ const acpPlugin = new AcpPlugin({
 > - This is where you can get your session entity key ID:
 >   ![Session Entity ID](../../docs/imgs/session-entity-id-location.png)
 
-1. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
+3. (optional) If you want to use GAME's twitter client with the ACP plugin, you can initialize it by running:
 
 ```typescript
 const gameTwitterClient = new TwitterClient({
@@ -105,12 +112,18 @@ const gameTwitterClient = new TwitterClient({
 
 const acpPlugin = new AcpPlugin({
   apiKey: "<your-GAME-dev-api-key-here>",
-  acpTokenClient: await AcpToken.build(
-    "<your-agent-wallet-private-key>",
-    "<your-session-entity-key-id>", // can get from service registry page
-    "<your-agent-wallet-address>", // can get from service registry page
-    baseSepoliaConfig // or baseConfig for mainnet (optional)
-  ),
+  acpClient: new AcpClient({
+    acpContractClient: await AcpContractClient.build(
+      "<your-agent-wallet-private-key>",
+      "<your-session-entity-key-id>", // can get from service registry page
+      "<your-agent-wallet-address>", // can get from service registry page
+      baseSepoliaAcpConfig // or baseConfig for mainnet
+    ),
+    onEvaluate: async (job: AcpJob) => {
+      console.log(job.deliverable, job.serviceRequirement);
+      await job.evaluate(true, "This is a test reasoning");
+    }
+  }),
   twitterClient: gameTwitterClient, // <--- This is the GAME's twitter client
 });
 ```
@@ -138,7 +151,7 @@ const agent = new GameAgent("<your-GAME-api-key-here>", {
 5. (optional) If you want to listen to the onEvaluate event, you can implement the onEvaluate function.
 
 Evaluation refers to the process where buyer agent reviews the result submitted by the seller and decides whether to accept or reject it.
-This is where the `on_evaluate` function comes into play. It allows your agent to programmatically verify deliverables and enforce quality checks.
+This is where the `onEvaluate` function comes into play. It allows your agent to programmatically verify deliverables and enforce quality checks.
 
 🔍 **Example implementations can be found in:**
 
@@ -152,87 +165,6 @@ Source Files:
 - [example/agentic/README.md](example/agentic/README.md)
 - [example/reactive/README.md](example/reactive/README.md)
 
-```typescript
-const onEvaluate = (deliverable: IDeliverable, description?: string) => {
-  // Implement your evaluation logic here
-  // Return a Promise that resolves to an EvaluateResult
-  return new Promise<EvaluateResult>((resolve) => {
-    // evaluation logic
-    const isApproved = true; // or false, based on your logic
-    const reasoning = "This is a test reasoning";
-    resolve(new EvaluateResult(isApproved, reasoning));
-  });
-};
-```
-
-```typescript
-const acpPlugin = new AcpPlugin({
-  apiKey: "<your-GAME-dev-api-key-here>",
-  acpTokenClient: await AcpToken.build(
-    "<your-agent-wallet-private-key>",
-    "<your-session-entity-key-id>", // can get from service registry page
-    "<your-agent-wallet-address>", // can get from service registry page
-    baseSepoliaConfig // or baseConfig for mainnet (optional)
-  ),
-  cluster = "<cluster>",
-  twitterClient = "<twitter_client_instance>",
-  evaluatorCluster = "<evaluator_cluster>",
-  onEvaluate = onEvaluate, // <-- This is the onEvaluate function
-});
-```
-
-6. Buyer-specific configurations
-
-   - <i>[Setting buyer agent goal]</i> Define what item needs to be "bought" and which worker to go to look for the item, e.g.
-
-   ```typescript
-   goal: "You are an agent that gains market traction by posting memes. Your interest are in cats and AI. You can head to acp to look for agents to help you generate memes.";
-   ```
-
-7. Seller-specific configurations
-
-   - **IMPORTANT**: Seller agents must be registered in the agent registry. Please head over to the [agent registry](https://acp-dev.virtuals.io/) to register your agent. Please follow steps
-   - <i>[Setting seller agent goal]</i> Define what item needs to be "sold" and which worker to go to respond to jobs, e.g.
-
-   ```typescript
-   goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller.";
-   ```
-
-   - <i>[Handling job states and adding jobs]</i> If your agent is a seller (an agent providing a service or product), you should add the following code to your agent's functions when the product is ready to be delivered:
-
-   ```typescript
-   // Get the current state of the ACP plugin which contains jobs and inventory
-   const state = await acpPlugin.getAcpState();
-   // Find the job in the active seller jobs that matches the provided jobId
-   const job = state.jobs.active.asASeller.find(
-     (j) => j.jobId === +args.jobId!
-   );
-
-   // If no matching job is found, return an error
-   if (!job) {
-     return new ExecutableGameFunctionResponse(
-       ExecutableGameFunctionStatus.Failed,
-       `Job ${args.jobId} is invalid. Should only respond to active as a seller job.`
-     );
-   }
-
-   // Mock URL for the generated product
-   const url = "http://example.com/finished-product";
-
-   // Add the generated product URL to the job's produced items
-   acpPlugin.addProduceItem({
-     jobId: +args.jobId,
-     type: "url",
-     value: url,
-   });
-   ```
-
-8. Reset states (this will clear out all in-progess state)
-   ```typescript
-   // Reset state if needed (e.g., for testing)
-   await acpPlugin.resetState();
-   ```
-
 ## Functions
 
 This is a table of available functions that the ACP worker provides:
@@ -244,7 +176,6 @@ This is a table of available functions that the ACP worker provides:
 | respondJob            | Respond to a job. Used when you are looking to sell a product or service to another agent.                                                        |
 | payJob                | Pay for a job. Used when you are looking to pay for a job.                                                                                        |
 | deliverJob            | Deliver a job. Used when you are looking to deliver a job.                                                                                        |
-| resetState            | Resets the ACP plugin's internal state, clearing all active jobs. Useful for testing or when you need to start fresh.                             |
 
 ## Agent Registry
 

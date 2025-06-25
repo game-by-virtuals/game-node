@@ -4,7 +4,13 @@ import {
   GameAgent,
   GameFunction,
 } from "@virtuals-protocol/game";
-import AcpPlugin, { AcpToken, AcpJobPhasesDesc, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient, {
+  AcpContractClient,
+  AcpJob,
+  AcpJobPhases,
+  baseSepoliaAcpConfig
+} from "@virtuals-protocol/acp-node";
 import {
   GAME_API_KEY,
   GAME_DEV_API_KEY,
@@ -40,13 +46,46 @@ const twitterClient = new GameTwitterClient({
 async function test() {
   const acpPlugin = new AcpPlugin({
     apiKey: GAME_DEV_API_KEY,
-    acpTokenClient: await AcpToken.build(
-      WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
-      SELLER_AGENT_WALLET_ADDRESS,
-      baseSepoliaConfig
-    ),
-    twitterClient: twitterClient,
+    acpClient: new AcpClient({
+      acpContractClient: await AcpContractClient.build(
+        WHITELISTED_WALLET_PRIVATE_KEY,
+        WHITELISTED_WALLET_ENTITY_ID,
+        SELLER_AGENT_WALLET_ADDRESS,
+        baseSepoliaAcpConfig,
+      ),
+      onNewTask: async (job: AcpJob) => {
+        let prompt = "";
+
+        if (
+          job.phase === AcpJobPhases.REQUEST &&
+          job.memos.find((m) => m.nextPhase === AcpJobPhases.NEGOTIATION)
+        ) {
+          prompt = `
+            Respond to the following transaction:
+            ${JSON.stringify(job)}
+
+            Decide whether to accept the job or not.
+            Once you have responded to the job, do not proceed with producing the deliverable and wait.
+          `;
+        } else if (
+          job.phase === AcpJobPhases.TRANSACTION &&
+          job.memos.find((m) => m.nextPhase === AcpJobPhases.EVALUATION)
+        ) {
+          prompt = `
+            Respond to the following transaction:
+            ${JSON.stringify(job)}
+
+            You should produce the deliverable and deliver it to the buyer.
+          `;
+        }
+
+        await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
+          verbose: true,
+        });
+        sellerAgent.log(`${sellerAgent.name} has responded to the job #${job.id}`);
+      }
+    }),
+    twitterClient: twitterClient
   });
 
   const generateMeme = new GameFunction({
@@ -129,42 +168,8 @@ async function test() {
     ],
   });
 
-  await sellerAgent.init();
+  await sellerAgent.init()
 
-  /// upon phase change, the seller agent will respond to the job
-  acpPlugin.setOnPhaseChange(async (job) => {
-    console.log("reacting to job", job);
-
-    //get the buyer agent details
-    const buyerAgent = await job.getAgentByWalletAddress(job.clientAddress!);
-    console.log("buyer agent twitter handle", buyerAgent?.twitterHandle);
-
-    let prompt = "";
-
-    if (job.phase === AcpJobPhasesDesc.REQUEST) {
-      prompt = `
-            Respond to the following transaction:
-            ${JSON.stringify(job)}
-
-            decide whether you should accept the job or not.
-            once you have responded to the job, do not proceed with producing the deliverable and wait.
-            `;
-    } else if (job.phase === AcpJobPhasesDesc.TRANSACTION) {
-      prompt = `
-                Respond to the following transaction.
-                ${JSON.stringify(job)}
-
-                you should produce the deliverable and deliver it to the buyer.
-                `;
-    }
-
-    await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
-      verbose: true,
-    });
-
-    console.log("reacting to job done");
-  });
-  /// end of seller reactive agent
   console.log("Listening");
 
   // NOTE: this agent only listen to the job and respond to it.

@@ -1,51 +1,31 @@
+import AcpClient, {
+  AcpJob,
+  AcpMemo
+} from "@virtuals-protocol/acp-node";
 import {
-  GameWorker,
-  GameFunction,
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
+  GameFunction,
+  GameWorker,
 } from "@virtuals-protocol/game";
-import { AcpClient } from "./acpClient";
-import { AcpToken } from "./acpToken";
 import {
-  AcpJob,
   AcpJobPhasesDesc,
-  IDeliverable,
+  AcpState,
   IInventory,
+  ITweet,
+  ACP_JOB_PHASE_MAP,
 } from "./interface";
-import { ITweetClient } from "@virtuals-protocol/game-twitter-plugin";
-import { io, Socket } from "socket.io-client";
+import { TwitterApi } from "@virtuals-protocol/game-twitter-node"
 import { Address } from "viem";
-
-const SocketEvents = {
-  JOIN_EVALUATOR_ROOM: "joinEvaluatorRoom",
-  LEAVE_EVALUATOR_ROOM: "leaveEvaluatorRoom",
-  ON_EVALUATE: "onEvaluate",
-  ROOM_JOINED: "roomJoined",
-  ON_PHASE_CHANGE: "onPhaseChange",
-};
 
 interface IAcpPluginOptions {
   apiKey: string;
-  acpTokenClient: AcpToken;
-  twitterClient?: ITweetClient;
+  acpClient: AcpClient;
+  twitterClient?: TwitterApi;
   cluster?: string;
   evaluatorCluster?: string;
-  onEvaluate?: (
-    deliverable: IDeliverable,
-    description?: string
-  ) => Promise<EvaluateResult>;
   agentRepoUrl?: string;
   jobExpiryDurationMins?: number;
-}
-
-export class EvaluateResult {
-  isApproved: boolean;
-  reasoning: string;
-
-  constructor(isApproved: boolean, reasoning: string) {
-    this.isApproved = isApproved;
-    this.reasoning = reasoning;
-  }
 }
 
 class AcpPlugin {
@@ -54,31 +34,16 @@ class AcpPlugin {
   private description: string;
   private acpClient: AcpClient;
   private producedInventory: IInventory[] = [];
-  private socket: Socket | null = null;
   private cluster?: string;
   private evaluatorCluster?: string;
-  private twitterClient?: ITweetClient;
-  private onEvaluate: (
-    deliverable: IDeliverable,
-    description?: string
-  ) => Promise<EvaluateResult>;
-  private onPhaseChange?: (job: AcpJob) => Promise<void>;
+  private twitterClient?: TwitterApi;
   private jobExpiryDurationMins: number;
-  private sdkUrl: string;
 
   constructor(options: IAcpPluginOptions) {
-    this.acpClient = new AcpClient(
-      options.apiKey,
-      options.acpTokenClient,
-      options.acpTokenClient.config
-    );
-
-    this.sdkUrl = options.acpTokenClient.config.sdkUrl;
-
+    this.acpClient = options.acpClient;
     this.cluster = options.cluster;
     this.twitterClient = options.twitterClient;
     this.evaluatorCluster = options.evaluatorCluster;
-    this.onEvaluate = options.onEvaluate || this.defaultOnEvaluate;
     this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
 
     this.id = "acp_worker";
@@ -103,97 +68,89 @@ class AcpPlugin {
 
     NOTE: This is NOT for finding clients - only for executing trades when there's a specific need to buy or sell something.
     `;
-
-    this.initializeSocket();
-  }
-  setOnPhaseChange(onPhaseChange: (job: AcpJob) => Promise<void>) {
-    this.onPhaseChange = (job: AcpJob) => {
-      return onPhaseChange({
-        ...job,
-        getAgentByWalletAddress: (walletAddress: string) =>
-          this.acpClient.getAgentByWalletAddress(walletAddress),
-      });
-    };
   }
 
-  private async defaultOnEvaluate(_: IDeliverable, __?: string) {
-    return new EvaluateResult(true, "Evaluated by default");
-  }
-
-  private initializeSocket() {
-    this.socket = io(this.sdkUrl, {
-      auth: {
-        walletAddress: this.acpClient.walletAddress,
-      },
-    });
-
-    this.socket.on(
-      SocketEvents.ON_EVALUATE,
-      async (data: {
-        memoId: number;
-        deliverable: IDeliverable;
-        description: string;
-      }) => {
-        if (this.onEvaluate) {
-          const { isApproved, reasoning } = await this.onEvaluate(
-            data.deliverable,
-            data.description
-          );
-          if (isApproved) {
-            await this.acpClient.acpTokenClient.signMemo(
-              data.memoId,
-              true,
-              reasoning
-            );
-          } else {
-            await this.acpClient.acpTokenClient.signMemo(
-              data.memoId,
-              false,
-              reasoning
-            );
-          }
-        }
-      }
-    );
-
-    this.socket.on(SocketEvents.ON_PHASE_CHANGE, async (data: AcpJob) => {
-      await this.onPhaseChange?.(data);
-    });
-
-    const cleanup = async () => {
-      if (this.socket) {
-        this.socket.emit(
-          SocketEvents.LEAVE_EVALUATOR_ROOM,
-          this.acpClient.walletAddress
-        );
-        this.socket.disconnect();
-      }
-      process.exit(0);
-    };
-
-    process.on("SIGINT", cleanup);
-    process.on("SIGTERM", cleanup);
-  }
 
   public addProduceItem(item: IInventory) {
     this.producedInventory.push(item);
     return item;
   }
 
-  public async resetState() {
-    await this.acpClient.resetState(this.acpClient.walletAddress);
+  private async toStateAcpJob(job: AcpJob) {
+    return {
+      jobId: job.id,
+      clientName: (await job.clientAgent)?.name || "",
+      providerName: (await job.providerAgent)?.name || "",
+      desc: job.serviceRequirement || "",
+      price: job.price.toString(),
+      phase: ACP_JOB_PHASE_MAP[job.phase],
+      memo: job.memos.reverse().map((memo: AcpMemo) => ({
+        id: memo.id,
+      })),
+      providerAddress: job.providerAddress,
+      tweetHistory: (job.context?.tweets?.reverse() || []).map((tweet: ITweet) => ({
+        type: tweet.type,
+        tweetId: tweet.tweetId,
+        content: tweet.content,
+        createdAt: tweet.createdAt
+      }))
+    };
   }
 
-  public async deleteCompletedJob(jobId: string) {
-    await this.acpClient.deleteCompletedJob(jobId);
-  }
+  public async getAcpState(): Promise<AcpState> {
+    const [activeJobs, completedJobs, cancelledJobs] = await Promise.all([
+      this.acpClient.getActiveJobs(),
+      this.acpClient.getCompletedJobs(),
+      this.acpClient.getCancelledJobs(),
+    ]);
 
-  public async getAcpState() {
-    const serverState = await this.acpClient.getState();
+    const agentAddr =
+      this.acpClient.acpContractClient.walletAddress.toLowerCase();
 
-    serverState.inventory.produced = this.producedInventory;
+    const activeAsABuyer = [];
+    const activeAsASeller = [];
 
-    return serverState;
+    const processedActiveJobs = await Promise.all(
+      activeJobs.map(async (job) => ({
+        processed: await this.toStateAcpJob(job),
+        clientAddr: job.clientAddress.toLowerCase(),
+        providerAddr: job.providerAddress.toLowerCase(),
+      }))
+    )
+
+    for (const job of processedActiveJobs) {
+      if (job.clientAddr === agentAddr) {
+        activeAsABuyer.push(job.processed);
+      }
+      if (job.providerAddr === agentAddr) {
+        activeAsASeller.push(job.processed);
+      }
+    }
+
+    const completed = await Promise.all(
+      completedJobs.map((job) => this.toStateAcpJob(job))
+    );
+
+    const cancelled = await Promise.all(
+      cancelledJobs.map((job) => this.toStateAcpJob(job))
+    );
+
+    const state: AcpState = {
+      inventory: {
+        acquired: [],
+        produced: [...this.producedInventory],
+      },
+      jobs: {
+        active: {
+          asABuyer: activeAsABuyer,
+          asASeller: activeAsASeller,
+        },
+        completed: completed,
+        cancelled: cancelled,
+      },
+    };
+
+    return state;
   }
 
   public getWorker(data?: {
@@ -221,10 +178,6 @@ class AcpPlugin {
         };
       },
     });
-  }
-
-  public async getAgentByWalletAddress(walletAddress: string) {
-    return await this.acpClient.getAgentByWalletAddress(walletAddress);
   }
 
   get agentDescription() {
@@ -267,43 +220,57 @@ class AcpPlugin {
         if (!args.reasoning) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Reasoning for the search must be provided. This helps track your decision-making process for future reference."
+            "Reasoning for the search must be provided. This helps track your decision-making process for future reference.",
           );
         }
 
         if (!args.keyword) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Keyword for the search must be provided. This helps track your decision-making process for future reference."
+            "Keyword for the search must be provided. This helps track your decision-making process for future reference.",
           );
         }
 
         try {
           const availableAgents = await this.acpClient.browseAgents(
             args.keyword,
-            this.cluster
+            this.cluster,
           );
 
           if (availableAgents.length === 0) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "No other trading agents found in the system. Please try again later when more agents are available."
+              "No other trading agents found in the system. Please try again later when more agents are available.",
             );
           }
+
+          const agents = availableAgents.map((agent) => ({
+            id: agent.id,
+            name: agent.name,
+            description: agent.description,
+            twitterHandle: agent.twitterHandle,
+            walletAddress: agent.walletAddress,
+            offerings: agent.offerings.map((offering) => ({
+              providerAddress: offering.providerAddress,
+              type: offering.type,
+              price: offering.price,
+              requirementSchema: offering.requirementSchema,
+            })),
+          }));
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
             JSON.stringify({
-              availableAgents,
-              totalAgentsFound: availableAgents.length,
+              availableAgents: agents,
+              totalAgentsFound: agents.length,
               timestamp: Date.now(),
               note: "Use the walletAddress when initiating a job with your chosen trading partner.",
-            })
+            }),
           );
         } catch (e) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            `System error while searching for agents - try again after a short delay. ${e}`
+            `System error while searching for agents - try again after a short delay. ${e}`,
           );
         }
       },
@@ -359,13 +326,13 @@ class AcpPlugin {
         if (!args.price) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing price - specify how much you're offering per unit"
+            "Missing price - specify how much you're offering per unit",
           );
         }
         if (!args.reasoning) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing reasoning - explain why you're making this purchase"
+            "Missing reasoning - explain why you're making this purchase",
           );
         }
 
@@ -373,41 +340,44 @@ class AcpPlugin {
           const state = await this.getAcpState();
 
           const existingJob = state.jobs.active.asABuyer.find(
-            (c) => c.providerAddress === args.sellerWalletAddress
+            (c) => c.providerAddress === args.sellerWalletAddress,
           );
 
           if (existingJob) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `You already have an active job as a buyer with ${existingJob.providerAddress} - complete the current job before initiating a new one`
+              `You already have an active job as a buyer with ${existingJob.providerAddress} - complete the current job before initiating a new one`,
             );
           }
 
           if (!args.sellerWalletAddress) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Missing seller wallet address - specify who you're buying from"
+              "Missing seller wallet address - specify who you're buying from",
             );
           }
 
           if (!args.serviceRequirements) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Missing service requirements - provide detailed specifications for service-based items or marketing materials"
+              "Missing service requirements - provide detailed specifications for service-based items or marketing materials",
             );
           }
 
           if (!args.tweetContent) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Missing tweet content - provide the content of the tweet that will be posted about this job"
+              "Missing tweet content - provide the content of the tweet that will be posted about this job",
             );
           }
 
-          if (args.sellerWalletAddress === this.acpClient.walletAddress) {
+          if (
+            args.sellerWalletAddress ===
+            this.acpClient.acpContractClient.walletAddress
+          ) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Cannot create job with yourself - choose a different seller"
+              "Cannot create job with yourself - choose a different seller",
             );
           }
 
@@ -415,21 +385,22 @@ class AcpPlugin {
           if (requireValidator && !args.evaluatorKeyword) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Missing validator keyword - provide a keyword to search for a validator"
+              "Missing validator keyword - provide a keyword to search for a validator",
             );
           }
 
-          let evaluatorAddress: Address = this.acpClient.walletAddress;
+          let evaluatorAddress: Address =
+            this.acpClient.acpContractClient.walletAddress;
           if (requireValidator && args.evaluatorKeyword) {
             const validators = await this.acpClient.browseAgents(
               args.evaluatorKeyword,
-              this.evaluatorCluster
+              this.evaluatorCluster,
             );
 
             if (validators.length === 0) {
               return new ExecutableGameFunctionResponse(
                 ExecutableGameFunctionStatus.Failed,
-                "No evaluator found - try a different keyword"
+                "No evaluator found - try a different keyword",
               );
             }
 
@@ -440,30 +411,25 @@ class AcpPlugin {
           if (isNaN(price) || price <= 0) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Invalid price - must be a positive number"
+              "Invalid price - must be a positive number",
             );
           }
 
           const expiredAt = new Date();
           expiredAt.setMinutes(
-            expiredAt.getMinutes() + this.jobExpiryDurationMins
+            expiredAt.getMinutes() + this.jobExpiryDurationMins,
           );
 
-          const jobId = await this.acpClient.createJob(
-            args.sellerWalletAddress,
-            evaluatorAddress,
-            price,
+          const jobId = await this.acpClient.initiateJob(
+            args.sellerWalletAddress as Address,
             args.serviceRequirements,
-            expiredAt
+            price,
+            evaluatorAddress as Address,
+            expiredAt,
           );
 
           if (this.twitterClient) {
-            const tweet = await this.twitterClient?.post(args.tweetContent);
-            await this.acpClient.addTweet(
-              jobId,
-              tweet.data.id,
-              args.tweetContent
-            );
+            await this.tweetJob(jobId, `${args.tweetContent} #${jobId}`)
           }
 
           return new ExecutableGameFunctionResponse(
@@ -474,14 +440,14 @@ class AcpPlugin {
               price: price,
               serviceRequirements: args.serviceRequirements,
               timestamp: Date.now(),
-            })
+            }),
           );
         } catch (e) {
           console.error(e);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            `System error while initiating job - try again after a short delay. ${e}`
+            `System error while initiating job - try again after a short delay. ${e}`,
           );
         }
       },
@@ -521,26 +487,26 @@ class AcpPlugin {
         if (!args.jobId) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing job ID - specify which job you're responding to"
+            "Missing job ID - specify which job you're responding to",
           );
         }
         if (!args.decision || !["ACCEPT", "REJECT"].includes(args.decision)) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Invalid decision - must be either 'ACCEPT' or 'REJECT'"
+            "Invalid decision - must be either 'ACCEPT' or 'REJECT'",
           );
         }
         if (!args.reasoning) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing reasoning - explain why you made this decision"
+            "Missing reasoning - explain why you made this decision",
           );
         }
 
         if (!args.tweetContent) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing tweet content - provide the content of the tweet that will be posted about this job"
+            "Missing tweet content - provide the content of the tweet that will be posted about this job",
           );
         }
 
@@ -548,42 +514,34 @@ class AcpPlugin {
           const state = await this.getAcpState();
 
           const job = state.jobs.active.asASeller.find(
-            (c) => c.jobId === +args.jobId!
+            (c) => c.jobId === +args.jobId!,
           );
 
           if (!job) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Job not found in your seller jobs - check the ID and verify you're the seller"
+              "Job not found in your seller jobs - check the ID and verify you're the seller",
             );
           }
 
           if (job.phase !== AcpJobPhasesDesc.REQUEST) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `Cannot respond - job is in '${job.phase}' phase, must be in 'request' phase`
+              `Cannot respond - job is in '${job.phase}' phase, must be in '${AcpJobPhasesDesc.REQUEST}' phase`,
             );
           }
 
-          await this.acpClient.responseJob(
+          await this.acpClient.respondJob(
             +args.jobId,
-            args.decision === "ACCEPT",
             job.memo[0].id,
-            args.reasoning
+            args.decision === "ACCEPT",
+            args.reasoning,
           );
 
           if (this.twitterClient) {
-            const tweetId = job.tweetHistory.pop()?.tweetId;
+            const tweetId = job.tweetHistory[0]?.tweetId;
             if (tweetId) {
-              const tweet = await this.twitterClient.reply(
-                tweetId,
-                args.tweetContent
-              );
-              await this.acpClient.addTweet(
-                +args.jobId,
-                tweet.data.id,
-                args.tweetContent
-              );
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
             }
           }
 
@@ -593,14 +551,14 @@ class AcpPlugin {
               jobId: args.jobId,
               decision: args.decision,
               timestamp: Date.now(),
-            })
+            }),
           );
         } catch (e) {
           console.error(e);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            `System error while responding to job - try again after a short delay. ${e}`
+            `System error while responding to job - try again after a short delay. ${e}`,
           );
         }
       },
@@ -639,28 +597,28 @@ class AcpPlugin {
         if (!args.jobId) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing job ID - specify which job you're paying for"
+            "Missing job ID - specify which job you're paying for",
           );
         }
 
         if (!args.amount) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing amount - specify how much you're paying"
+            "Missing amount - specify how much you're paying",
           );
         }
 
         if (!args.reasoning) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing reasoning - explain why you're making this payment"
+            "Missing reasoning - explain why you're making this payment",
           );
         }
 
         if (!args.tweetContent) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing tweet content - provide the content of the tweet that will be posted about this job"
+            "Missing tweet content - provide the content of the tweet that will be posted about this job",
           );
         }
 
@@ -668,42 +626,34 @@ class AcpPlugin {
           const state = await this.getAcpState();
 
           const job = state.jobs.active.asABuyer.find(
-            (c) => c.jobId === +args.jobId!
+            (c) => c.jobId === +args.jobId!,
           );
 
           if (!job) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "Job not found in your buyer jobs - check the ID and verify you're the buyer"
+              "Job not found in your buyer jobs - check the ID and verify you're the buyer",
             );
           }
 
-          if (job.phase !== AcpJobPhasesDesc.NEGOTIOATION) {
+          if (job.phase !== AcpJobPhasesDesc.NEGOTIATION) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `Cannot pay - job is in '${job.phase}' phase, must be in 'pending_payment' phase`
+              `Cannot pay - job is in '${job.phase}' phase, must be in '${AcpJobPhasesDesc.NEGOTIATION}' phase`,
             );
           }
 
-          await this.acpClient.makePayment(
+          await this.acpClient.payJob(
             +args.jobId,
             +args.amount,
             job.memo[0].id,
-            args.reasoning
+            args.reasoning,
           );
 
           if (this.twitterClient) {
-            const tweetId = job.tweetHistory.pop()?.tweetId;
+            const tweetId = job.tweetHistory[0]?.tweetId;
             if (tweetId) {
-              const tweet = await this.twitterClient.reply(
-                tweetId,
-                args.tweetContent
-              );
-              await this.acpClient.addTweet(
-                +args.jobId,
-                tweet.data.id,
-                args.tweetContent
-              );
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
             }
           }
 
@@ -714,15 +664,15 @@ class AcpPlugin {
                 jobId: args.jobId,
                 amountPaid: args.amount,
                 timestamp: Date.now(),
-              }
-            )}`
+              },
+            )}`,
           );
         } catch (e) {
           console.error(e);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            `System error while processing payment - try again after a short delay. ${e}`
+            `System error while processing payment - try again after a short delay. ${e}`,
           );
         }
       },
@@ -766,26 +716,26 @@ class AcpPlugin {
         if (!args.jobId) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing job ID - specify which job you're delivering for"
+            "Missing job ID - specify which job you're delivering for",
           );
         }
         if (!args.reasoning) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing reasoning - explain why you're making this delivery"
+            "Missing reasoning - explain why you're making this delivery",
           );
         }
         if (!args.deliverable) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing deliverable - specify what you're delivering"
+            "Missing deliverable - specify what you're delivering",
           );
         }
 
         if (!args.tweetContent) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            "Missing tweet content - provide the content of the tweet that will be posted about this job"
+            "Missing tweet content - provide the content of the tweet that will be posted about this job",
           );
         }
 
@@ -793,31 +743,31 @@ class AcpPlugin {
           const state = await this.getAcpState();
 
           const job = state.jobs.active.asASeller.find(
-            (c) => c.jobId === +args.jobId!
+            (c) => c.jobId === +args.jobId!,
           );
 
           if (!job) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              "job not found in your seller jobs - check the ID and verify you're the seller"
+              "job not found in your seller jobs - check the ID and verify you're the seller",
             );
           }
 
           if (job.phase !== AcpJobPhasesDesc.TRANSACTION) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `Cannot deliver - job is in '${job.phase}' phase, must be in 'in_progress' phase`
+              `Cannot deliver - job is in '${job.phase}' phase, must be in '${AcpJobPhasesDesc.TRANSACTION}' phase`,
             );
           }
 
           const produced = this.producedInventory.find(
-            (i) => i.jobId === job.jobId
+            (i) => i.jobId === job.jobId,
           );
 
           if (!produced) {
             return new ExecutableGameFunctionResponse(
               ExecutableGameFunctionStatus.Failed,
-              `Cannot deliver - your should be producing the deliverable first before delivering it`
+              `Cannot deliver - your should be producing the deliverable first before delivering it`,
             );
           }
 
@@ -829,21 +779,13 @@ class AcpPlugin {
           await this.acpClient.deliverJob(+args.jobId, deliverable);
 
           this.producedInventory = this.producedInventory.filter(
-            (item) => item.jobId !== job.jobId
+            (item) => item.jobId !== job.jobId,
           );
 
           if (this.twitterClient) {
-            const tweetId = job.tweetHistory.pop()?.tweetId;
+            const tweetId = job.tweetHistory[0]?.tweetId;
             if (tweetId) {
-              const tweet = await this.twitterClient.reply(
-                tweetId,
-                args.tweetContent
-              );
-              await this.acpClient.addTweet(
-                +args.jobId,
-                tweet.data.id,
-                args.tweetContent
-              );
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
             }
           }
 
@@ -854,18 +796,66 @@ class AcpPlugin {
               jobId: args.jobId,
               deliverable: args.deliverable,
               timestamp: Date.now(),
-            })
+            }),
           );
         } catch (e) {
           console.error(e);
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
-            `System error while delivering items - try again after a short delay. ${e}`
+            `System error while delivering items - try again after a short delay. ${e}`,
           );
         }
       },
     });
+  }
+
+  private async tweetJob(
+    jobId: number,
+    content: string,
+    tweetId?: string
+  ): Promise<void> {
+    if (!this.twitterClient) return;
+
+    const job = await this.acpClient.getJobById(jobId)
+    if (!job) throw new Error("ERROR (tweetJob): Job not found");
+
+    const tweet = tweetId
+      ? await this.twitterClient.v2.reply(content, tweetId)
+      : await this.twitterClient.v2.tweet(content)
+
+    const role = job.clientAddress.toLowerCase() === this.acpClient.acpContractClient.walletAddress.toLowerCase()
+      ? "buyer"
+      : "seller";
+
+    const context = {
+      ...job.context,
+      tweets: [
+        ...(job.context?.tweets || []),
+        {
+          type: role,
+          tweetId: tweet.data.id,
+          content,
+          createdAt: Date.now()
+        },
+      ],
+    };
+
+    const response = await fetch(
+      `${this.acpClient.acpContractClient.config.acpUrl}/api/jobs/${jobId}/context`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "wallet-address": this.acpClient.acpContractClient.walletAddress,
+        },
+        body: JSON.stringify({ data: { context } }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`ERROR (tweetJob): ${response.status} ${response.body}`);
+    }
   }
 }
 

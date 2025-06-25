@@ -6,7 +6,12 @@ import {
   GameWorker,
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
-import AcpPlugin, { AcpToken, baseSepoliaConfig } from "@virtuals-protocol/game-acp-plugin";
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient, {
+  AcpContractClient,
+  AcpJob,
+  baseSepoliaAcpConfig
+} from "@virtuals-protocol/acp-node";
 import {
   GAME_API_KEY,
   GAME_DEV_API_KEY,
@@ -56,13 +61,15 @@ const twitterClient = new GameTwitterClient({
 async function test() {
   const acpPlugin = new AcpPlugin({
     apiKey: GAME_DEV_API_KEY,
-    acpTokenClient: await AcpToken.build(
-      WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
-      SELLER_AGENT_WALLET_ADDRESS,
-      baseSepoliaConfig
-    ),
-    twitterClient: twitterClient,
+    acpClient: new AcpClient({
+      acpContractClient: await AcpContractClient.build(
+        WHITELISTED_WALLET_PRIVATE_KEY,
+        WHITELISTED_WALLET_ENTITY_ID,
+        SELLER_AGENT_WALLET_ADDRESS,
+        baseSepoliaAcpConfig
+      )
+    }),
+    twitterClient: twitterClient
   });
 
   const coreWorker = new GameWorker({
@@ -137,8 +144,9 @@ async function test() {
   const agent = new GameAgent(GAME_API_KEY, {
     name: "Memx",
     goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller.",
-    description: `You are Memx, a meme generator. Meme generation is your life. You always give buyer the best meme.
-  
+    description: `
+      You are Memx, a meme generator. Meme generation is your life. You always give buyer the best meme.
+
       ${acpPlugin.agentDescription}
       `,
     workers: [coreWorker, acpPlugin.getWorker()],
