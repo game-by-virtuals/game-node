@@ -10,7 +10,7 @@ import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
 import AcpClient, {
   AcpContractClient,
   AcpJob,
-  baseSepoliaAcpConfig
+  baseAcpConfig,
 } from "@virtuals-protocol/acp-node";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
@@ -21,7 +21,7 @@ import {
 } from "./env";
 
 // GAME Twitter Plugin import
-import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+// import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
 import { BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
 
 // Native Twitter Plugin imports
@@ -48,9 +48,9 @@ function askQuestion(query: string): Promise<string> {
   );
 }
 
-const twitterClient = new GameTwitterClient({
-  accessToken: BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
-});
+// const twitterClient = new GameTwitterClient({
+//   accessToken: BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
+// });
 
 // Native Twitter Plugin
 // const twitterClient = new TwitterClient({
@@ -68,14 +68,14 @@ async function test() {
         WHITELISTED_WALLET_PRIVATE_KEY,
         WHITELISTED_WALLET_ENTITY_ID,
         BUYER_AGENT_WALLET_ADDRESS,
-        baseSepoliaAcpConfig
+        baseAcpConfig
       ),
       onEvaluate: async (job: AcpJob) => {
         console.log(job.deliverable, job.serviceRequirement);
         await job.evaluate(true, "This is a test reasoning");
       },
     }),
-    twitterClient: twitterClient
+    //twitterClient: twitterClient
   });
 
   const coreWorker = new GameWorker({

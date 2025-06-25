@@ -9,8 +9,7 @@ import * as readline from "readline";
 import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
 import AcpClient, {
   AcpContractClient,
-  AcpJob,
-  baseSepoliaAcpConfig
+  baseAcpConfig,
 } from "@virtuals-protocol/acp-node";
 import {
   GAME_API_KEY,
@@ -21,8 +20,8 @@ import {
 } from "./env";
 
 // GAME Twitter Plugin import
-import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
-import { SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
+// import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+// import { SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
 
 // Native Twitter Plugin imports
 // import { TwitterClient } from "@virtuals-protocol/game-twitter-plugin";
@@ -47,9 +46,9 @@ function askQuestion(query: string): Promise<string> {
   );
 }
 
-const twitterClient = new GameTwitterClient({
-  accessToken: SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
-});
+// const twitterClient = new GameTwitterClient({
+//   accessToken: SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
+// });
 
 // const twitterClient = new TwitterClient({
 //     apiKey: SELLER_AGENT_TWITTER_API_KEY,
@@ -66,10 +65,10 @@ async function test() {
         WHITELISTED_WALLET_PRIVATE_KEY,
         WHITELISTED_WALLET_ENTITY_ID,
         SELLER_AGENT_WALLET_ADDRESS,
-        baseSepoliaAcpConfig
+        baseAcpConfig
       )
     }),
-    twitterClient: twitterClient
+    //twitterClient: twitterClient
   });
 
   const coreWorker = new GameWorker({

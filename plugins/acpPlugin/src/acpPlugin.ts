@@ -88,12 +88,12 @@ class AcpPlugin {
         id: memo.id,
       })),
       providerAddress: job.providerAddress,
-      tweetHistory: (job.context?.tweets?.reverse() || []).map((tweet: ITweet) => ({
-        type: tweet.type,
-        tweetId: tweet.tweetId,
-        content: tweet.content,
-        createdAt: tweet.createdAt
-      }))
+      // tweetHistory: (job.context?.tweets?.reverse() || []).map((tweet: ITweet) => ({
+      //   type: tweet.type,
+      //   tweetId: tweet.tweetId,
+      //   content: tweet.content,
+      //   createdAt: tweet.createdAt
+      // }))
     };
   }
 
@@ -233,7 +233,7 @@ class AcpPlugin {
 
         try {
           const availableAgents = await this.acpClient.browseAgents(
-            args.keyword,
+            "0xFe7d96d64c23E37526Da3657D2BFf60459E8dF6D",
             this.cluster,
           );
 
@@ -428,9 +428,9 @@ class AcpPlugin {
             expiredAt,
           );
 
-          if (this.twitterClient) {
+         /*  if (this.twitterClient) {
             await this.tweetJob(jobId, `${args.tweetContent} #${jobId}`)
-          }
+          } */
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -538,12 +538,12 @@ class AcpPlugin {
             args.reasoning,
           );
 
-          if (this.twitterClient) {
-            const tweetId = job.tweetHistory[0]?.tweetId;
-            if (tweetId) {
-              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
-            }
-          }
+          // if (this.twitterClient) {
+          //   const tweetId = job.tweetHistory[0]?.tweetId;
+          //   if (tweetId) {
+          //     await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+          //   }
+          // }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -650,12 +650,12 @@ class AcpPlugin {
             args.reasoning,
           );
 
-          if (this.twitterClient) {
-            const tweetId = job.tweetHistory[0]?.tweetId;
-            if (tweetId) {
-              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
-            }
-          }
+          // if (this.twitterClient) {
+          //   const tweetId = job.tweetHistory[0]?.tweetId;
+          //   if (tweetId) {
+          //     await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+          //   }
+          // }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -782,12 +782,12 @@ class AcpPlugin {
             (item) => item.jobId !== job.jobId,
           );
 
-          if (this.twitterClient) {
-            const tweetId = job.tweetHistory[0]?.tweetId;
-            if (tweetId) {
-              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
-            }
-          }
+          // if (this.twitterClient) {
+          //   const tweetId = job.tweetHistory[0]?.tweetId;
+          //   if (tweetId) {
+          //     await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+          //   }
+          // }
 
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Done,
@@ -810,7 +810,7 @@ class AcpPlugin {
     });
   }
 
-  private async tweetJob(
+ /*  private async tweetJob(
     jobId: number,
     content: string,
     tweetId?: string
@@ -856,7 +856,7 @@ class AcpPlugin {
     if (!response.ok) {
       throw new Error(`ERROR (tweetJob): ${response.status} ${response.body}`);
     }
-  }
+  } */
 }
 
 export default AcpPlugin;
