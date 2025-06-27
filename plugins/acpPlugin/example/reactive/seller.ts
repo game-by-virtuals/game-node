@@ -9,7 +9,7 @@ import AcpClient, {
   AcpContractClient,
   AcpJob,
   AcpJobPhases,
-  baseAcpConfig
+  baseAcpConfig,
 } from "@virtuals-protocol/acp-node";
 import {
   GAME_API_KEY,
@@ -20,7 +20,7 @@ import {
 } from "./env";
 
 // GAME Twitter Plugin import
-// import { GameTwitterClient } from "@virtuals-protocol/game-twitter-plugin";
+import { TwitterApi } from "@virtuals-protocol/game-twitter-node";
 import { SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
 
 // Native Twitter Plugin imports
@@ -32,9 +32,9 @@ import { SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
 //   SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
 // } from "./env";
 
-// const twitterClient = new GameTwitterClient({
-//   accessToken: SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
-// });
+const twitterClient = new TwitterApi({
+  gameTwitterAccessToken: SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
+});
 
 // const twitterClient = new TwitterClient({
 //     apiKey: SELLER_AGENT_TWITTER_API_KEY,
@@ -51,7 +51,7 @@ async function test() {
         WHITELISTED_WALLET_PRIVATE_KEY,
         WHITELISTED_WALLET_ENTITY_ID,
         SELLER_AGENT_WALLET_ADDRESS,
-        baseAcpConfig,
+        baseAcpConfig
       ),
       onNewTask: async (job: AcpJob) => {
         let prompt = "";
@@ -82,10 +82,12 @@ async function test() {
         await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
           verbose: true,
         });
-        sellerAgent.log(`${sellerAgent.name} has responded to the job #${job.id}`);
-      }
+        sellerAgent.log(
+          `${sellerAgent.name} has responded to the job #${job.id}`
+        );
+      },
     }),
-    //twitterClient: twitterClient
+    twitterClient: twitterClient,
   });
 
   const generateMeme = new GameFunction({
@@ -168,7 +170,7 @@ async function test() {
     ],
   });
 
-  await sellerAgent.init()
+  await sellerAgent.init();
 
   console.log("Listening");
 
