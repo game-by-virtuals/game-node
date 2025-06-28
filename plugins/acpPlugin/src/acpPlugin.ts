@@ -24,6 +24,7 @@ interface IAcpPluginOptions {
   agentRepoUrl?: string;
   graduated?: boolean;
   jobExpiryDurationMins?: number;
+  graduatedAgents?: boolean;
 }
 
 class AcpPlugin {
@@ -37,6 +38,7 @@ class AcpPlugin {
   private graduated?: boolean;
   private twitterClient?: TwitterApi;
   private jobExpiryDurationMins: number;
+  private graduatedAgents?: boolean;
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = options.acpClient;
@@ -45,6 +47,7 @@ class AcpPlugin {
     this.evaluatorCluster = options.evaluatorCluster;
     this.graduated = options.graduated;
     this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
+    this.graduatedAgents = options.graduatedAgents;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -87,12 +90,14 @@ class AcpPlugin {
         id: memo.id,
       })),
       providerAddress: job.providerAddress,
-      tweetHistory: (job.context?.tweets?.reverse() || []).map((tweet: ITweet) => ({
-        type: tweet.type,
-        tweetId: tweet.tweetId,
-        content: tweet.content,
-        createdAt: tweet.createdAt
-      }))
+      tweetHistory: (job.context?.tweets?.reverse() || []).map(
+        (tweet: ITweet) => ({
+          type: tweet.type,
+          tweetId: tweet.tweetId,
+          content: tweet.content,
+          createdAt: tweet.createdAt,
+        })
+      ),
     };
   }
 
@@ -421,8 +426,8 @@ class AcpPlugin {
             expiredAt
           );
 
-           if (this.twitterClient) {
-            await this.tweetJob(jobId, `${args.tweetContent} #${jobId}`)
+          if (this.twitterClient) {
+            await this.tweetJob(jobId, `${args.tweetContent} #${jobId}`);
           }
 
           return new ExecutableGameFunctionResponse(
@@ -534,7 +539,7 @@ class AcpPlugin {
           if (this.twitterClient) {
             const tweetId = job.tweetHistory?.[0]?.tweetId;
             if (tweetId) {
-              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId);
             }
           }
 
@@ -646,7 +651,7 @@ class AcpPlugin {
           if (this.twitterClient) {
             const tweetId = job.tweetHistory?.[0]?.tweetId;
             if (tweetId) {
-              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId);
             }
           }
 
@@ -778,7 +783,7 @@ class AcpPlugin {
           if (this.twitterClient) {
             const tweetId = job.tweetHistory?.[0]?.tweetId;
             if (tweetId) {
-              await this.tweetJob(+args.jobId, args.tweetContent, tweetId)
+              await this.tweetJob(+args.jobId, args.tweetContent, tweetId);
             }
           }
 
@@ -803,23 +808,25 @@ class AcpPlugin {
     });
   }
 
-   private async tweetJob(
+  private async tweetJob(
     jobId: number,
     content: string,
     tweetId?: string
   ): Promise<void> {
     if (!this.twitterClient) return;
 
-    const job = await this.acpClient.getJobById(jobId)
+    const job = await this.acpClient.getJobById(jobId);
     if (!job) throw new Error("ERROR (tweetJob): Job not found");
 
     const tweet = tweetId
       ? await this.twitterClient.v2.reply(content, tweetId)
-      : await this.twitterClient.v2.tweet(content)
+      : await this.twitterClient.v2.tweet(content);
 
-    const role = job.clientAddress.toLowerCase() === this.acpClient.acpContractClient.walletAddress.toLowerCase()
-      ? "buyer"
-      : "seller";
+    const role =
+      job.clientAddress.toLowerCase() ===
+      this.acpClient.acpContractClient.walletAddress.toLowerCase()
+        ? "buyer"
+        : "seller";
 
     const context = {
       ...job.context,
@@ -829,7 +836,7 @@ class AcpPlugin {
           type: role,
           tweetId: tweet.data.id,
           content,
-          createdAt: Date.now()
+          createdAt: Date.now(),
         },
       ],
     };
