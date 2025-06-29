@@ -13,10 +13,9 @@ import AcpClient, {
 } from "@virtuals-protocol/acp-node";
 import {
   GAME_API_KEY,
-  GAME_DEV_API_KEY,
   SELLER_AGENT_WALLET_ADDRESS,
   WHITELISTED_WALLET_PRIVATE_KEY,
-  WHITELISTED_WALLET_ENTITY_ID,
+  SELLER_ENTITY_ID,
 } from "./env";
 
 // GAME Twitter Plugin import
@@ -45,11 +44,11 @@ const twitterClient = new TwitterApi({
 
 async function test() {
   const acpPlugin = new AcpPlugin({
-    apiKey: GAME_DEV_API_KEY,
+    apiKey: GAME_API_KEY,
     acpClient: new AcpClient({
       acpContractClient: await AcpContractClient.build(
         WHITELISTED_WALLET_PRIVATE_KEY,
-        WHITELISTED_WALLET_ENTITY_ID,
+        SELLER_ENTITY_ID,
         SELLER_AGENT_WALLET_ADDRESS,
         baseAcpConfig
       ),
