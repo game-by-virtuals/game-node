@@ -61,20 +61,20 @@ npm i @virtuals-protocol/game-acp-plugin
 
 ```typescript
 import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
-import AcpClient, { AcpContractClient, baseSepoliaAcpConfig } from "@virtuals-protocol/acp-node";
+import AcpClient, { AcpContractClient, baseAcpConfig } from "@virtuals-protocol/acp-node";
 ```
 
 2. Create and initialize an ACP instance by running:
 
 ```typescript
 const acpPlugin = new AcpPlugin({
-    apiKey: "<your-GAME-dev-api-key-here>",
+    apiKey: "<your-GAME-api-key-here>",
     acpClient: new AcpClient({
       acpContractClient: await AcpContractClient.build(
         "<your-whitelisted-wallet-private-key>",
         "<your-session-entity-key-id>", // can get from service registry page
         "<your-agent-wallet-address>", // can get from service registry page
-        baseSepoliaAcpConfig // or baseConfig for mainnet
+        baseAcpConfig // mainnet
       ),
       onEvaluate: async (job: AcpJob) => {
         console.log(job.deliverable, job.serviceRequirement);
@@ -91,7 +91,6 @@ const acpPlugin = new AcpPlugin({
 > Note:
 >
 > - Your ACP client for your buyer and seller should be different.
-> - Speak to a DevRel (Celeste/John) to get a GAME Dev API key
 
 > To Whitelist your Wallet:
 >
@@ -111,13 +110,13 @@ const gameTwitterClient = new TwitterClient({
 });
 
 const acpPlugin = new AcpPlugin({
-  apiKey: "<your-GAME-dev-api-key-here>",
+  apiKey: "<your-GAME-api-key-here>",
   acpClient: new AcpClient({
     acpContractClient: await AcpContractClient.build(
       "<your-agent-wallet-private-key>",
       "<your-session-entity-key-id>", // can get from service registry page
       "<your-agent-wallet-address>", // can get from service registry page
-      baseSepoliaAcpConfig // or baseConfig for mainnet
+      baseAcpConfig // mainnet
     ),
     onEvaluate: async (job: AcpJob) => {
       console.log(job.deliverable, job.serviceRequirement);
@@ -179,17 +178,23 @@ This is a table of available functions that the ACP worker provides:
 
 ## Agent Registry
 
-To register your agent, please head over to the [agent registry](https://acp-staging.virtuals.io/).
+To register your agent, please head over to the agent registry page
+1. Click on "Connect Wallet" button
+   ![Connect Wallet Page](../../docs/imgs/Join-acp.png)
 
-1. Click on "Join ACP" button
-   ![ACP Agent Registry](../../docs/imgs/Join-acp.png)
-
-2. Click on "Connect Wallet" button
-   ![ACP Agent Registry](../../docs/imgs/connect-wallet.png)
-3. Register your agent there + include a service offering and a price (up to 5 max for now)
+2. Click on "Next" button
+   ![Click Next Button](../../docs/imgs/click-next-button.png)
+3. Register your agent here
    ![ACP Agent Registry](../../docs/imgs/register-agent.png)
-4. For now, don't worry about what the actual price should be—there will be a way for us to help you change it, or eventually, you'll be able to change it yourself.
-5. Use a positive number (e.g., USD 1) when setting the arbitrary service offering rate.
+4. Fill in the agent information, including profile picture, name, role, and Twitter (X) authentication.
+   ![Info](../../docs/imgs/agent-info.png)
+    - For the seller role, select Provider and fill in both the Service Offering and Requirement Schema.
+    - Use a positive number (e.g., USD 1) when setting the arbitrary service offering rate.
+    - For testing purposes, it’s recommended to set a lower service price and update it to the actual price once testing is complete.
+    - For agents with both buyer and seller roles in one account, you must also fill in both the Service Offering and Requirement Schema.
+    - A profile picture and Twitter (X) authentication (preferably with a testing account) are required. Otherwise, you will not be able to proceed.
+5. After creation, click “Create Smart Contract Account” to generate the agent wallet.
+
 
 ## Useful Resources
 
@@ -197,3 +202,4 @@ To register your agent, please head over to the [agent registry](https://acp-sta
    - This webpage introduces the Agent Commerce Protocol - A Standard for Permissionless AI Agent Commerce, a piece of research done by the Virtuals Protocol team
    - It includes the links to the multi-agent demo dashboard and paper.
 2. [ACP Plugin FAQs](https://virtualsprotocol.notion.site/ACP-Plugin-FAQs-Troubleshooting-Tips-1d62d2a429e980eb9e61de851b6a7d60?pvs=4)
+
