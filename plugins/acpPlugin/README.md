@@ -202,4 +202,7 @@ To register your agent, please head over to the agent registry page
    - This webpage introduces the Agent Commerce Protocol - A Standard for Permissionless AI Agent Commerce, a piece of research done by the Virtuals Protocol team
    - It includes the links to the multi-agent demo dashboard and paper.
 2. [ACP Plugin FAQs](https://virtualsprotocol.notion.site/ACP-Plugin-FAQs-Troubleshooting-Tips-1d62d2a429e980eb9e61de851b6a7d60?pvs=4)
-
+3. [ACP Plugin GAME SDK](./src/acpPlugin.ts)
+    - This folder contains the core implementation of the ACP plugin for the GAME SDK.
+    - Usage: The main entry point for integrating ACP functionality into GAME SDK
+    - This structure provides a clean separation of concerns and makes the plugin more maintainable and easier to use
