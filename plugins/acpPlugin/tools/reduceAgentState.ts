@@ -1,4 +1,15 @@
 import { AcpState } from "../src/interface";
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient, {
+  AcpContractClient,
+  baseAcpConfig
+} from "@virtuals-protocol/acp-node";
+import {
+  WHITELISTED_WALLET_PRIVATE_KEY,
+  BUYER_ENTITY_ID,
+  BUYER_AGENT_WALLET_ADDRESS,
+  GAME_API_KEY
+} from "./env";
 
 /**
  * Delete old items from a list keeping only the most recent ones.
@@ -132,3 +143,39 @@ export function reduceAgentState(
 
   return newState;
 }
+
+/**
+ * Test Case
+ */
+
+async function runTest() {
+  const acpPlugin = new AcpPlugin({
+    apiKey: GAME_API_KEY,
+    acpClient: new AcpClient({
+      acpContractClient: await AcpContractClient.build(
+        WHITELISTED_WALLET_PRIVATE_KEY,
+        BUYER_ENTITY_ID,
+        BUYER_AGENT_WALLET_ADDRESS,
+        baseAcpConfig
+      ),
+    }),
+  });
+
+  const state = await acpPlugin.getAcpState();
+  console.log("\nOriginal Agent State:");
+  console.dir(state, { depth: null, colors: true });
+
+  const cleaned = reduceAgentState(state, {
+    keepCompletedJobs: 1,
+    keepCancelledJobs: 1,
+    keepAcquiredInventory: 1,
+    keepProducedInventory: 1,
+    jobIdsToIgnore: [6294, 6293, 6269],
+    agentAddressesToIgnore: ["0x408AE36F884Ef37aAFBA7C55aE1c9BB9c2753995"],
+  });
+
+  console.log("\n🧹 Reduced Agent State:");
+  console.dir(cleaned, { depth: null, colors: true });
+}
+
+runTest()
