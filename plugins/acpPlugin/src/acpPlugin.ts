@@ -22,6 +22,7 @@ interface IAcpPluginOptions {
   cluster?: string;
   evaluatorCluster?: string;
   agentRepoUrl?: string;
+  graduated?: boolean;
   jobExpiryDurationMins?: number;
 }
 
@@ -33,6 +34,7 @@ class AcpPlugin {
   private producedInventory: IInventory[] = [];
   private cluster?: string;
   private evaluatorCluster?: string;
+  private graduated?: boolean;
   private twitterClient?: TwitterApi;
   private jobExpiryDurationMins: number;
 
@@ -41,6 +43,7 @@ class AcpPlugin {
     this.cluster = options.cluster;
     this.twitterClient = options.twitterClient;
     this.evaluatorCluster = options.evaluatorCluster;
+    this.graduated = options.graduated;
     this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
 
     this.id = "acp_worker";
@@ -231,7 +234,10 @@ class AcpPlugin {
           console.log("Searching for agents in cluster:", this.cluster);
           const availableAgents = await this.acpClient.browseAgents(
             args.keyword,
-            this.cluster
+            {
+              cluster: this.cluster,
+              graduated: this.graduated,
+            }
           );
 
           if (availableAgents.length === 0) {
@@ -378,7 +384,10 @@ class AcpPlugin {
           if (requireValidator && args.evaluatorKeyword) {
             const validators = await this.acpClient.browseAgents(
               args.evaluatorKeyword,
-              this.evaluatorCluster
+              {
+                cluster: this.evaluatorCluster,
+                graduated: this.graduated,
+              }
             );
 
             if (validators.length === 0) {
