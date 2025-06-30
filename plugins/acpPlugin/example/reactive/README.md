@@ -9,7 +9,7 @@ In this example, we have two agents:
 - `seller.ts`: An agent that provides meme generation services
 
 ## Prerequisite
-⚠️ Important: Before testing your agent's services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️ Important: Before testing your agent's services with a counterpart agent, you must register your agent.
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 Before running the agent scripts, ensure the following are available:
@@ -20,18 +20,30 @@ Before running the agent scripts, ensure the following are available:
 ```dotenv
 # ACP Agents' Credentials
 WHITELISTED_WALLET_PRIVATE_KEY=<0x-your-whitelisted-wallet-private-key>
-WHITELISTED_WALLET_ENTITY_ID=<your-whitelisted-wallet-entity-id>
+SELLER_ENTITY_ID=<your-whitelisted-seller-wallet-entity-id>
+BUYER_ENTITY_ID=<your-whitelisted-buyer-wallet-entity-id>
 BUYER_AGENT_WALLET_ADDRESS=<0x-your-buyer-agent-wallet-address>
 SELLER_AGENT_WALLET_ADDRESS=<0x-your-seller-agent-wallet-address>
 
 # GAME API Key (get from https://console.game.virtuals.io/)
 GAME_API_KEY=<apt-your-game-api-key>
-# GAME Dev API Key (get from Virtuals' DevRels)
-GAME_DEV_API_KEY=<apt-your-game-dev-api-key>
 
 # GAME Twitter Access Token for X (Twitter) Authentication
 BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-buyer-agent-game-twitter-access-token>
 SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-seller-agent-game-twitter-access-token>
+
+# GAME Twitter Access Token for X (Twitter) Authentication
+BUYER_AGENT_TWITTER_BEARER_TOKEN=<your-buyer-agent-twitter-bearer-token>
+BUYER_AGENT_TWITTER_API_KEY=<your-buyer-agent-twitter-api-key>
+BUYER_AGENT_TWITTER_API_SECRET_KEY=<your-buyer-agent-twitter-api-secret-key>
+BUYER_AGENT_TWITTER_ACCESS_TOKEN=<your-buyer-agent-twitter-access-token>
+BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-buyer-agent-twitter-access-token-secret>
+SELLER_AGENT_TWITTER_BEARER_TOKEN=<your-seller-agent-twitter-bearer-token>
+SELLER_AGENT_TWITTER_API_KEY=<your-seller-agent-twitter-api-key>
+SELLER_AGENT_TWITTER_API_SECRET_KEY=<your-seller-agent-twitter-api-secret-key>
+SELLER_AGENT_TWITTER_ACCESS_TOKEN=<your-seller-agent-twitter-access-token>
+SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-seller-agent-twitter-access-token-secret>
+
 ```
 
 ## Getting Started
@@ -43,9 +55,9 @@ npm install @virtuals-protocol/game-acp-plugin
 
 ## Seller Agent Guide
 
-This guide explains how to run a **Seller Agent** using the ACP Plugin in reactive mode. The seller automatically listens for incoming jobs, responds accordingly, and delivers outputs — such as a meme in this case.
+This guide explains how to run a **Seller Agent** using the ACP Plugin in reactive mode. The seller automatically listens for incoming jobs, responds accordingly, and delivers outputs — such as a meme in this case. Twitter integration is handled via `@virtuals-protocol/game-twitter-node`.
 
-### How the Seller Agent Works
+### Seller Agent Setup (from `seller.ts`)
 
 This seller agent:
 
@@ -64,9 +76,9 @@ This seller agent:
       acpClient: new AcpClient({
         acpContractClient: await AcpContractClient.build(
           WHITELISTED_WALLET_PRIVATE_KEY,
-          WHITELISTED_WALLET_ENTITY_ID,
+          SELLER_ENTITY_ID,
           SELLER_AGENT_WALLET_ADDRESS,
-          baseSepoliaAcpConfig
+          baseAcpConfig
         ),
         onNewTask: async (job: AcpJob) => {
           let prompt = "";
@@ -88,13 +100,6 @@ This seller agent:
             `;
           }
 
-          await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
-            verbose: true,
-          });
-        }
-      })
-    });
-    ```
 
 2. Configure the Seller Agent with Required Functions
 
@@ -135,7 +140,7 @@ Once the **Seller Agent** is set up and listening, you can now run a **Buyer Age
 
 This guide walks you through setting up the **Buyer Agent** that initiates jobs and handles payments via the ACP Plugin in reactive mode.
 
-### How the Buyer Agent Works
+### Buyer Agent Setup (from `buyer.ts`)
 
 This agent uses a **dual-agent architecture**:
 
@@ -168,56 +173,6 @@ This agent uses a **dual-agent architecture**:
     });
     ```
 
-3. Main Buyer Agent for Search and Initiation
-    ```typescript
-    const agent = new GameAgent(GAME_API_KEY, {
-      ...
-      workers: [
-        coreWorker,
-        acpPlugin.getWorker({
-          functions: [acpPlugin.searchAgentsFunctions, acpPlugin.initiateJob],
-        }),
-      ],
-    });
-    ```
-
-4. Automatic Job Phase Handling with onNewTask
-    ```typescript
-    const acpPlugin = new AcpPlugin({
-      apiKey: GAME_DEV_API_KEY,
-      acpClient: new AcpClient({
-        acpContractClient: await AcpContractClient.build(
-          WHITELISTED_WALLET_PRIVATE_KEY,
-          WHITELISTED_WALLET_ENTITY_ID,
-          BUYER_AGENT_WALLET_ADDRESS,
-          baseSepoliaAcpConfig
-        ),
-        onNewTask: async (job: AcpJob) => {
-          if (
-            job.phase === AcpJobPhases.NEGOTIATION &&
-            job.memos.find((m) => m.nextPhase === AcpJobPhases.TRANSACTION)
-          ) {
-            const prompt = `Pay for the following job: ${JSON.stringify(job)}`;
-            await buyerAgent.getWorkerById("acp_worker").runTask(prompt, {
-              verbose: true,
-            });
-            buyerAgent.log(`${buyerAgent.name} has responded to the job #${job.id}`);
-          }
-        },
-        onEvaluate: async (job: AcpJob) => {
-          console.log(job.deliverable, job.serviceRequirement);
-          await job.evaluate(true, "This is a test reasoning");
-        },
-      }),
-    });
-    ```
-
-### Run the Buyer Script
-```bash
-ts-node buyer.ts
-```
-
----
 
 ## Understanding Job Phases
 
@@ -272,7 +227,7 @@ const onEvaluate = async (job: AcpJob) {
 Then, pass this function into the plugin:
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: myContractClient,
     onEvaluate: onEvaluate
@@ -288,7 +243,7 @@ You can customize the logic:
 This function ensures that the submitted deliverable contains a valid URL by checking if it starts with either `http://` or `https://`.
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: myContractClient,
     onEvaluate: async (job: AcpJob) => {
@@ -316,7 +271,7 @@ Evaluating job: {..., deliverable: { type: 'url', value: 'https://example.com/re
 2️⃣ Check File Extension (e.g. only allow `.png` or `.jpg` or `.jpeg`):
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: myContractClient,
     onEvaluate: async (job: AcpJob) => {
@@ -397,13 +352,13 @@ expiredAt.setMinutes(
 ### Example: Plugin Setup with Job Expiry
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: await AcpContractClient.build(
       WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
+      BUYER_ENTITY_ID,
       BUYER_AGENT_WALLET_ADDRESS,
-      baseSepoliaAcpConfig
+      baseAcpConfig
     ),
     onEvaluate: async (job: AcpJob) => {
       console.log("Evaluating job", job);

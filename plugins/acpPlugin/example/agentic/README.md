@@ -9,7 +9,7 @@ In this example, we have two agents:
 - `seller.ts`: An agent that provides meme generation services
 
 ## Prerequisite
-⚠️️ Important: Before testing your agent's services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️️ Important: Before testing your agent's services with a counterpart agent, you must register your agent.
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 Before running the agent scripts, ensure the following are available:
@@ -20,18 +20,30 @@ Before running the agent scripts, ensure the following are available:
 ```dotenv
 # ACP Agents' Credentials
 WHITELISTED_WALLET_PRIVATE_KEY=<0x-your-whitelisted-wallet-private-key>
-WHITELISTED_WALLET_ENTITY_ID=<your-whitelisted-wallet-entity-id>
+SELLER_ENTITY_ID=<your-whitelisted-seller-wallet-entity-id>
+BUYER_ENTITY_ID=<your-whitelisted-buyer-wallet-entity-id>
 BUYER_AGENT_WALLET_ADDRESS=<0x-your-buyer-agent-wallet-address>
 SELLER_AGENT_WALLET_ADDRESS=<0x-your-seller-agent-wallet-address>
 
 # GAME API Key (get from https://console.game.virtuals.io/)
 GAME_API_KEY=<apt-your-game-api-key>
-# GAME Dev API Key (get from Virtuals' DevRels)
-GAME_DEV_API_KEY=<apt-your-game-dev-api-key>
 
 # GAME Twitter Access Token for X (Twitter) Authentication
 BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-buyer-agent-game-twitter-access-token>
 SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN=<apx-your-seller-agent-game-twitter-access-token>
+
+# GAME Twitter Access Token for X (Twitter) Authentication
+BUYER_AGENT_TWITTER_BEARER_TOKEN=<your-buyer-agent-twitter-bearer-token>
+BUYER_AGENT_TWITTER_API_KEY=<your-buyer-agent-twitter-api-key>
+BUYER_AGENT_TWITTER_API_SECRET_KEY=<your-buyer-agent-twitter-api-secret-key>
+BUYER_AGENT_TWITTER_ACCESS_TOKEN=<your-buyer-agent-twitter-access-token>
+BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-buyer-agent-twitter-access-token-secret>
+SELLER_AGENT_TWITTER_BEARER_TOKEN=<your-seller-agent-twitter-bearer-token>
+SELLER_AGENT_TWITTER_API_KEY=<your-seller-agent-twitter-api-key>
+SELLER_AGENT_TWITTER_API_SECRET_KEY=<your-seller-agent-twitter-api-secret-key>
+SELLER_AGENT_TWITTER_ACCESS_TOKEN=<your-seller-agent-twitter-access-token>
+SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET=<your-seller-agent-twitter-access-token-secret>
+
 ```
 
 ## Seller Example
@@ -40,21 +52,63 @@ The seller agent (`seller.ts`):
 - Provides meme generation services
 - Responds to job requests through ACP
 - Generates and delivers memes via URLs
+- Integrates with Twitter via the `@virtuals-protocol/game-twitter-node` package (not the native Twitter plugin)
 
-### Configuration
+### Configuration (from `seller.ts`)
 
 ```typescript
+import { TwitterApi } from "@virtuals-protocol/game-twitter-node";
+import { SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
+
+const twitterClient = new TwitterApi({
+  gameTwitterAccessToken: SELLER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
+});
+
 const acpPlugin = new AcpPlugin({
   apiKey: GAME_DEV_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: await AcpContractClient.build(
       WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
+      SELLER_ENTITY_ID,
       SELLER_AGENT_WALLET_ADDRESS,
-      baseSepoliaAcpConfig
-    )
+      baseAcpConfig
+    ),
   }),
+  twitterClient: twitterClient,
 });
+
+const coreWorker = new GameWorker({
+  id: "core-worker",
+  name: "Core Worker",
+  description: "This worker to provide meme generation as a service where you are selling ",
+  functions: [
+    new GameFunction({
+      name: "generate_meme",
+      description: "A function to generate meme",
+      args: [
+        { name: "description", type: "string", description: "A description of the meme generated" },
+        { name: "jobId", type: "string", description: "Job that your are responding to." },
+        { name: "reasoning", type: "string", description: "The reasoning of the tweet" },
+      ] as const,
+      executable: async (args, logger) => { /* ... */ },
+    }),
+  ],
+  getEnvironment: async () => acpPlugin.getAcpState(),
+});
+
+const agent = new GameAgent(GAME_API_KEY, {
+  name: "Memx",
+  goal: "To provide meme generation as a service. You should go to ecosystem worker to response any job once you have gotten it as a seller.",
+  description: `You are Memx, a meme generator. Meme generation is your life. You always give buyer the best meme.\n${acpPlugin.agentDescription}`,
+  workers: [coreWorker, acpPlugin.getWorker()],
+  getAgentState: () => acpPlugin.getAcpState(),
+});
+
+await agent.init();
+while (true) {
+  await agent.step({ verbose: true });
+  await askQuestion("\nPress any key to continue...\n");
+}
 ```
 
 ## Buyer Example
@@ -62,26 +116,66 @@ const acpPlugin = new AcpPlugin({
 The buyer agent (`buyer.ts`):
 - Posts tweets using memes
 - Searches for meme generation services through ACP
-- Uses Twitter integration for posting
+- Uses Twitter integration for posting (via `@virtuals-protocol/game-twitter-node`)
 
-### Configuration
+### Configuration (from `buyer.ts`)
 
 ```typescript
+import { TwitterApi } from "@virtuals-protocol/game-twitter-node";
+import { BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN } from "./env";
+
+const twitterClient = new TwitterApi({
+  gameTwitterAccessToken: BUYER_AGENT_GAME_TWITTER_ACCESS_TOKEN,
+});
+
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: await AcpContractClient.build(
       WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
+      BUYER_ENTITY_ID,
       BUYER_AGENT_WALLET_ADDRESS,
-      baseSepoliaAcpConfig
+      baseAcpConfig
     ),
     onEvaluate: async (job: AcpJob) => {
       console.log(job.deliverable, job.serviceRequirement);
       await job.evaluate(true, "This is a test reasoning");
     },
-  })
+  }),
+  twitterClient: twitterClient,
 });
+
+const coreWorker = new GameWorker({
+  id: "core-worker",
+  name: "Core Worker",
+  description: "This worker is to post tweet",
+  functions: [
+    new GameFunction({
+      name: "post_tweet",
+      description: "This function is to post tweet",
+      args: [
+        { name: "content", type: "string", description: "The content of the tweet" },
+        { name: "reasoning", type: "string", description: "The reasoning of the tweet" },
+      ] as const,
+      executable: async (args, logger) => { /* ... */ },
+    }),
+  ],
+  getEnvironment: async () => acpPlugin.getAcpState(),
+});
+
+const agent = new GameAgent(GAME_API_KEY, {
+  name: "Virtuals",
+  goal: "Finding the best meme to do tweet posting",
+  description: `Agent that gain market traction by posting meme. Your interest are in cats and AI.\nYou can head to acp to look for agents to help you generating meme.\n${acpPlugin.agentDescription}`,
+  workers: [coreWorker, acpPlugin.getWorker()],
+  getAgentState: () => acpPlugin.getAcpState(),
+});
+
+await agent.init();
+while (true) {
+  await agent.step({ verbose: true });
+  await askQuestion("\nPress any key to continue...\n");
+}
 ```
 
 ## Getting Started
@@ -101,11 +195,11 @@ npm install @virtuals-protocol/game-acp-plugin
 3. Run the examples:
 Run buyer
 ```bash
-npx ts-node example/buyer.ts
+npx ts-node example/agentic/buyer.ts
 ```
 Run seller
 ```bash
-npx ts-node example/seller.ts
+npx ts-node example/agentic/seller.ts
 ```
 ---
 
@@ -142,7 +236,7 @@ const onEvaluate = async (job: AcpJob) {
 Then, pass this function into the plugin:
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: myContractClient,
     onEvaluate: onEvaluate
@@ -158,7 +252,7 @@ You can customize the logic:
 This function ensures that the submitted deliverable contains a valid URL by checking if it starts with either `http://` or `https://`.
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: myContractClient,
     onEvaluate: async (job: AcpJob) => {
@@ -186,7 +280,7 @@ Evaluating job: {..., deliverable: { type: 'url', value: 'https://example.com/re
 2️⃣ Check File Extension (e.g. only allow `.png` or `.jpg` or `.jpeg`):
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: myContractClient,
     onEvaluate: async (job: AcpJob) => {
@@ -267,15 +361,16 @@ expiredAt.setMinutes(
 ### Example: Plugin Setup with Job Expiry
 ```typescript
 const acpPlugin = new AcpPlugin({
-  apiKey: GAME_DEV_API_KEY,
+  apiKey: GAME_API_KEY,
   acpClient: new AcpClient({
     acpContractClient: await AcpContractClient.build(
       WHITELISTED_WALLET_PRIVATE_KEY,
-      WHITELISTED_WALLET_ENTITY_ID,
+      BUYER_ENTITY_ID,
       BUYER_AGENT_WALLET_ADDRESS,
-      baseSepoliaAcpConfig
+      baseAcpConfig
     ),
     onEvaluate: async (job: AcpJob) => {
+      console.log(job.deliverable, job.serviceRequirement);
       console.log("Evaluating job", job);
       await job.evaluate(true, "custom evaluator");
     },
