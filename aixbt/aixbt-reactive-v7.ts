@@ -5,7 +5,13 @@ import {
     GameFunction,
     GameWorker,
 } from "@virtuals-protocol/game";
-import AcpPlugin, { AcpToken, AcpJobPhasesDesc, baseConfig } from "@virtuals-protocol/game-acp-plugin"
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient, {
+  AcpContractClient,
+  AcpJob,
+  AcpJobPhases,
+  baseAcpConfig
+} from "@virtuals-protocol/acp-node";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -128,36 +134,6 @@ async function fetchProjectsWithNonEmptyFields(limit = 3, chainFilter?: string) 
     };
 }
 
-// Function to delete completed jobs and keep only the 3 newest ones
-async function deleteCompletedJobsKeepNewest(acpPlugin: any, keepCount: number = 3) {
-    try {
-        const state = await acpPlugin.getAcpState();
-        const completedJobs = state.jobs?.completed || [];
-        
-        if (completedJobs.length <= keepCount) {
-            console.log(`Only ${completedJobs.length} completed jobs found, no deletion needed.`);
-            return;
-        }
-        
-        // Sort jobs by lastUpdated (newest first)
-        const sortedJobs = [...completedJobs].sort((a, b) => 
-            (b.lastUpdated || 0) - (a.lastUpdated || 0)
-        );
-        
-        // Keep the newest N jobs, delete the rest
-        const jobsToDelete = sortedJobs.slice(keepCount);
-        console.log(`Keeping the ${keepCount} newest jobs, deleting ${jobsToDelete.length} older jobs.`);
-        
-        for (const job of jobsToDelete) {
-            await acpPlugin.deleteCompletedJob(job.jobId.toString());
-            console.log(`Deleted job ID: ${job.jobId}`);
-        }
-        
-        console.log(`Completed job cleanup: deleted ${jobsToDelete.length} old jobs, kept ${keepCount} newest.`);
-    } catch (error) {
-        console.error("Error deleting completed jobs:", error);
-    }
-}
 
 // Function to safely reset state only when appropriate
 async function safeResetStateIfNeeded(acpPlugin: any) {
@@ -229,12 +205,48 @@ async function test() {
 
     const acpPlugin = new AcpPlugin({
         apiKey: process.env.GAME_API_KEY!,
-        acpTokenClient: await AcpToken.build(
+        acpClient: new AcpClient({
+          acpContractClient: await AcpContractClient.build(
             `0x${process.env.WHITELISTED_WALLET_PRIVATE_KEY!.replace('0x', '')}`,
             parseInt(process.env.SESSION_ENTITY_KEY_ID!),
             `0x${process.env.AGENT_WALLET_ADDRESS!.replace('0x', '')}`,
-            baseConfig
-        ),
+            baseAcpConfig
+          ),
+          onNewTask: async (job: AcpJob) => {
+            console.log("reacting to job", job);
+
+            // Clean up completed jobs and keep only the 3 newest ones
+            // await deleteCompletedJobsKeepNewest(acpPlugin, 3);
+            
+            // Safely reset state if it's very large and no active jobs exist
+            await safeResetStateIfNeeded(acpPlugin);
+    
+            let prompt = "";
+    
+            if (job.phase === AcpJobPhases.REQUEST) {
+                prompt = `
+          Respond to the following transaction:
+          ${JSON.stringify(job)}
+    
+          decide to wheater you should accept the job or not.
+          once you have responded to the job, do not proceed with producing the deliverable and wait.
+          `;
+            } else if (job.phase === AcpJobPhases.TRANSACTION) {
+                prompt = `
+          Respond to the following transaction.
+          ${JSON.stringify(job)}
+    
+          you should produce the deliverable and deliver it to the buyer.
+          `;
+            }
+    
+            await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
+                verbose: true,
+            });
+    
+            console.log("reacting to job done");
+          },
+        }),
     });
 
     //function version to test
@@ -351,46 +363,46 @@ async function test() {
     await sellerAgent.init();
 
     // Clean up completed jobs and keep only the 3 newest ones BEFORE setting up phase change
-    await deleteCompletedJobsKeepNewest(acpPlugin, 3);
+    // await deleteCompletedJobsKeepNewest(acpPlugin, 3);
     
     // Safely reset state if it's very large and no active jobs exist
     await safeResetStateIfNeeded(acpPlugin);
 
     /// upon phase change, the seller agent will respond to the job
-    acpPlugin.setOnPhaseChange(async (job) => {
-        console.log("reacting to job", job);
+    // acpPlugin.setOnPhaseChange(async (job) => {
+    //     console.log("reacting to job", job);
 
-        // Clean up completed jobs and keep only the 3 newest ones
-        await deleteCompletedJobsKeepNewest(acpPlugin, 3);
+    //     // Clean up completed jobs and keep only the 3 newest ones
+    //     await deleteCompletedJobsKeepNewest(acpPlugin, 3);
         
-        // Safely reset state if it's very large and no active jobs exist
-        await safeResetStateIfNeeded(acpPlugin);
+    //     // Safely reset state if it's very large and no active jobs exist
+    //     await safeResetStateIfNeeded(acpPlugin);
 
-        let prompt = "";
+    //     let prompt = "";
 
-        if (job.phase === AcpJobPhasesDesc.REQUEST) {
-            prompt = `
-      Respond to the following transaction:
-      ${JSON.stringify(job)}
+    //     if (job.phase === AcpJobPhases.REQUEST) {
+    //         prompt = `
+    //   Respond to the following transaction:
+    //   ${JSON.stringify(job)}
 
-      decide to wheater you should accept the job or not.
-      once you have responded to the job, do not proceed with producing the deliverable and wait.
-      `;
-        } else if (job.phase === AcpJobPhasesDesc.TRANSACTION) {
-            prompt = `
-      Respond to the following transaction.
-      ${JSON.stringify(job)}
+    //   decide to wheater you should accept the job or not.
+    //   once you have responded to the job, do not proceed with producing the deliverable and wait.
+    //   `;
+    //     } else if (job.phase === AcpJobPhases.TRANSACTION) {
+    //         prompt = `
+    //   Respond to the following transaction.
+    //   ${JSON.stringify(job)}
 
-      you should produce the deliverable and deliver it to the buyer.
-      `;
-        }
+    //   you should produce the deliverable and deliver it to the buyer.
+    //   `;
+    //     }
 
-        await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
-            verbose: true,
-        });
+    //     await sellerAgent.getWorkerById("acp_worker").runTask(prompt, {
+    //         verbose: true,
+    //     });
 
-        console.log("reacting to job done");
-    });
+    //     console.log("reacting to job done");
+    // });
     /// end of seller reactive agent
     console.log("Listerning");
 
