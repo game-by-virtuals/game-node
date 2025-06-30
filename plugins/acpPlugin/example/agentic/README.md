@@ -9,7 +9,7 @@ In this example, we have two agents:
 - `seller.ts`: An agent that provides meme generation services
 
 ## Prerequisite
-⚠️️ Important: Before testing your agent's services with a counterpart agent, you must register your agent with the [Service Registry](https://acp-staging.virtuals.io/).
+⚠️️ Important: Before testing your agent's services with a counterpart agent, you must register your agent.
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
 
 Before running the agent scripts, ensure the following are available:
