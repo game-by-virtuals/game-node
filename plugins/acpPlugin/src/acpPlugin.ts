@@ -24,7 +24,6 @@ interface IAcpPluginOptions {
   agentRepoUrl?: string;
   graduated?: boolean;
   jobExpiryDurationMins?: number;
-  graduatedAgents?: boolean;
 }
 
 class AcpPlugin {
@@ -38,7 +37,6 @@ class AcpPlugin {
   private graduated?: boolean;
   private twitterClient?: TwitterApi;
   private jobExpiryDurationMins: number;
-  private graduatedAgents?: boolean;
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = options.acpClient;
@@ -47,7 +45,6 @@ class AcpPlugin {
     this.evaluatorCluster = options.evaluatorCluster;
     this.graduated = options.graduated;
     this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
-    this.graduatedAgents = options.graduatedAgents;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
