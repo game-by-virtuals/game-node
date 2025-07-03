@@ -7,6 +7,7 @@ export enum AcpJobPhasesDesc {
   EVALUATION = "evaluation",
   COMPLETED = "completed",
   REJECTED = "rejected",
+  EXPIRED = "expired",
 }
 
 export const ACP_JOB_PHASE_MAP: Record<AcpJobPhases, AcpJobPhasesDesc> = {
@@ -16,6 +17,7 @@ export const ACP_JOB_PHASE_MAP: Record<AcpJobPhases, AcpJobPhasesDesc> = {
   [AcpJobPhases.EVALUATION]: AcpJobPhasesDesc.EVALUATION,
   [AcpJobPhases.COMPLETED]: AcpJobPhasesDesc.COMPLETED,
   [AcpJobPhases.REJECTED]: AcpJobPhasesDesc.REJECTED,
+  [AcpJobPhases.EXPIRED]: AcpJobPhasesDesc.EXPIRED,
 };
 
 export interface AcpRequestMemo {
