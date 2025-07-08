@@ -24,6 +24,10 @@ interface IAcpPluginOptions {
   agentRepoUrl?: string;
   graduated?: boolean;
   jobExpiryDurationMins?: number;
+  // NEW OPTIONS:
+  keepCompletedJobs?: number;
+  keepCancelledJobs?: number;
+  keepProducedInventory?: number;
 }
 
 class AcpPlugin {
@@ -37,6 +41,10 @@ class AcpPlugin {
   private graduated?: boolean;
   private twitterClient?: TwitterApi;
   private jobExpiryDurationMins: number;
+  // NEW PROPERTIES:
+  private keepCompletedJobs: number;
+  private keepCancelledJobs: number;
+  private keepProducedInventory: number;
 
   constructor(options: IAcpPluginOptions) {
     this.acpClient = options.acpClient;
@@ -45,6 +53,9 @@ class AcpPlugin {
     this.evaluatorCluster = options.evaluatorCluster;
     this.graduated = options.graduated;
     this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
+    this.keepCompletedJobs = options.keepCompletedJobs ?? 1;
+    this.keepCancelledJobs = options.keepCancelledJobs ?? 0;
+    this.keepProducedInventory = options.keepProducedInventory ?? 1;
 
     this.id = "acp_worker";
     this.name = "ACP Worker";
@@ -75,71 +86,100 @@ class AcpPlugin {
     return item;
   }
 
-  private async toStateAcpJob(job: AcpJob) {
-    return {
-      jobId: job.id,
-      clientName: (await job.clientAgent)?.name || "",
-      providerName: (await job.providerAgent)?.name || "",
-      desc: job.serviceRequirement || "",
-      price: job.price.toString(),
-      phase: ACP_JOB_PHASE_MAP[job.phase],
-      memo: job.memos.reverse().map((memo: AcpMemo) => ({
+
+
+  public async getAcpState(): Promise<AcpState> {
+    const agentAddr = this.acpClient.acpContractClient.walletAddress.toLowerCase();
+
+    // Helper function to serialize jobs with conditional memo/tweet inclusion
+    const serializeJob = async (job: AcpJob, active: boolean) => {
+      const baseJob = {
+        jobId: job.id,
+        clientName: (await job.clientAgent)?.name || "",
+        providerName: (await job.providerAgent)?.name || "",
+        desc: job.serviceRequirement || "",
+        price: job.price.toString(),
+        providerAddress: job.providerAddress,
+        phase: ACP_JOB_PHASE_MAP[job.phase],
+      };
+
+      // Include memos only if active
+      const memo = active && job.memos ? job.memos.reverse().map((memo: AcpMemo) => ({
         id: memo.id,
-      })),
-      providerAddress: job.providerAddress,
-      tweetHistory: (job.context?.tweets?.reverse() || []).map(
+        type: memo.type?.toString(),
+        content: memo.content,
+        next_phase: memo.nextPhase?.toString(),
+      })) : [];
+
+      // Include tweetHistory only if active
+      const tweetHistory = active && job.context ? (job.context.tweets?.reverse() || []).map(
         (tweet: ITweet) => ({
           type: tweet.type,
           tweetId: tweet.tweetId,
           content: tweet.content,
           createdAt: tweet.createdAt,
         })
-      ),
+      ) : [];
+
+      return {
+        ...baseJob,
+        memo,
+        tweetHistory,
+      };
     };
-  }
 
-  public async getAcpState(): Promise<AcpState> {
-    const [activeJobs, completedJobs, cancelledJobs] = await Promise.all([
-      this.acpClient.getActiveJobs(),
-      this.acpClient.getCompletedJobs(),
-      this.acpClient.getCancelledJobs(),
-    ]);
+    // Fetch active jobs
+    const activeJobs = await this.acpClient.getActiveJobs();
 
-    const agentAddr =
-      this.acpClient.acpContractClient.walletAddress.toLowerCase();
-
-    const activeAsABuyer = [];
-    const activeAsASeller = [];
-
-    const processedActiveJobs = await Promise.all(
-      activeJobs.map(async (job) => ({
-        processed: await this.toStateAcpJob(job),
-        clientAddr: job.clientAddress.toLowerCase(),
-        providerAddr: job.providerAddress.toLowerCase(),
-      }))
-    );
-
-    for (const job of processedActiveJobs) {
-      if (job.clientAddr === agentAddr) {
-        activeAsABuyer.push(job.processed);
-      }
-      if (job.providerAddr === agentAddr) {
-        activeAsASeller.push(job.processed);
-      }
+    // Fetch completed jobs if not explicitly disabled
+    let completedJobs: AcpJob[] = [];
+    if (this.keepCompletedJobs > 0) {
+      completedJobs = await this.acpClient.getCompletedJobs();
     }
 
-    const completed = await Promise.all(
-      completedJobs.map((job) => this.toStateAcpJob(job))
+    // Fetch cancelled jobs if not explicitly disabled
+    let cancelledJobs: AcpJob[] = [];
+    if (this.keepCancelledJobs > 0) {
+      cancelledJobs = await this.acpClient.getCancelledJobs();
+    }
+
+    // Process active jobs
+    const activeAsABuyer = await Promise.all(
+      activeJobs
+        .filter(job => job.clientAddress.toLowerCase() === agentAddr)
+        .map(job => serializeJob(job, true))
     );
 
-    const cancelled = await Promise.all(
-      cancelledJobs.map((job) => this.toStateAcpJob(job))
+    const activeAsASeller = await Promise.all(
+      activeJobs
+        .filter(job => job.providerAddress.toLowerCase() === agentAddr)
+        .map(job => serializeJob(job, true))
     );
+
+    // Limit and process completed jobs
+    const completed = await Promise.all(
+      completedJobs
+        .slice(0, this.keepCompletedJobs)
+        .map(job => serializeJob(job, false))
+    );
+
+    // Limit and process cancelled jobs
+    const cancelled = await Promise.all(
+      cancelledJobs
+        .slice(0, this.keepCancelledJobs)
+        .map(job => serializeJob(job, false))
+    );
+
+    // Produced inventory logic
+    let produced: IInventory[] = [];
+    if (this.producedInventory.length > 0 && this.keepProducedInventory > 0) {
+      produced = this.producedInventory.slice(0, this.keepProducedInventory);
+    }
 
     const state: AcpState = {
       inventory: {
         acquired: [],
-        produced: [...this.producedInventory],
+        produced: produced,
       },
       jobs: {
         active: {
@@ -236,10 +276,7 @@ class AcpPlugin {
           console.log("Searching for agents in cluster:", this.cluster);
           const availableAgents = await this.acpClient.browseAgents(
             args.keyword,
-            {
-              cluster: this.cluster,
-              graduated: this.graduated,
-            }
+            this.cluster || undefined
           );
 
           if (availableAgents.length === 0) {
@@ -386,10 +423,7 @@ class AcpPlugin {
           if (requireValidator && args.evaluatorKeyword) {
             const validators = await this.acpClient.browseAgents(
               args.evaluatorKeyword,
-              {
-                cluster: this.evaluatorCluster,
-                graduated: this.graduated,
-              }
+              this.evaluatorCluster || undefined
             );
 
             if (validators.length === 0) {
