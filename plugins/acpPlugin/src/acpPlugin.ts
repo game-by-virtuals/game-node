@@ -276,7 +276,7 @@ class AcpPlugin {
           console.log("Searching for agents in cluster:", this.cluster);
           const availableAgents = await this.acpClient.browseAgents(
             args.keyword,
-            this.cluster || undefined
+              { cluster: this.cluster }
           );
 
           if (availableAgents.length === 0) {
@@ -423,7 +423,7 @@ class AcpPlugin {
           if (requireValidator && args.evaluatorKeyword) {
             const validators = await this.acpClient.browseAgents(
               args.evaluatorKeyword,
-              this.evaluatorCluster || undefined
+              { cluster: this.evaluatorCluster }
             );
 
             if (validators.length === 0) {
