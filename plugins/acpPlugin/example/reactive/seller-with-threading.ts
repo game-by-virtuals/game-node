@@ -9,6 +9,8 @@ import {
     WHITELISTED_WALLET_PRIVATE_KEY
 } from "./env";
 import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Simple job queue for processing jobs sequentially
 class JobQueue {
@@ -34,8 +36,9 @@ class JobQueue {
         this.processing = true;
         console.log(`[queue] Starting to process queue (${this.queue.length} jobs)`);
 
-        while (this.queue.length > 0) {
-            const job = this.queue.shift()!;
+        // Process jobs one by one (simplified like Python version)
+        let job = this.queue.shift();
+        while (job) {
             console.log(`[queue] Processing job ${job.id} (${this.queue.length} remaining)`);
             
             try {
@@ -45,6 +48,9 @@ class JobQueue {
                 console.error(`[queue] Error processing job ${job.id}:`, error);
             }
 
+            // Get next job
+            job = this.queue.shift();
+            
             // Add delay between jobs if there are more in queue
             if (this.queue.length > 0) {
                 console.log(`[queue] Waiting ${this.processingDelay}ms before next job...`);
@@ -96,7 +102,7 @@ if (!isMainThread) {
     const { useThreadLock } = workerData;
     console.log(`[worker] Thread lock enabled: ${useThreadLock}`);
     
-    // Simulate worker thread processing
+    // Simulate worker thread processing with better logging
     setInterval(() => {
         parentPort?.postMessage({
             type: 'heartbeat',
@@ -139,10 +145,10 @@ async function seller() {
         },
     });
 
-    console.log("=".repeat(40));
+    console.log("🟢".repeat(40));
     console.log("Seller agent initialized and ready to receive jobs");
     console.log("Queue status:", jobQueue.getStatus());
-    console.log("=".repeat(40));
+    console.log("🟢".repeat(40));
     
     console.log("\nListening...\n");
     
