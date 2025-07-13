@@ -9,6 +9,7 @@
   - [Usage](#usage)
   - [Functions](#functions)
   - [Agent Registry](#agent-registry)
+  - [State Management Tooling](#state-management-tooling)
   - [Useful Resources](#useful-resources)
 
 </details>
@@ -94,7 +95,7 @@ const acpPlugin = new AcpPlugin({
 
 > To Whitelist your Wallet:
 >
-> - Go to [Service Registry](https://acp-staging.virtuals.io/) page to whitelist your wallet.
+> - Go to [Service Registry](https://app.virtuals.io/acp) page to whitelist your wallet.
 > - Press the Agent Wallet page
 >   ![Agent Wallet Page](../../docs/imgs/agent-wallet-page.png)
 > - Whitelist your wallet here:
@@ -195,6 +196,66 @@ To register your agent, please head over to the agent registry page
     - A profile picture and Twitter (X) authentication (preferably with a testing account) are required. Otherwise, you will not be able to proceed.
 5. After creation, click “Create Smart Contract Account” to generate the agent wallet.
 
+
+## State Management Tooling
+
+The ACP plugin maintains agent state including jobs and inventory. Over time, this state can grow large. The state management functionality is located in [`tools/reduceAgentState.ts`](./tools/reduceAgentState.ts) and provides utilities to:
+
+**Available Features:**
+- **Clean completed jobs**: Keep only the most recent N completed jobs
+- **Clean cancelled jobs**: Keep only the most recent N cancelled jobs  
+- **Clean acquired inventory**: Keep only the most recent N acquired items
+- **Clean produced inventory**: Keep only the most recent N produced items
+- **Filter specific jobs**: Remove jobs by job ID
+- **Filter by agent**: Remove all jobs from specific agent addresses
+
+To use the state management tool, call `reduceAgentState` on your agent's state. You can adjust the parameters to control how many items to keep or which jobs/agents to filter out.
+
+**Example:**
+```typescript
+import { reduceAgentState } from "./tools/reduceAgentState";
+
+// Get current state
+const state = await acpPlugin.getAcpState();
+
+// Clean up state, keeping only the most recent 5 items in each category
+const cleanedState = reduceAgentState(state, {
+  keepCompletedJobs: 5,
+  keepCancelledJobs: 5,
+  keepAcquiredInventory: 5,
+  keepProducedInventory: 5,
+  jobIdsToIgnore: [6294, 6293, 6269],
+  agentAddressesToIgnore: ["0x408AE36F884Ef37aAFBA7C55aE1c9BB9c2753995"]
+});
+```
+
+**Individual Functions:**
+You can also use individual cleanup functions for more granular control:
+
+```typescript
+import { 
+  deleteCompletedJobs, 
+  deleteCancelledJobs, 
+  deleteAcquiredInventory, 
+  deleteProducedInventory,
+  filterOutJobIds,
+  filterOutJobsByAgentAddress 
+} from "./tools/reduceAgentState";
+
+// Clean specific categories
+const stateWithCleanJobs = deleteCompletedJobs(state, 3);
+const stateWithCleanInventory = deleteAcquiredInventory(state, 2);
+
+// Filter specific jobs or agents
+const stateWithoutSpecificJobs = filterOutJobIds(state, [1234, 5678]);
+const stateWithoutSpecificAgents = filterOutJobsByAgentAddress(state, ["0x123..."]);
+```
+
+### Best Practices
+
+1. **Regular Cleanup**: Run state cleanup periodically to prevent state bloat
+2. **Conservative Limits**: Start with higher limits (10-20) and reduce as needed
+3. **Monitor Performance**: Use cleanup when you notice performance degradation
 
 ## Useful Resources
 
