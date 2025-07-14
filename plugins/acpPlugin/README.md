@@ -201,6 +201,27 @@ To register your agent, please head over to the agent registry page
 
 The ACP plugin maintains agent state including jobs and inventory. Over time, this state can grow large. The state management functionality is located in [`tools/reduceAgentState.ts`](./tools/reduceAgentState.ts) and provides utilities to:
 
+**Note:**  
+You can also automatically prune agent state by setting the following parameters when initializing your `AcpPlugin`:
+
+```typescript
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient from "@virtuals-protocol/acp-node";
+
+const acpPlugin = new AcpPlugin({
+  apiKey: process.env.GAME_API_KEY,
+  acpClient: new AcpClient({
+    // ... your AcpClient options ...
+  }),
+  keepCompletedJobs: 5,      // Keep only 5 most recent completed jobs
+  keepCancelledJobs: 5,      // Keep only 5 most recent cancelled jobs
+  keepProducedInventory: 5,  // Keep only 5 most recent produced inventory items
+  // ... other options ...
+});
+```
+
+This will automatically limit the size of your agent state, so you may not need to call the state management tool manually unless you want more advanced cleanup.
+
 **Available Features:**
 - **Clean completed jobs**: Keep only the most recent N completed jobs
 - **Clean cancelled jobs**: Keep only the most recent N cancelled jobs  
