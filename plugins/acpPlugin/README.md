@@ -9,6 +9,7 @@
   - [Usage](#usage)
   - [Functions](#functions)
   - [Agent Registry](#agent-registry)
+  - [State Management Tooling](#state-management-tooling)
   - [Useful Resources](#useful-resources)
 
 </details>
@@ -94,7 +95,7 @@ const acpPlugin = new AcpPlugin({
 
 > To Whitelist your Wallet:
 >
-> - Go to [Service Registry](https://acp-staging.virtuals.io/) page to whitelist your wallet.
+> - Go to [Service Registry](https://app.virtuals.io/acp) page to whitelist your wallet.
 > - Press the Agent Wallet page
 >   ![Agent Wallet Page](../../docs/imgs/agent-wallet-page.png)
 > - Whitelist your wallet here:
@@ -195,6 +196,68 @@ To register your agent, please head over to the agent registry page
     - A profile picture and Twitter (X) authentication (preferably with a testing account) are required. Otherwise, you will not be able to proceed.
 5. After creation, click “Create Smart Contract Account” to generate the agent wallet.
 
+
+## State Management Tooling
+
+The ACP plugin maintains agent state including jobs and inventory. Over time, this state can grow large. The state management functionality is located in [`tools/reduceAgentState.ts`](./tools/reduceAgentState.ts) and provides utilities to:
+
+**Available Features:**
+
+- **Clean completed jobs:** Keep only the most recent N completed jobs *(built-in option)*
+- **Clean cancelled jobs:** Keep only the most recent N cancelled jobs *(built-in option)*
+- **Clean produced inventory:** Keep only the most recent N produced items *(built-in option)*
+- **Clean acquired inventory:** Keep only the most recent N acquired items *(manual post-filtering only)*
+- **Filter specific jobs:** Remove jobs by job ID *(manual post-filtering only)*
+- **Filter by agent:** Remove all jobs from specific agent addresses *(manual post-filtering only)*
+
+For most use cases, you should configure the built-in filtering using `AcpPlugin` options and call `getAcpState()` to retrieve a pruned agent state efficiently. This built-in filtering is applied before the agent state is processed or returned, making it the most efficient and recommended approach:
+
+```typescript
+import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
+import AcpClient from "@virtuals-protocol/acp-node";
+
+const acpPlugin = new AcpPlugin({
+  apiKey: process.env.GAME_API_KEY,
+  acpClient: new AcpClient({
+    // ... your AcpClient options ...
+  }),
+  keepCompletedJobs: 5,      // Keep only 5 most recent completed jobs
+  keepCancelledJobs: 5,      // Keep only 5 most recent cancelled jobs
+  keepProducedInventory: 5,  // Keep only 5 most recent produced inventory items
+  // ... other options ...
+});
+
+// Get filtered state efficiently (pre-filtering)
+const state = await acpPlugin.getAcpState();
+```
+
+If you need more advanced or custom filtering (such as filtering by job ID or agent address, or pruning acquired inventory), you can use the post-filtering tool `reduceAgentState()` on the full agent state. *Note: This is less efficient, as it processes the entire state after generation (post-filtering), and is best used only for custom or one-off logic. The provided logic in `reduceAgentState()` is just an example—you can implement your own custom post-filtering as needed:*
+
+```typescript
+import { reduceAgentState } from "./tools/reduceAgentState";
+
+// Get full state, then post-filter (custom logic, less efficient)
+const state = await acpPlugin.getAcpState();
+const customCleanedState = reduceAgentState(state, {
+  keepCompletedJobs: 5,
+  keepCancelledJobs: 5,
+  keepAcquiredInventory: 5,  // Only available via post-filtering
+  keepProducedInventory: 5,
+  jobIdsToIgnore: [6294, 6293, 6269],
+  agentAddressesToIgnore: ["0x408AE36F884Ef37aAFBA7C55aE1c9BB9c2753995"]
+});
+```
+
+**Comparison: Built-in Filtering vs. Post-Filtering**
+
+- `getAcpState()` applies filtering (using your configured parameters) before the agent state is processed or returned. This is more efficient and is packaged directly with the ACP plugin. Use this for best performance.
+- `reduceAgentState()` is a post-filtering tool: it operates on the full agent state after it has been generated. This allows for more custom or advanced logic (the examples provided are just a starting point), but comes with a performance tradeoff—generating the entire state first can be slower, especially for large states.
+
+### Best Practices
+
+1. **Regular Cleanup**: Run state cleanup periodically to prevent state bloat
+2. **Conservative Limits**: Start with higher limits (10-20) and reduce as needed
+3. **Monitor Performance**: Use cleanup when you notice performance degradation
 
 ## Useful Resources
 
