@@ -201,8 +201,16 @@ To register your agent, please head over to the agent registry page
 
 The ACP plugin maintains agent state including jobs and inventory. Over time, this state can grow large. The state management functionality is located in [`tools/reduceAgentState.ts`](./tools/reduceAgentState.ts) and provides utilities to:
 
-**Note:**  
-You can also automatically prune agent state by setting the following parameters when initializing your `AcpPlugin`:
+**Available Features:**
+
+- **Clean completed jobs:** Keep only the most recent N completed jobs *(built-in option)*
+- **Clean cancelled jobs:** Keep only the most recent N cancelled jobs *(built-in option)*
+- **Clean produced inventory:** Keep only the most recent N produced items *(built-in option)*
+- **Clean acquired inventory:** Keep only the most recent N acquired items *(manual post-filtering only)*
+- **Filter specific jobs:** Remove jobs by job ID *(manual post-filtering only)*
+- **Filter by agent:** Remove all jobs from specific agent addresses *(manual post-filtering only)*
+
+For most use cases, you should configure the built-in filtering using `AcpPlugin` options and call `getAcpState()` to retrieve a pruned agent state efficiently. This built-in filtering is applied before the agent state is processed or returned, making it the most efficient and recommended approach:
 
 ```typescript
 import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
@@ -218,59 +226,32 @@ const acpPlugin = new AcpPlugin({
   keepProducedInventory: 5,  // Keep only 5 most recent produced inventory items
   // ... other options ...
 });
+
+// Get filtered state efficiently (pre-filtering)
+const state = await acpPlugin.getAcpState();
 ```
 
-This will automatically limit the size of your agent state, so you may not need to call the state management tool manually unless you want more advanced cleanup.
+If you need more advanced or custom filtering (such as filtering by job ID or agent address, or pruning acquired inventory), you can use the post-filtering tool `reduceAgentState()` on the full agent state. *Note: This is less efficient, as it processes the entire state after generation (post-filtering), and is best used only for custom or one-off logic. The provided logic in `reduceAgentState()` is just an example—you can implement your own custom post-filtering as needed:*
 
-**Available Features:**
-- **Clean completed jobs**: Keep only the most recent N completed jobs
-- **Clean cancelled jobs**: Keep only the most recent N cancelled jobs  
-- **Clean acquired inventory**: Keep only the most recent N acquired items
-- **Clean produced inventory**: Keep only the most recent N produced items
-- **Filter specific jobs**: Remove jobs by job ID
-- **Filter by agent**: Remove all jobs from specific agent addresses
-
-To use the state management tool, call `reduceAgentState` on your agent's state. You can adjust the parameters to control how many items to keep or which jobs/agents to filter out.
-
-**Example:**
 ```typescript
 import { reduceAgentState } from "./tools/reduceAgentState";
 
-// Get current state
+// Get full state, then post-filter (custom logic, less efficient)
 const state = await acpPlugin.getAcpState();
-
-// Clean up state, keeping only the most recent 5 items in each category
-const cleanedState = reduceAgentState(state, {
+const customCleanedState = reduceAgentState(state, {
   keepCompletedJobs: 5,
   keepCancelledJobs: 5,
-  keepAcquiredInventory: 5,
+  keepAcquiredInventory: 5,  // Only available via post-filtering
   keepProducedInventory: 5,
   jobIdsToIgnore: [6294, 6293, 6269],
   agentAddressesToIgnore: ["0x408AE36F884Ef37aAFBA7C55aE1c9BB9c2753995"]
 });
 ```
 
-**Individual Functions:**
-You can also use individual cleanup functions for more granular control:
+**Comparison: Built-in Filtering vs. Post-Filtering**
 
-```typescript
-import { 
-  deleteCompletedJobs, 
-  deleteCancelledJobs, 
-  deleteAcquiredInventory, 
-  deleteProducedInventory,
-  filterOutJobIds,
-  filterOutJobsByAgentAddress 
-} from "./tools/reduceAgentState";
-
-// Clean specific categories
-const stateWithCleanJobs = deleteCompletedJobs(state, 3);
-const stateWithCleanInventory = deleteAcquiredInventory(state, 2);
-
-// Filter specific jobs or agents
-const stateWithoutSpecificJobs = filterOutJobIds(state, [1234, 5678]);
-const stateWithoutSpecificAgents = filterOutJobsByAgentAddress(state, ["0x123..."]);
-```
+- `getAcpState()` applies filtering (using your configured parameters) before the agent state is processed or returned. This is more efficient and is packaged directly with the ACP plugin. Use this for best performance.
+- `reduceAgentState()` is a post-filtering tool: it operates on the full agent state after it has been generated. This allows for more custom or advanced logic (the examples provided are just a starting point), but comes with a performance tradeoff—generating the entire state first can be slower, especially for large states.
 
 ### Best Practices
 
