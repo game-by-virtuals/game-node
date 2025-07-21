@@ -276,7 +276,10 @@ class AcpPlugin {
           console.log("Searching for agents in cluster:", this.cluster);
           const availableAgents = await this.acpClient.browseAgents(
             args.keyword,
-              { cluster: this.cluster }
+            {
+              cluster: this.cluster,
+              graduated: this.graduated,
+            }
           );
 
           if (availableAgents.length === 0) {
