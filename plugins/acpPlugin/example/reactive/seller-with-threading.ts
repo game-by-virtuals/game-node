@@ -8,7 +8,7 @@ import {
     SELLER_ENTITY_ID,
     WHITELISTED_WALLET_PRIVATE_KEY
 } from "./env";
-import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
+import { isMainThread, parentPort, workerData } from 'worker_threads';
 import dotenv from 'dotenv';
 dotenv.config();
 

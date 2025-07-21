@@ -10,7 +10,6 @@ import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
 import AcpClient, {
   AcpContractClient,
   AcpJob,
-  baseAcpConfig,
 } from "@virtuals-protocol/acp-node";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
@@ -67,7 +66,6 @@ async function test() {
         WHITELISTED_WALLET_PRIVATE_KEY,
         BUYER_ENTITY_ID,
         BUYER_AGENT_WALLET_ADDRESS,
-        baseAcpConfig
       ),
       onEvaluate: async (job: AcpJob) => {
         console.log(job.deliverable, job.serviceRequirement);

@@ -11,7 +11,6 @@ import AcpClient, {
   AcpContractClient,
   AcpJob,
   AcpJobPhases,
-  baseAcpConfig
 } from "@virtuals-protocol/acp-node";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
@@ -60,7 +59,7 @@ const twitterClient = new TwitterApi({
 //     accessTokenSecret: BUYER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
 // });
 
-async function test() {
+async function buyer() {
   const acpPlugin = new AcpPlugin({
     apiKey: GAME_API_KEY,
     acpClient: new AcpClient({
@@ -68,7 +67,6 @@ async function test() {
         WHITELISTED_WALLET_PRIVATE_KEY,
         BUYER_ENTITY_ID,
         BUYER_AGENT_WALLET_ADDRESS,
-        baseAcpConfig
       ),
       onNewTask: async (job: AcpJob) => {
         if (
@@ -178,4 +176,4 @@ async function test() {
   }
 }
 
-test();
+buyer();

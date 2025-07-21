@@ -7,10 +7,7 @@ import {
 } from "@virtuals-protocol/game";
 import * as readline from "readline";
 import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
-import AcpClient, {
-  AcpContractClient,
-  baseAcpConfig,
-} from "@virtuals-protocol/acp-node";
+import AcpClient, { AcpContractClient } from "@virtuals-protocol/acp-node";
 import {
   GAME_API_KEY,
   SELLER_AGENT_WALLET_ADDRESS,
@@ -64,7 +61,6 @@ async function test() {
         WHITELISTED_WALLET_PRIVATE_KEY,
         SELLER_ENTITY_ID,
         SELLER_AGENT_WALLET_ADDRESS,
-        baseAcpConfig
       ),
     }),
     twitterClient: twitterClient,

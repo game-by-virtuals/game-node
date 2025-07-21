@@ -42,15 +42,14 @@ const twitterClient = new TwitterApi({
 //     accessTokenSecret: SELLER_AGENT_TWITTER_ACCESS_TOKEN_SECRET,
 // })
 
-async function test() {
+async function seller() {
   const acpPlugin = new AcpPlugin({
     apiKey: GAME_API_KEY,
     acpClient: new AcpClient({
       acpContractClient: await AcpContractClient.build(
         WHITELISTED_WALLET_PRIVATE_KEY,
         SELLER_ENTITY_ID,
-        SELLER_AGENT_WALLET_ADDRESS,
-        baseAcpConfig
+        SELLER_AGENT_WALLET_ADDRESS
       ),
       onNewTask: async (job: AcpJob) => {
         let prompt = "";
@@ -176,4 +175,4 @@ async function test() {
   // NOTE: this agent only listen to the job and respond to it.
 }
 
-test();
+seller();
