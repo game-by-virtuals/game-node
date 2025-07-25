@@ -65,7 +65,7 @@ async function fetchProjectsWithNonEmptyFields(limit = 3, chainFilter?: string) 
     
     while (!foundEnough && page <= maxAttempts) {
         // Fetch a batch of projects (20 per page)
-        const apiUrl = `https://api.aixbt.tech/v1/projects?limit=20&page=${page}`;
+        const apiUrl = `https://api.aixbt.tech/v1/projects?limit=20&page=${page}&excludeStables=true`;
         
         const response = await fetch(apiUrl, {
             headers: {
@@ -316,7 +316,6 @@ async function test() {
             `0x${process.env.WHITELISTED_WALLET_PRIVATE_KEY!.replace('0x', '')}`,
             parseInt(process.env.SESSION_ENTITY_KEY_ID!),
             `0x${process.env.AGENT_WALLET_ADDRESS!.replace('0x', '')}`,
-            baseAcpConfig
           ),
           onNewTask: async (job: AcpJob) => {
             console.log("reacting to job", job);
