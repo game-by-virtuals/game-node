@@ -9,7 +9,6 @@ import AcpClient, {
   AcpContractClient,
   AcpJob,
   AcpJobPhases,
-  baseAcpConfig,
 } from "@virtuals-protocol/acp-node";
 import {
   GAME_API_KEY,

@@ -1,4 +1,4 @@
-import { AcpJobPhases } from "@virtuals-protocol/acp-node";
+import { AcpJobPhases, IDeliverable } from "@virtuals-protocol/acp-node";
 
 export enum AcpJobPhasesDesc {
   REQUEST = "request",
@@ -41,11 +41,6 @@ export interface IAcpJob {
   phase: AcpJobPhasesDesc;
   memo: AcpRequestMemo[];
   tweetHistory?: ITweet[];
-}
-
-export interface IDeliverable {
-  type: string;
-  value: string;
 }
 
 export interface IInventory extends IDeliverable {

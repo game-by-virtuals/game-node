@@ -1,5 +1,5 @@
 import AcpPlugin from "./acpPlugin";
-import { AcpJobPhasesDesc, IDeliverable, IAcpJob, AcpState } from "./interface";
+import { AcpJobPhasesDesc, IAcpJob, AcpState } from "./interface";
 
 export default AcpPlugin;
-export { AcpJobPhasesDesc, IDeliverable, IAcpJob, AcpState };
+export { AcpJobPhasesDesc, IAcpJob, AcpState };

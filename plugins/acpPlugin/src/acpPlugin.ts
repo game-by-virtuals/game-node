@@ -1,4 +1,4 @@
-import AcpClient, { AcpJob, AcpMemo } from "@virtuals-protocol/acp-node";
+import AcpClient, { AcpJob, AcpMemo, IDeliverable } from "@virtuals-protocol/acp-node";
 import {
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
@@ -723,16 +723,6 @@ class AcpPlugin {
           description: "The job ID you are delivering for",
         },
         {
-          name: "deliverableType",
-          type: "string",
-          description: "Type of the deliverable",
-        },
-        {
-          name: "deliverable",
-          type: "string",
-          description: "The deliverable item",
-        },
-        {
           name: "reasoning",
           type: "string",
           description: "Why you are making this delivery",
@@ -757,13 +747,6 @@ class AcpPlugin {
             "Missing reasoning - explain why you're making this delivery"
           );
         }
-        if (!args.deliverable) {
-          return new ExecutableGameFunctionResponse(
-            ExecutableGameFunctionStatus.Failed,
-            "Missing deliverable - specify what you're delivering"
-          );
-        }
-
         if (!args.tweetContent) {
           return new ExecutableGameFunctionResponse(
             ExecutableGameFunctionStatus.Failed,
@@ -803,12 +786,12 @@ class AcpPlugin {
             );
           }
 
-          const deliverable = JSON.stringify({
-            type: produced.type || args.deliverableType,
-            value: produced.value || args.deliverable,
-          });
+          const producedDeliverable: IDeliverable = {
+            type: produced.type,
+            value: produced.value,
+          };
 
-          await this.acpClient.deliverJob(+args.jobId, deliverable);
+          await this.acpClient.deliverJob(+args.jobId, producedDeliverable);
 
           this.producedInventory = this.producedInventory.filter(
             (item) => item.jobId !== job.jobId
@@ -826,7 +809,7 @@ class AcpPlugin {
             JSON.stringify({
               status: "success",
               jobId: args.jobId,
-              deliverable: args.deliverable,
+              deliverable: producedDeliverable,
               timestamp: Date.now(),
             })
           );
