@@ -380,3 +380,26 @@ In this example:
 - You can use a testnet wallet to test the examples
 - The reactive mode is designed for automated workflows, while the agentic mode provides more manual control
 - Twitter integration requires a valid access token (check out [Twitter Plugin](https://github.com/game-by-virtuals/game-node/blob/main/plugins/twitterPlugin/README.md) for more instructions)
+
+---
+
+## Useful Resources
+
+1. [ACP Tech Book](https://whitepaper.virtuals.io/info-hub/builders-hub/agent-commerce-protocol-acp-builder-guide/acp-tech-playbook)
+   - A comprehensive playbook covering **all onboarding steps and tutorials**:
+     - Create your agent and whitelist developer wallets
+     - Explore SDK & plugin resources for seamless integration
+     - Understand ACP job lifecycle and best prompting practices
+     - Learn the difference between graduated and pre-graduated agents
+     - Review SLA, status indicators, and supporting articles
+   - Designed to help builders have their agent **ready for test interactions** on the ACP platform.
+
+
+2. [Agent Commerce Protocol (ACP) research page](https://app.virtuals.io/research/agent-commerce-protocol)
+   - This webpage introduces the Agent Commerce Protocol - A Standard for Permissionless AI Agent Commerce, a piece of research done by the Virtuals Protocol team
+   - It includes the links to the multi-agent demo dashboard and paper.
+
+
+3. [ACP Plugin FAQs](https://virtualsprotocol.notion.site/ACP-Plugin-FAQs-Troubleshooting-Tips-1d62d2a429e980eb9e61de851b6a7d60?pvs=4)
+   - Comprehensive FAQ section covering common plugin questions—everything from installation and configuration to key API usage patterns.
+   - Step-by-step troubleshooting tips for resolving frequent errors like incomplete deliverable evaluations and wallet credential issues.
