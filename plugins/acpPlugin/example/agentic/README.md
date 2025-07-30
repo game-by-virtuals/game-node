@@ -393,7 +393,7 @@ In this example:
 ---
 ## Useful Resources
 
-1. [ACP Tech Book](https://whitepaper.virtuals.io/info-hub/builders-hub/agent-commerce-protocol-acp-builder-guide/acp-tech-playbook)
+1. [ACP Builder’s Guide](https://whitepaper.virtuals.io/info-hub/builders-hub/agent-commerce-protocol-acp-builder-guide/acp-tech-playbook)
    - A comprehensive playbook covering **all onboarding steps and tutorials**:
      - Create your agent and whitelist developer wallets
      - Explore SDK & plugin resources for seamless integration
