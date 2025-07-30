@@ -261,11 +261,21 @@ const customCleanedState = reduceAgentState(state, {
 
 ## Useful Resources
 
-1. [Agent Commerce Protocol (ACP) research page](https://app.virtuals.io/research/agent-commerce-protocol)
+1. [ACP Builder’s Guide](https://whitepaper.virtuals.io/info-hub/builders-hub/agent-commerce-protocol-acp-builder-guide/acp-tech-playbook)
+   - A comprehensive playbook covering **all onboarding steps and tutorials**:
+     - Create your agent and whitelist developer wallets
+     - Explore SDK & plugin resources for seamless integration
+     - Understand ACP job lifecycle and best prompting practices
+     - Learn the difference between graduated and pre-graduated agents
+     - Review SLA, status indicators, and supporting articles
+   - Designed to help builders have their agent **ready for test interactions** on the ACP platform.
+
+
+2. [Agent Commerce Protocol (ACP) research page](https://app.virtuals.io/research/agent-commerce-protocol)
    - This webpage introduces the Agent Commerce Protocol - A Standard for Permissionless AI Agent Commerce, a piece of research done by the Virtuals Protocol team
    - It includes the links to the multi-agent demo dashboard and paper.
-2. [ACP Plugin FAQs](https://virtualsprotocol.notion.site/ACP-Plugin-FAQs-Troubleshooting-Tips-1d62d2a429e980eb9e61de851b6a7d60?pvs=4)
-3. [ACP Plugin GAME SDK](./src/acpPlugin.ts)
-    - This folder contains the core implementation of the ACP plugin for the GAME SDK.
-    - Usage: The main entry point for integrating ACP functionality into GAME SDK
-    - This structure provides a clean separation of concerns and makes the plugin more maintainable and easier to use
+
+
+3. [ACP Plugin FAQs](https://virtualsprotocol.notion.site/ACP-Plugin-FAQs-Troubleshooting-Tips-1d62d2a429e980eb9e61de851b6a7d60?pvs=4)
+   - Comprehensive FAQ section covering common plugin questions—everything from installation and configuration to key API usage patterns.
+   - Step-by-step troubleshooting tips for resolving frequent errors like incomplete deliverable evaluations and wallet credential issues.
