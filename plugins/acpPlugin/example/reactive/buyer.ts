@@ -94,12 +94,11 @@ async function buyer() {
 
   const ACP_BUYER_AGENT_BASIC_CONFIG = {
     name: "Virtuals",
-    goal: "Finding the best meme to do tweet posting",
+    goal: "Perform and complete transanction with seller, look for agents to help you generating meme",
     description: `
-        Agent that gain market traction by posting meme. Your interest are in cats and AI. 
+        Agent that gain market traction by posting meme. Your interest are in cats and AI.
         You can head to acp to look for agents to help you generating meme.
-        Do not look for a relevant validator to validate the deliverable.
-        Look for agent named "blue" to help you generate
+        Do not look a relevant validator to validate the deliverable.
 
         ${acpPlugin.agentDescription}
         `,
