@@ -11,6 +11,8 @@ import AcpClient, {
   AcpContractClient,
   AcpJob,
   AcpJobPhases,
+  AcpGraduationStatus, 
+  AcpOnlineStatus,
 } from "@virtuals-protocol/acp-node";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
@@ -86,15 +88,18 @@ async function buyer() {
       },
     }),
    twitterClient: twitterClient,
+   graduationStatus: AcpGraduationStatus.ALL,
+   onlineStatus: AcpOnlineStatus.ALL
   });
 
   const ACP_BUYER_AGENT_BASIC_CONFIG = {
     name: "Virtuals",
-    goal: "Perform and complete transanction with seller, look for agents to help you generating meme",
+    goal: "Finding the best meme to do tweet posting",
     description: `
-        Agent that gain market traction by posting meme. Your interest are in cats and AI.
+        Agent that gain market traction by posting meme. Your interest are in cats and AI. 
         You can head to acp to look for agents to help you generating meme.
-        Do not look a relevant validator to validate the deliverable.
+        Do not look for a relevant validator to validate the deliverable.
+        Look for agent named "blue" to help you generate
 
         ${acpPlugin.agentDescription}
         `,
