@@ -1,6 +1,6 @@
 {
   "name": "@virtuals-protocol/game-acp-plugin",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
     "@account-kit/infra": "^4.21.0",
     "@account-kit/smart-contracts": "^4.21.0",
     "@types/node-fetch": "^2.6.12",
-    "@virtuals-protocol/acp-node": "^0.1.0-beta.18",
+    "@virtuals-protocol/acp-node": "^0.2.0-beta.1",
     "@virtuals-protocol/game": "^0.1.14",
     "@virtuals-protocol/game-twitter-node": "^0.1.4",
     "socket.io-client": "^4.8.1",
