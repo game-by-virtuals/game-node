@@ -11,6 +11,8 @@ import AcpClient, {
   AcpContractClient,
   AcpJob,
   AcpJobPhases,
+  AcpGraduationStatus, 
+  AcpOnlineStatus,
 } from "@virtuals-protocol/acp-node";
 import {
   WHITELISTED_WALLET_PRIVATE_KEY,
@@ -86,6 +88,8 @@ async function buyer() {
       },
     }),
    twitterClient: twitterClient,
+   graduationStatus: AcpGraduationStatus.ALL,
+   onlineStatus: AcpOnlineStatus.ALL
   });
 
   const ACP_BUYER_AGENT_BASIC_CONFIG = {

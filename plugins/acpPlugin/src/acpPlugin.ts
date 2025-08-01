@@ -1,4 +1,4 @@
-import AcpClient, { AcpJob, AcpMemo, IDeliverable } from "@virtuals-protocol/acp-node";
+import AcpClient, { AcpJob, AcpGraduationStatus, AcpOnlineStatus, AcpMemo, IDeliverable } from "@virtuals-protocol/acp-node";
 import {
   ExecutableGameFunctionResponse,
   ExecutableGameFunctionStatus,
@@ -22,7 +22,8 @@ interface IAcpPluginOptions {
   cluster?: string;
   evaluatorCluster?: string;
   agentRepoUrl?: string;
-  graduated?: boolean;
+  graduationStatus?: AcpGraduationStatus;
+  onlineStatus?: AcpOnlineStatus;
   jobExpiryDurationMins?: number;
   // NEW OPTIONS:
   keepCompletedJobs?: number;
@@ -38,7 +39,8 @@ class AcpPlugin {
   private producedInventory: IInventory[] = [];
   private cluster?: string;
   private evaluatorCluster?: string;
-  private graduated?: boolean;
+  private graduationStatus?: AcpGraduationStatus;
+  private onlineStatus?: AcpOnlineStatus;
   private twitterClient?: TwitterApi;
   private jobExpiryDurationMins: number;
   // NEW PROPERTIES:
@@ -51,7 +53,8 @@ class AcpPlugin {
     this.cluster = options.cluster;
     this.twitterClient = options.twitterClient;
     this.evaluatorCluster = options.evaluatorCluster;
-    this.graduated = options.graduated;
+    this.graduationStatus = options.graduationStatus;
+    this.onlineStatus = options.onlineStatus;
     this.jobExpiryDurationMins = options.jobExpiryDurationMins || 1440;
     this.keepCompletedJobs = options.keepCompletedJobs ?? 1;
     this.keepCancelledJobs = options.keepCancelledJobs ?? 0;
@@ -278,7 +281,8 @@ class AcpPlugin {
             args.keyword,
             {
               cluster: this.cluster,
-              graduated: this.graduated,
+              graduationStatus: this.graduationStatus,
+              onlineStatus: this.onlineStatus
             }
           );
 
