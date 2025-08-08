@@ -109,7 +109,7 @@ export const recommendActivitiesFunction = new GameFunction({
     name: "recommend_activities",
     description: "Recommend activities based on weather and location",
     args: [
-        { name: "weather", description: "Weather in temrms of tempearture only" },
+        { name: "weather", description: "Weather in temrms of temperature only" },
         { name: "location", description: "the city and country" }
     ] as const,
     executable: async (args, logger) => {

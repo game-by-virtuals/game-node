@@ -275,7 +275,7 @@ Check out our [Chat Agent example directory](https://github.com/game-by-virtuals
 | `/src` | Core SDK source code containing the main GAME framework implementation |
 | `/docs` |  Images, and additional resources |
 | `/examples` | Example implementations and use cases of the GAME framework |
-| `/plugins` | Plugins availble to use with GAME framework (Discord, Telegram, etc.) |
+| `/plugins` | Plugins available to use with GAME framework (Discord, Telegram, etc.) |
 | `/game-starter` | Starter project that gets you up and running with a working agent |
 
 ## License
