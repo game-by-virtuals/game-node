@@ -1,0 +1,229 @@
+name: "Token Metrics Virtuals Plugin"
+version: "1.0.0"
+description: "Complete Token Metrics integration plugin for Virtuals Protocol GAME framework providing AI-powered cryptocurrency analysis with 21 comprehensive API endpoints"
+author: "Token Metrics"
+license: "MIT"
+homepage: "https://github.com/tokenmetrics/tokenmetrics-virtuals-plugin"
+repository: "https://github.com/tokenmetrics/tokenmetrics-virtuals-plugin.git"
+keywords:
+  - "tokenmetrics"
+  - "virtuals-protocol"
+  - "crypto"
+  - "ai"
+  - "trading"
+  - "blockchain"
+  - "defi"
+  - "game-framework"
+  - "cryptocurrency"
+  - "market-analysis"
+
+# Plugin Classification
+category: "data-analysis"
+subcategory: "cryptocurrency"
+type: "api-integration"
+
+# Technical Requirements
+requirements:
+  node_version: ">=16.0.0"
+  dependencies:
+    - "@virtuals-protocol/game"
+    - "dotenv"
+  dev_dependencies:
+    - "typescript"
+    - "ts-node"
+    - "@types/node"
+
+# API Configuration
+api_requirements:
+  tokenmetrics_api_key:
+    required: true
+    description: "Token Metrics API key for accessing cryptocurrency data"
+    how_to_get: "Visit https://tokenmetrics.com/api to sign up and generate API key"
+  game_api_key:
+    required: true
+    description: "Virtuals Protocol GAME API key"
+    how_to_get: "Visit https://virtuals.io developer portal"
+
+# Plugin Capabilities
+capabilities:
+  functions_count: 21
+  endpoints_covered:
+    - "Token Discovery & Pricing"
+    - "Trading Signals & Analysis"
+    - "Market Metrics & Analytics"
+    - "AI Reports & Insights"
+    - "Technical Analysis"
+    - "Crypto Indices & Performance"
+  
+  all_functions:
+    # Core Data Functions (3)
+    - name: "getTokens"
+      description: "Get supported cryptocurrencies and TOKEN_IDs"
+      category: "core"
+      endpoint: "/tokens"
+    - name: "getTopMarketCapTokens"
+      description: "Get top cryptocurrencies by market cap"
+      category: "core"
+      endpoint: "/top-market-cap-tokens"
+    - name: "getPriceData"
+      description: "Get current market prices for tokens"
+      category: "core"
+      endpoint: "/price"
+    
+    # Trading & Investment Analysis (5)
+    - name: "getTraderGrades"
+      description: "AI-powered short-term trader performance grades"
+      category: "trading"
+      endpoint: "/trader-grades"
+    - name: "getInvestorGrades"
+      description: "Long-term investor performance analysis"
+      category: "trading"
+      endpoint: "/investor-grades"
+    - name: "getTradingSignals"
+      description: "AI-generated buy/sell/hold recommendations"
+      category: "trading"
+      endpoint: "/trading-signals"
+    - name: "getHourlyTradingSignals"
+      description: "Hourly AI trading signals with confidence scores"
+      category: "trading"
+      endpoint: "/hourly-trading-signals"
+    - name: "getMarketMetrics"
+      description: "Comprehensive market analysis and sentiment"
+      category: "trading"
+      endpoint: "/market-metrics"
+    
+    # Advanced Analytics (3)
+    - name: "getQuantmetrics"
+      description: "Quantitative trading metrics and analysis"
+      category: "analytics"
+      endpoint: "/quantmetrics"
+    - name: "getHourlyOhlcv"
+      description: "Hourly OHLC data with volume for technical analysis"
+      category: "analytics"
+      endpoint: "/hourly-ohlcv"
+    - name: "getDailyOhlcv"
+      description: "Daily OHLC data with technical indicators"
+      category: "analytics"
+      endpoint: "/daily-ohlcv"
+    
+    # AI & Research (4)
+    - name: "getAiReports"
+      description: "AI-generated comprehensive market reports"
+      category: "ai"
+      endpoint: "/ai-reports"
+    - name: "getTokenMetricsAi"
+      description: "Interactive AI chat for custom crypto analysis"
+      category: "ai"
+      endpoint: "/tmai"
+    - name: "getSentiments"
+      description: "Market sentiment analysis from social media and news"
+      category: "ai"
+      endpoint: "/sentiments"
+    - name: "getCryptoInvestors"
+      description: "Crypto investor performance and behavior analysis"
+      category: "ai"
+      endpoint: "/crypto-investors"
+    
+    # Technical Analysis (3)
+    - name: "getResistanceSupport"
+      description: "Historical resistance and support levels"
+      category: "technical"
+      endpoint: "/resistance-support"
+    - name: "getScenarioAnalysis"
+      description: "Price predictions under different market scenarios"
+      category: "technical"
+      endpoint: "/scenario-analysis"
+    - name: "getCorrelation"
+      description: "Token correlation analysis for portfolio optimization"
+      category: "technical"
+      endpoint: "/correlation"
+    
+    # Crypto Indices (3)
+    - name: "getIndices"
+      description: "Active and passive crypto indices with performance data"
+      category: "indices"
+      endpoint: "/indices"
+    - name: "getIndicesHoldings"
+      description: "Current holdings and weights of crypto indices"
+      category: "indices"
+      endpoint: "/indices-holdings"
+    - name: "getIndicesPerformance"
+      description: "Historical performance and ROI data for indices"
+      category: "indices"
+      endpoint: "/indices-performance"
+
+  function_categories:
+    core: 3
+    trading: 5
+    analytics: 3
+    ai: 4
+    technical: 3
+    indices: 3
+
+# Integration Details
+integration:
+  framework: "Virtuals Protocol GAME"
+  worker_type: "GameWorker"
+  function_type: "GameFunction"
+  response_format: "ExecutableGameFunctionResponse"
+  async_support: true
+  error_handling: true
+  rate_limiting: true
+
+# Documentation & Support
+documentation:
+  readme: true
+  api_reference: true
+  examples: true
+  testing_guide: true
+  developer_guide: true
+  changelog: true
+
+examples:
+  count: 22
+  types:
+    - "Individual function examples"
+    - "Integration scenarios"
+    - "Chat interface demos"
+    - "Trading bot simulations"
+    - "Research agent demos"
+
+testing:
+  unit_tests: true
+  integration_tests: true
+  example_tests: true
+  setup_verification: true
+  interactive_testing: true
+
+# Performance & Reliability
+performance:
+  response_formatting: "Beautiful color-coded console output"
+  error_recovery: "Graceful degradation with fallback responses"
+  logging: "Comprehensive logging with debug information"
+  validation: "Input validation for all parameters"
+
+# Maintenance & Updates
+maintenance:
+  last_updated: "2024-12-19"
+  update_frequency: "Regular updates with Token Metrics API changes"
+  backward_compatibility: true
+  version_strategy: "Semantic versioning"
+
+# Contact & Support
+support:
+  issues: "https://github.com/tokenmetrics/tokenmetrics-virtuals-plugin/issues"
+  documentation: "https://developers.tokenmetrics.com/"
+  community: "Token Metrics Discord/Telegram"
+  email: "support@tokenmetrics.com"
+
+# Plugin Status
+status: "stable"
+maturity: "production-ready"
+tested_environments:
+  - "Node.js 16+"
+  - "Node.js 18+"
+  - "Node.js 20+"
+platforms:
+  - "macOS"
+  - "Linux"
+  - "Windows" 
