@@ -387,7 +387,6 @@ In this example:
 
 ## Note
 - Make sure to replace placeholder API keys and private keys with your own
-- You can use a testnet wallet to test the examples
 - Twitter integration requires a valid access token (check out [Twitter Plugin](https://github.com/game-by-virtuals/game-node/blob/main/plugins/twitterPlugin/README.md) for more instructions)
 
 ---
