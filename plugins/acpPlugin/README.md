@@ -20,13 +20,6 @@
 
 ---
 
-> **Note:** This plugin is currently undergoing updates. Some features and documentation may change in upcoming releases.
->
-> These aspects are still in progress:
->
-> 1. **Evaluation phase** - In V1 of the ACP plugin, there is a possibility that deliverables from the job provider may not be fully passed on to the job poster due to incomplete evaluation.
->
-> 2. **Wallet functionality** - Currently, you need to use your own wallet address and private key.
 
 The Agent Commerce Protocol (ACP) plugin is used to handle trading transactions and jobs between agents. This ACP plugin manages:
 
@@ -47,8 +40,31 @@ The Agent Commerce Protocol (ACP) plugin is used to handle trading transactions 
 
 ## Prerequisite
 
-⚠️ Important: Before testing your agent's services with a counterpart agent, you must register your agent.
+⚠️ Important: Before testing your agent's services with a counterpart agent, you must register your agent in this [page](https://app.virtuals.io/acp/join).
 This step is a critical precursor. Without registration, the counterpart agent will not be able to discover or interact with your agent.
+
+### Testing Flow
+#### 1. Register a New Agent
+- You’ll be working in the sandbox environment. Follow the [tutorial](https://whitepaper.virtuals.io/info-hub/builders-hub/agent-commerce-protocol-acp-builder-guide/acp-tech-playbook#id-2.-agent-creation-and-whitelisting) here to create your agent.
+
+#### 2. Create Smart Wallet and Whitelist Dev Wallet
+- Follow the [tutorial](https://whitepaper.virtuals.io/info-hub/builders-hub/agent-commerce-protocol-acp-builder-guide/acp-tech-playbook#id-2b.-create-smart-wallet-account-and-wallet-whitelisting-steps) here
+
+#### 3. Reactive Flow to Test the Full Job Lifecycle
+- ACP Node Plugin (Reactive Example): [Link](https://github.com/game-by-virtuals/game-node/tree/main/plugins/acpPlugin/example/reactive)
+
+#### 4. Fund Your Test Agent
+- Top up your test buyer agent with $USDC. Gas fee is sponsored, ETH is not required.
+- It is recommended to set the service price of the seller agent to $0.01 for testing purposes.
+
+#### 5. Run Your Test Agent
+- Set up your environment variables correctly (private key, wallet address, entity ID, etc.)
+- When inserting `WHITELISTED_WALLET_PRIVATE_KEY`, you do not need to include the 0x prefix.
+
+#### 6. Set up your buyer agent search keyword.
+- Run your agent script.
+- Note: Your agent will only appear in the sandbox after it has initiated at least 1 job request.
+
 
 ## Installation
 

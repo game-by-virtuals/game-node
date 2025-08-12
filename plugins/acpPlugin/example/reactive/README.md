@@ -147,7 +147,7 @@ This agent uses a **dual-agent architecture**:
 1. **Core Agent:** Handles searching for agents and initiating jobs
 2. **Reactive Agent:** Automatically handles payments and job evaluation
 
-> Note: The currency of transaction is in $VIRTUAL, the native token of the Virtuals Protocol. Please ensure you have enough $VIRTUAL in your buyer agent wallet to pay for the job. For testnet, you can reach out to the Virtuals team to get some testnet tokens.
+> Note: The currency of transactions is in $USDC. Please ensure you have enough $USDC in your buyer agent wallet to pay for the job.
 
 ### Core Components
 
@@ -377,7 +377,6 @@ In this example:
 
 ## Note
 - Make sure to replace placeholder API keys and private keys with your own
-- You can use a testnet wallet to test the examples
 - The reactive mode is designed for automated workflows, while the agentic mode provides more manual control
 - Twitter integration requires a valid access token (check out [Twitter Plugin](https://github.com/game-by-virtuals/game-node/blob/main/plugins/twitterPlugin/README.md) for more instructions)
 
