@@ -16,7 +16,7 @@ import AcpClient, {
 // } from "@virtuals-protocol/game";
 import dotenv from "dotenv";
 
-import { WHITELISTED_WALLET_PRIVATE_KEY, SELLER_ENTITY_ID, SELLER_AGENT_WALLET_ADDRESS, GAME_API_KEY } from "./env";
+import { WHITELISTED_WALLET_PRIVATE_KEY, SESSION_ENTITY_KEY_ID, AGENT_WALLET_ADDRESS, GAME_API_KEY } from "./env";
 
 dotenv.config();
 
@@ -451,8 +451,8 @@ async function seller() {
     const requiredEnvVars = {
         GAME_API_KEY: process.env.GAME_API_KEY,
         WHITELISTED_WALLET_PRIVATE_KEY: process.env.WHITELISTED_WALLET_PRIVATE_KEY,
-        SELLER_ENTITY_ID: process.env.SELLER_ENTITY_ID,
-        SELLER_AGENT_WALLET_ADDRESS: process.env.SELLER_AGENT_WALLET_ADDRESS
+        SESSION_ENTITY_KEY_ID: process.env.SESSION_ENTITY_KEY_ID,
+        AGENT_WALLET_ADDRESS: process.env.AGENT_WALLET_ADDRESS
     };
 
     const missingVars = Object.entries(requiredEnvVars)
@@ -475,8 +475,8 @@ async function seller() {
 
     console.log('Environment variables loaded successfully');
     console.log(`Private key length: ${privateKey.length}`);
-    console.log(`Session entity key ID: ${process.env.SELLER_ENTITY_ID}`);
-    console.log(`Agent wallet address: ${process.env.SELLER_AGENT_WALLET_ADDRESS}`);
+    console.log(`Session entity key ID: ${process.env.SESSION_ENTITY_KEY_ID}`);
+    console.log(`Agent wallet address: ${process.env.AGENT_WALLET_ADDRESS}`);
 
     // Note: ACP Plugin state management is optional and can be added later
     const acpPlugin = null; // Simplified for now
@@ -488,8 +488,8 @@ async function seller() {
     new AcpClient({
         acpContractClient: await AcpContractClient.build(
             WHITELISTED_WALLET_PRIVATE_KEY,
-            SELLER_ENTITY_ID,
-            SELLER_AGENT_WALLET_ADDRESS
+            SESSION_ENTITY_KEY_ID,
+            AGENT_WALLET_ADDRESS
         ),
         onNewTask: async (job: AcpJob, memoToSign?: AcpMemo) => {
             console.log(`[onNewTask] Received job ${job.id}`);

@@ -21,6 +21,10 @@ export const AGENT_WALLET_ADDRESS = getEnvVar<Address>(
 
 export const SESSION_ENTITY_KEY_ID = parseInt(getEnvVar("SESSION_ENTITY_KEY_ID"));
 
+export const GAME_API_KEY = getEnvVar("GAME_API_KEY");
+
+
+
 
 const entities = {
   SESSION_ENTITY_KEY_ID,
