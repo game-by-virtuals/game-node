@@ -16,7 +16,7 @@ import AcpClient, {
 // } from "@virtuals-protocol/game";
 import dotenv from "dotenv";
 
-import { WHITELISTED_WALLET_PRIVATE_KEY, SELLER_ENTITY_ID, SELLER_AGENT_WALLET_ADDRESS, GAME_API_KEY } from "./env";
+import { WHITELISTED_WALLET_PRIVATE_KEY, SESSION_ENTITY_KEY_ID, AGENT_WALLET_ADDRESS } from "./env";
 
 dotenv.config();
 
@@ -288,40 +288,7 @@ class JobProcessor {
 
     private async handleJob(job: AcpJob, memoToSign?: AcpMemo) {
         try {
-            console.log("job", job);
             console.log(`[processJob] Job ${job.id} - Phase: ${AcpJobPhases[job.phase]}`);
-
-            // Extract service information from the job
-            const serviceName = job.serviceName;
-            const servicePrice = job.price;
-            const serviceRequirement = job.serviceRequirement;
-            
-            console.log(`[DEBUG] Service Name: "${serviceName}"`);
-            console.log(`[DEBUG] Service Price: ${servicePrice}`);
-            console.log(`[DEBUG] Service Requirement:`, serviceRequirement);
-
-            // Check if we can get the agent's offerings to compare
-            try {
-                const agent = await job.providerAgent;
-                if (agent) {
-                    console.log(`[DEBUG] Agent offerings:`, agent.offerings.map(o => ({
-                        name: o.name,
-                        price: o.price
-                    })));
-                    
-                    // Find which offering matches this job
-                    const matchingOffering = agent.offerings.find(o => o.price === servicePrice);
-                    if (matchingOffering) {
-                        const offeringIndex = agent.offerings.indexOf(matchingOffering);
-                        console.log(`[DEBUG] Matching offering index: ${offeringIndex}`);
-                        console.log(`[DEBUG] Offering details:`, matchingOffering);
-                    } else {
-                        console.log(`[DEBUG] No matching offering found for price: ${servicePrice}`);
-                    }
-                }
-            } catch (error) {
-                console.log(`[DEBUG] Could not fetch agent offerings:`, error);
-            }
 
             // Clean up state before processing (if acpPlugin is available)
             if (this.acpPlugin) {
@@ -349,31 +316,18 @@ class JobProcessor {
             ) {
                 console.log(`[processJob] Delivering Job ${job.id}`);
                 
-                // Determine which service to use based on service name
-                const serviceName = job.serviceName?.toLowerCase() || '';
+                // Determine which service to use
+                const jobDescription = job.description?.toLowerCase() || '';
+                const jobTitle = job.title?.toLowerCase() || '';
+                const searchText = `${jobDescription} ${jobTitle}`;
                 
-                // Also check the memo content for service name
-                const firstMemo = job.memos.find(m => m.nextPhase === 1); // NEGOTIATION phase
-                let actualServiceName = '';
+                const useIndigo = searchText.includes('indigo') || 
+                                  searchText.includes('analysis') || 
+                                  searchText.includes('opinion') || 
+                                  searchText.includes('think') ||
+                                  searchText.includes('sentiment') ||
+                                  searchText.includes('what do you');
                 
-                if (firstMemo) {
-                    try {
-                        const memoContent = JSON.parse(firstMemo.content);
-                        actualServiceName = memoContent.name?.toLowerCase() || memoContent.serviceName?.toLowerCase() || '';
-                        console.log("MEMO CONTENT:", memoContent);
-                    } catch (e) {
-                        console.log("Could not parse memo content");
-                    }
-                }
-                
-                console.log("JOB", job);
-                console.log("SERVICE NAME from job:", serviceName);
-                console.log("SERVICE NAME from memo:", actualServiceName);
-                
-                // Use Indigo AI if service name contains "indigo"
-                const useIndigo = actualServiceName.includes('indigo') || serviceName.includes('indigo');
-                
-                console.log(`[DEBUG] Service name: "${serviceName}"`);
                 console.log(`[processJob] Using ${useIndigo ? 'Indigo AI' : 'Crypto Projects'} service for job ${job.id}`);
                 
                 // Call the appropriate service
@@ -382,7 +336,7 @@ class JobProcessor {
                     
                     if (useIndigo) {
                         // Use Indigo AI service
-                        const prompt = JSON.stringify(job.serviceRequirement) || serviceName || "What are the top crypto opportunities right now?";
+                        const prompt = jobDescription || jobTitle || "What are the top crypto opportunities right now?";
                         result = await callIndigoService(prompt);
                     } else {
                         // Use crypto projects data service
@@ -451,8 +405,8 @@ async function seller() {
     const requiredEnvVars = {
         GAME_API_KEY: process.env.GAME_API_KEY,
         WHITELISTED_WALLET_PRIVATE_KEY: process.env.WHITELISTED_WALLET_PRIVATE_KEY,
-        SELLER_ENTITY_ID: process.env.SELLER_ENTITY_ID,
-        SELLER_AGENT_WALLET_ADDRESS: process.env.SELLER_AGENT_WALLET_ADDRESS
+        SESSION_ENTITY_KEY_ID: process.env.SESSION_ENTITY_KEY_ID,
+        AGENT_WALLET_ADDRESS: process.env.AGENT_WALLET_ADDRESS
     };
 
     const missingVars = Object.entries(requiredEnvVars)
@@ -475,8 +429,8 @@ async function seller() {
 
     console.log('Environment variables loaded successfully');
     console.log(`Private key length: ${privateKey.length}`);
-    console.log(`Session entity key ID: ${process.env.SELLER_ENTITY_ID}`);
-    console.log(`Agent wallet address: ${process.env.SELLER_AGENT_WALLET_ADDRESS}`);
+    console.log(`Session entity key ID: ${process.env.SESSION_ENTITY_KEY_ID}`);
+    console.log(`Agent wallet address: ${process.env.AGENT_WALLET_ADDRESS}`);
 
     // Note: ACP Plugin state management is optional and can be added later
     const acpPlugin = null; // Simplified for now
@@ -488,8 +442,8 @@ async function seller() {
     new AcpClient({
         acpContractClient: await AcpContractClient.build(
             WHITELISTED_WALLET_PRIVATE_KEY,
-            SELLER_ENTITY_ID,
-            SELLER_AGENT_WALLET_ADDRESS
+            SESSION_ENTITY_KEY_ID,
+            AGENT_WALLET_ADDRESS
         ),
         onNewTask: async (job: AcpJob, memoToSign?: AcpMemo) => {
             console.log(`[onNewTask] Received job ${job.id}`);
