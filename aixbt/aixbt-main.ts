@@ -3,7 +3,8 @@ import AcpClient, {
     AcpJobPhases, 
     AcpJob,
     AcpMemo,
-    IDeliverable
+    IDeliverable,
+    MemoType
 } from '@virtuals-protocol/acp-node';
 // Optional imports for advanced features
 // import AcpPlugin from "@virtuals-protocol/game-acp-plugin";
@@ -271,6 +272,7 @@ class JobProcessor {
     constructor(
         private queue: JobQueue<JobItem>,
         private acpPlugin: any = null,
+        private acpClient: AcpClient | null = null,
         private delayBetweenJobsMs = 2000
     ) {}
 
@@ -391,6 +393,7 @@ class JobProcessor {
                     
                     if (result.status !== 200) {
                         throw new Error(`Failed to fetch crypto projects: ${result.error}`);
+                        
                     }
                     
                     // Format the data as a clean string
@@ -423,13 +426,27 @@ class JobProcessor {
                     console.log(`[processJob] Job ${job.id} delivered with crypto projects data`);
                     
                 } catch (error) {
-                    console.error(`Error fetching crypto projects for job ${job.id}:`, error);
-                    // Fallback delivery with error message
-                    const errorDeliverable: IDeliverable = {
-                        type: "text",
-                        value: `Error fetching crypto projects: ${error}`,
-                    };
-                    await job.deliver(errorDeliverable);
+                    console.error(`Error fetching service data for job ${job.id}:`, error);
+                    
+                    // Check if it's a 404 error from Indigo API or other critical errors
+                    const errorMessage = (error as Error).message || String(error);
+                    const is404Error = errorMessage.includes('404') || errorMessage.includes('not found');
+                    const isIndigoError = useIndigo && (errorMessage.includes('Indigo') || errorMessage.includes('failed with status'));
+                    
+                    if (is404Error || isIndigoError) {
+                        // Reject the job with rejection memo for API failures
+                        console.log(`[REJECT] Creating rejection memo for job ${job.id} due to service failure`);
+                        await this.createRejectionMemo(job.id, `Service API failure: ${errorMessage}`);
+                        console.log(`[REJECT] Job ${job.id} rejected - funds returned to client`);
+                    } else {
+                        // For other errors, still try to deliver with error message
+                        console.log(`[FALLBACK] Delivering error message for job ${job.id}`);
+                        const errorDeliverable: IDeliverable = {
+                            type: "text",
+                            value: `Error fetching service data: ${errorMessage}`,
+                        };
+                        await job.deliver(errorDeliverable);
+                    }
                 }
             }
 
@@ -438,6 +455,26 @@ class JobProcessor {
             }
         } catch (error) {
             console.error(`❌ Error in job ${job.id}:`, error);
+        }
+    }
+
+    private async createRejectionMemo(jobId: number, reason: string) {
+        if (!this.acpClient) {
+            console.error(`Cannot create rejection memo for job ${jobId}: AcpClient not available`);
+            return;
+        }
+        
+        try {
+            await this.acpClient.acpContractClient.createMemo(
+                jobId,
+                `Job ${jobId} rejected. Reason: ${reason}`,
+                MemoType.MESSAGE,
+                false,
+                AcpJobPhases.REJECTED
+            );
+            console.log(`✅ Rejection memo created for job ${jobId}`);
+        } catch (error) {
+            console.error(`❌ Failed to create rejection memo for job ${jobId}:`, error);
         }
     }
 
@@ -482,10 +519,9 @@ async function seller() {
     const acpPlugin = null; // Simplified for now
 
     const jobQueue = new JobQueue<{ job: AcpJob; memoToSign?: AcpMemo }>();
-    const processor = new JobProcessor(jobQueue, acpPlugin, 2000); // time-off = 2s
-    processor.start();
-
-    new AcpClient({
+    
+    // Create AcpClient first so we can pass it to JobProcessor
+    const acpClient = new AcpClient({
         acpContractClient: await AcpContractClient.build(
             WHITELISTED_WALLET_PRIVATE_KEY,
             SESSION_ENTITY_KEY_ID,
@@ -496,6 +532,9 @@ async function seller() {
             jobQueue.enqueue({ job, memoToSign });
         }
     });
+    
+    const processor = new JobProcessor(jobQueue, acpPlugin, acpClient, 2000); // time-off = 2s
+    processor.start();
 
     // Set up periodic cleanup every 2 minutes to prevent state bloat
     setInterval(async () => {
