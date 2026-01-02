@@ -14,71 +14,57 @@ dotenv.config();
 // Fallback data to deliver when API fails
 const FALLBACK_DATA = [
     {
-        "id": "66f77f3e56fd508edf94059b",
-        "name": "treasure dao",
-        "score": 0.645,
-        "xHandle": "treasure_dao",
-        "rationale": "Treasure DAO integrates x402 V2 for agentic monetization of its MAGIC-powered entertainment platform.",
-        "ticker": "magic",
-        "tokens": {
-            "arbitrum-one": "0x539bde0d7dbd336b79148aa742883198bbf60342",
-            "ethereum": "0xb0c7a3ba49c7a6eaba6cd4a96c55a1391070ac9a"
-        },
-        "summaries": [
-            { "id": "69400971e5d831ec808f7b02", "date": "2025-12-15T12:00:00.000Z", "description": "Treasure DAO integrates with x402 V2 protocol as part of the agentic frameworks ecosystem, enabling agentic monetization for its MAGIC-powered entertainment platform." },
-            { "id": "693b2616e5d831ec805aa333", "date": "2025-12-11T19:00:00.000Z", "description": "Treasure DAO migrates to Base chain after previously moving from Arbitrum to zkSync for a grant." },
-            { "id": "69399d5ae5d831ec80471dbb", "date": "2025-12-10T15:00:00.000Z", "description": "Funding rate arbitrage for $MAGIC reaches 1226.29% APR." },
-            { "id": "69307e89e5d831ec80df278f", "date": "2025-12-03T17:00:00.000Z", "description": "Tier 3+ Treasure rewards program holders gain allowlist access to claim XCOPYART's 'Bubbles' NFT drop on Shape L2." },
-            { "id": "692e4a78e5d831ec80c3a47b", "date": "2025-12-02T01:00:00.000Z", "description": "Financial runway extends to mid-2027 with ample MAGIC treasury reserves maintained." }
-        ]
-    },
-    {
-        "id": "66fbbd26bd7900daf0d10e4c",
-        "name": "yearn",
+        "id": "673c554857e377dccfc0fbb8",
+        "name": "shiba inu",
         "score": 0.474,
-        "xHandle": "yearnfi",
-        "rationale": "Yearn launched a new protocol with Assymetry, despite recent exploits, while offering high vault yields.",
-        "ticker": "yfi",
+        "xHandle": "shibtoken",
+        "rationale": "SHIB perpetual futures are now live and trading 24/7 on Coinbase Derivatives.",
+        "ticker": "shib",
         "tokens": {
-            "ethereum": "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
-            "xdai": "0xbf65bfcb5da067446cee6a706ba3fe2fb1a9fdfd",
-            "optimistic-ethereum": "0x9046d36440290ffde54fe0dd84db8b1cfee9107b",
-            "energi": "0x2726dd5efb3a209a54c512e9562a2045b8f45dbc",
-            "huobi-token": "0xb4f019beac758abbee2f906033aaa2f0f6dacb35",
-            "fantom": "0x29b0da86e484e1c0029b56e817912d778ac0ec69",
-            "near-protocol": "0bc529c00c6401aef6d220be8c6ea1667f6ad93e.factory.bridge.near",
-            "harmony-shard-0": "0xa0dc05f84a27fccbd341305839019ab86576bc07",
-            "base": "0x9eaf8c1e34f05a589eda6bafdf391cf6ad3cb239",
-            "sora": "0x002676c3edea5b08bc0f9b6809a91aa313b7da35e28b190222e9dc032bf1e662",
-            "avalanche": "0x9eaac1b23d935365bd7b542fe22ceee2922f52dc",
-            "polygon-pos": "0xda537104d6a5edd53c6fbba9a898708e465260b6",
-            "arbitrum-one": "0x82e3a8f066a6989666b031d916c43672085b1582"
+            "ethereum": "0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce"
         },
         "summaries": [
-            { "id": "6940cd34e5d831ec80993fd2", "date": "2025-12-16T02:00:00.000Z", "description": "Yearn and Assymetry launch a new protocol together." },
-            { "id": "69409591e5d831ec8096af3d", "date": "2025-12-15T22:00:00.000Z", "description": "Yearn experienced recent exploits alongside Balancer, with post-mortem explanations circulating in the community. (ID: 2000693406805451036)" },
-            { "id": "693f97bbe5d831ec808b2d3d", "date": "2025-12-15T04:00:00.000Z", "description": "Yearn vaults yvvbUSDC and AUSD on Katana offer 15% yields through Spectra Finance with $1M and $200K liquidity respectively, running until February." },
-            { "id": "693c3f96e5d831ec8067a66f", "date": "2025-12-12T15:00:00.000Z", "description": "DeFiSaver integrates Yearn V3 vaults into their refreshed Smart Savings dashboard alongside other protocols including Steakhouse/Morpho, Sky, and Spark." },
-            { "id": "693a5214e5d831ec80503761", "date": "2025-12-11T04:00:00.000Z", "description": "Yearn generates $68.5K revenue on Katana network in November, up 5.3%, capturing 83.8% of application revenue on the network." }
+            { "id": "694050f5e5d831ec809340b2", "date": "2025-12-15T17:00:00.000Z", "description": "US Perpetual-Style Futures for SHIB are now live and trading 24/7 on Coinbase Derivatives." },
+            { "id": "69377694e5d831ec802db941", "date": "2025-12-09T00:00:00.000Z", "description": "SHIB experiences highest whale transfers since June 6th with +1.06 trillion tokens net change on exchanges." },
+            { "id": "693707aee5d831ec8028506d", "date": "2025-12-08T16:00:00.000Z", "description": "SHIB records $90.1M in whale inflows, ranking third among top projects by whale accumulation volume according to LunarCrush data." },
+            { "id": "6933138ae5d831ec80fe2704", "date": "2025-12-05T16:00:00.000Z", "description": "Coinbase Derivatives launches altcoin US Perpetual-Style Futures on December 15, expanding beyond the recently launched 24/7 monthly futures trading that now includes SHIB." },
+            { "id": "692990eee5d831ec8091e9b2", "date": "2025-11-28T11:00:00.000Z", "description": "Privacy features coming to Shibarium blockchain by Q2 2026." }
         ]
     },
     {
-        "id": "68eb99778237fd4de3b634ed",
-        "name": "succinct",
-        "score": 0.448,
-        "xHandle": "succinctlabs",
-        "rationale": "Succinct's SP1 and zkTLS enable institutional Proof of Reserves and Solana ZK-proving.",
-        "ticker": "prove",
+        "id": "67eeb365580752c691bd794c",
+        "name": "kinetiq",
+        "score": 0.435,
+        "xHandle": "kinetiq_xyz",
+        "rationale": "Kinetiq nominated for \"Best New DeFi\" award; validators split commission or stake KNTQ for buybacks.",
+        "ticker": "khype",
         "tokens": {
-            "ethereum": "0x6bef15d938d4e72056ac92ea4bdd0d76b1c4ad29",
-            "binance-smart-chain": "0x7ddf164cecfddd0f992299d033b5a11279a15929"
+            "hyperevm": "0xfd739d4e423301ce9385c1fb8850539d657c296d"
         },
         "summaries": [
-            { "id": "69405e22e5d831ec8093f430", "date": "2025-12-15T18:00:00.000Z", "description": "Primus Labs partners with Succinct to develop a Proof of Reserves platform for institutions, combining zkTLS and SP1 to enable CEXs, stablecoin issuers, and custodians to verify reserves with cryptographic certainty." },
-            { "id": "693c8519e5d831ec806b6578", "date": "2025-12-12T20:00:00.000Z", "description": "Bullet, a Solana-based trading network extension preparing for mainnet launch, integrates SP1 zkVM for ZK-proving execution with proofs verified on Solana L1." },
-            { "id": "6939ab20e5d831ec8047e7d8", "date": "2025-12-10T16:00:00.000Z", "description": "Celo launches Jello Hardfork with OP Succinct Lite on mainnet, becoming the first chain to deploy this technology with ZK fraud proofs and EigenDA integration." },
-            { "id": "6931258ae5d831ec80e6fe30", "date": "2025-12-04T05:00:00.000Z", "description": "Taiko mainnet achieves 100% ZK proof coverage in live production using SP1 and RISC0, with every block now proven with zero-knowledge proofs starting this week." },
-            { "id": "693028eee5d831ec80da2e2f", "date": "2025-12-03T11:00:00.000Z", "description": "$PROVE token shows breakout attempt with $0.5 marked as critical resistance for trend reversal." }
+            { "id": "694ea5d8b8ee5f3f01087d03", "date": "2025-12-26T14:56:11.000Z", "description": "Nominated for \"Best New DeFi\" award at The Rollup Co's awards ceremony on December 30th, 2025." },
+            { "id": "694ae9ceb8ee5f3f01fd6d52", "date": "2025-12-23T18:20:39.000Z", "description": "Allocates 100% of Launch revenue, 70% of LST revenue, and 100% of validator commission sharing revenue to KNTQ buybacks." },
+            { "id": "694ae9ccb8ee5f3f01fd6d4e", "date": "2025-12-23T18:20:39.000Z", "description": "Validators must split their commission 50-50 with Kinetiq or stake 2.5M KNTQ to opt into the active validator set if running 0% commission." },
+            { "id": "694a07823e47fdf3ba781c9b", "date": "2025-12-23T02:57:29.000Z", "description": "Temporarily unstaked tokens to participate in an upcoming governance vote regarding permanent burning of HYPE accumulated by the Assistance Fund, with tokens to be redistributed via StakeHub after the vote concludes." },
+            { "id": "69409591e5d831ec8096b036", "date": "2025-12-15T22:00:00.000Z", "description": "888,888 kHYPE raised to back kmHYPE for markets_xyz, with KNTQ token gating access to the exchange-specific LST." }
+        ]
+    },
+    {
+        "id": "670b3b2d90a8919c85d08cd5",
+        "name": "redacted remilio babies",
+        "score": 0.412,
+        "xHandle": "remiliobaby",
+        "rationale": "New Cypher ETH L1 offers 15% liquidity provision boost to Remilio holders.",
+        "ticker": "remilio",
+        "tokens": {
+            "solana": "remiG7sGaHWgrY7o6SXJW5CYi5A7kmKutyJz6x6hUsp"
+        },
+        "summaries": [
+            { "id": "6925f294e5d831ec8069c6ea", "date": "2025-11-25T17:00:00.000Z", "description": "Cypher, a new ETH L1 platform created by Remi-ecosystem veterans, launches and offers Remilio holders a 15% points boost for liquidity provision. The boost applies to holders of Remilio, Milady, YAYO, and Fumo404 NFTs." },
+            { "id": "68f93b47e5d831ec803b5d52", "date": "2025-10-22T19:00:00.000Z", "description": "Polymarket airdrop includes Milady and Remilio collections." },
+            { "id": "68f14578e5d831ec80cea222", "date": "2025-10-16T18:00:00.000Z", "description": "Collection floor price dropped to 0.2 ETH from 1 ETH, representing an 80% decline." },
+            { "id": "68eea1a7e5d831ec80abeaab", "date": "2025-10-14T18:00:00.000Z", "description": "The \"Permanent Underclass\" tier allocates an average of 135,511 $MON tokens to 8% of eligible wallets, valued at $5,135 at $7 billion FDV or $14,671 at the $20 billion FDV recently reached on whales market." },
+            { "id": "68ee5b8ae5d831ec80a76bd7", "date": "2025-10-14T13:00:00.000Z", "description": "Holders qualify for the Monad ($MON) airdrop based on September 30, 2025 snapshot, with claiming deadline of November 3, 2025. The collection is listed among 15 eligible NFT collections including CryptoPunks, Azuki, and Pudgy Penguins, while BAYC is notably excluded." }
         ]
     }
 ];
