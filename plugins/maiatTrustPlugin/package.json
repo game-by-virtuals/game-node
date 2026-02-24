@@ -1,0 +1,45 @@
+{
+  "name": "@virtuals-protocol/game-maiat-plugin",
+  "version": "0.1.0",
+  "description": "Maiat Trust Score plugin for the GAME SDK — lets your Virtuals agent verify trust before swapping or transacting",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format cjs,esm --out-dir dist",
+    "example": "ts-node src/example.ts",
+    "test": "echo 'No tests yet' && exit 0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "virtuals",
+    "game",
+    "maiat",
+    "trust-score",
+    "ai-agent",
+    "defi",
+    "web3",
+    "uniswap",
+    "base"
+  ],
+  "author": "JhiNResH <https://github.com/JhiNResH>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/game-by-virtuals/game-node"
+  },
+  "homepage": "https://maiat-protocol.vercel.app",
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "dotenv": "^16.4.7",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
+  }
+}
