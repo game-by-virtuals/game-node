@@ -189,7 +189,7 @@ function ensoRoute(params: IEnsoFunctionParams) {
 
         return new ExecutableGameFunctionResponse(
           ExecutableGameFunctionStatus.Done,
-          `Route executed succesfully, hash: ${txHash}`,
+          `Route executed successfully, hash: ${txHash}`,
         );
       } catch (err) {
         return new ExecutableGameFunctionResponse(
