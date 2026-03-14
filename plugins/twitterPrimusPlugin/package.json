@@ -1,0 +1,16 @@
+{
+  "name": "@virtuals-protocol/game-twitter-primus-plugin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.7",
+    "@primuslabs/zktls-core-sdk": "^0.1.1",
+    "agent-twitter-client": "0.0.18"
+  },
+  "author": "dev@primuslabs.xyz",
+  "license": "ISC",
+  "description": ""
+}
