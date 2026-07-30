@@ -6,7 +6,7 @@ release_date: "2026-06"
 
 # Description
 short_description: "Onchain data & AI reports for Base agents — token risk, wallet intel, OFAC sanctions, AI verdicts — paid per call over x402, no API keys."
-detailed_description: "x402 Bazaar exposes 48+ Base onchain-intelligence services as G.A.M.E. functions: AI token due-diligence verdict, fast token risk scan, wallet net worth, OFAC sanctions screening, and an AI market brief. Each call settles a tiny USDC micro-payment over the x402 protocol on Base (gasless for the payer); the wallet key stays local. Use it to give a trading/research agent the intelligence to know what to act on before it acts. Also available as an MCP server (npx x402-bazaar-mcp) and on Agentic.Market."
+detailed_description: "x402 Bazaar is a marketplace of 118 pay-per-call services on Base; this plugin surfaces the ones a trading or research agent needs as G.A.M.E. functions: AI token due-diligence verdict, fast token risk scan, wallet net worth, OFAC sanctions screening, and an AI market brief. Each call settles a tiny USDC micro-payment over the x402 protocol on Base (gasless for the payer); the wallet key stays local. Use it to give an agent the intelligence to know what to act on before it acts. Also available as an MCP server (npx x402-bazaar-mcp)."
 
 # Media & Assets
 plugin_logo_url: "https://402.com.tr/brand/icon"

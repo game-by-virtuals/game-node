@@ -8,8 +8,10 @@ protocol**, with no API keys.
 > G.A.M.E. decides & acts · **x402 Bazaar tells the agent what to act on** —
 > risk, intelligence and AI verdicts — before it commits.
 
-Backed by [x402 Bazaar](https://402.com.tr) (48+ services). The agent's wallet
-key is used locally to sign x402 payments and is **never sent anywhere**.
+Backed by [x402 Bazaar](https://402.com.tr), a marketplace of 118 pay-per-call
+services on Base — the live list is always at
+<https://402.com.tr/.well-known/x402>. The agent's wallet key is used locally to
+sign x402 payments and is **never sent anywhere**.
 
 ## Installation
 
