@@ -223,6 +223,8 @@ Each plugin comes with an example file. Click into the plugin's src folder to ru
 
 Plugins are always open source and we welcome contributions!
 
+[QHooks](plugins/qhooksPlugin) adds 25 opt-in market, QProof and unsigned-plan functions for user-wallet review.
+
 ## Components and Architecture Overview
 
 At a high level, this SDK allows you to develop your agents powered by the GAME architecture in its most full and flexible form. The SDK is made up of 3 main components (Agent, Worker, function), each with configurable arguments. Our docs expands in greater depth [G.A.M.E Docs](https://docs.game.virtuals.io/game-sdk).
