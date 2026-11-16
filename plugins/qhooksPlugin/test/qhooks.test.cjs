@@ -71,7 +71,7 @@ const world = (options = {}) => {
   return { worker, calls, state };
 };
 
-test("native worker and 25 functions are disabled by default, without construction requests", async () => {
+test("native worker and 31 functions are disabled by default, without construction requests", async () => {
   let calls = 0;
   const worker = getQHooksWorker({
     fetchImpl: async () => {
@@ -80,11 +80,11 @@ test("native worker and 25 functions are disabled by default, without constructi
     },
   });
   assert.ok(worker instanceof GameWorker);
-  assert.equal(worker.functions.length, 25);
+  assert.equal(worker.functions.length, 31);
   assert.ok(worker.functions.every(f => f instanceof GameFunction));
   assert.equal(
     worker.functions.some(f =>
-      /agreement_jar|send_feedback|prepare_tpsl|prepare_limit_order|orders_status/.test(f.name),
+      /agreement_jar|prepare_tpsl|prepare_limit_order|orders_status/.test(f.name),
     ),
     false,
   );
@@ -92,7 +92,8 @@ test("native worker and 25 functions are disabled by default, without constructi
     enabled: false,
     mode: "read-and-prepare",
     walletSigning: "outside-this-worker",
-    toolCount: 25,
+    toolCount: 31,
+    feedbackEnabled: false,
   });
   for (const f of worker.functions) {
     const result = await f.execute({ input: { value: "{}" } }, () => {
@@ -115,7 +116,7 @@ test("strict configuration rejects accidental credentials, arbitrary origins and
   ])
     assert.throws(() => getQHooksWorker(options), QHooksError);
 });
-test("all 25 native functions preserve data, exact amounts and routes on MCP and REST", async () => {
+test("the original 25 functions preserve data, exact amounts and routes on MCP and REST", async () => {
   const when = Math.floor(Date.now() / 1000) + 3600;
   const agreement = {
     payer: A(1),

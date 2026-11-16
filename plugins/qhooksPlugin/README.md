@@ -37,7 +37,7 @@ GAME function values are strings. Each named QHooks function therefore accepts o
 
 `qhooks_otc_quote`, `qhooks_otc_create`, `qhooks_otc_accept`, `qhooks_deal_status`, `qhooks_agreement_create`, `qhooks_agreement_fund`, `qhooks_agreement_from_template`, `qhooks_agreement_status`, `qhooks_agreement_release`, `qhooks_agreement_refund`, `qhooks_agreement_attest`, `qhooks_qproof_check`, `qhooks_wallet_portfolio`, `qhooks_hooks_catalog`, `qhooks_agent_stats`, `qhooks_list_callers`, `qhooks_caller_record`, `qhooks_perps_markets`, `qhooks_perps_positions`, `qhooks_prepare_perps_order`, `qhooks_list_launches`, `qhooks_token_info`, `qhooks_quote`, `qhooks_prepare_launch`, `qhooks_prepare_trade`.
 
-The inventory is static. Remote tools/list data cannot add functions. `agreement_jar` is excluded because it is not a server tool. `send_feedback` is deliberately excluded because it sends outward team feedback. Held RFQ board, spot order and competition tools are excluded. Service availability and validation are controlled by the released QHooks API.
+The inventory is static. Remote tools/list data cannot add functions. `agreement_jar` is excluded because it is not a server tool. `send_feedback` is pinned with write annotations and disabled unless the host sets `allowFeedback: true`. It sends text to the QHooks team; ask the operator before enabling it. Held RFQ and spot-order tools remain excluded. The released competition and agent-profile prepare/read tools are included. Service availability and validation are controlled by the released QHooks API.
 
 ## Prepare for user-wallet review
 
@@ -58,6 +58,7 @@ OTC and agreement tools use the released QHooks API; no fallback contract or exe
 ## Options
 
 - `enabled`: boolean, default `false`.
+- `allowFeedback`: boolean, default `false`; host consent for sending feedback text.
 - `referrer`: optional nonzero **public** EVM address. An explicit trade/launch referrer wins; the option fills an absent spot attribution only. Other tools receive no added referrer. No wallet address is discovered automatically.
 - `transport`: `mcp` (default) or `rest`; both use only `https://qhooks.com`.
 - `timeoutMs`: 1000–30000, default 20000.
@@ -73,7 +74,7 @@ HTTP 429/503, MCP errors, conflicting structured/text results and refreshing pay
 
 ## Tests
 
-`npm test` builds the package and exercises native SDK objects with controlled transports only. It covers default OFF behavior, all 25 tools on both transports, exact large amounts, nested argument rejection, referrer precedence, unavailable service behavior, safe errors and no automatic retry/logging. No real wallet, GAME planner, paid model or transaction is used. `npm run check` checks the entire package source.
+`npm test` builds the package and exercises native SDK objects with controlled transports only. It covers default OFF behavior, all 31 tools on both transports, exact large amounts, nested argument rejection, referrer precedence, unavailable service behavior, safe errors and no automatic retry/logging. No real wallet, GAME planner, paid model or transaction is used. `npm run check` checks the entire package source.
 
 ## Contributing
 
@@ -83,3 +84,11 @@ Follow the repository's [contribution guide](../../CONTRIBUTION_GUIDE.md) and pl
 ### Spot trade plan checks
 
 Before returning a `prepare_trade` plan, the client checks the requested chain and trader, each transaction chain, pinned router/manager, exact input approvals, canonical single-hop calldata, amount, quote-derived minimum output, fee/referrer, deadline and native value. It also checks the `qhooks.trade-plan.v1` SHA-256 digest. Unknown shapes and servers without this metadata fail closed. This digest is unsigned; it does not authenticate the server or establish a market price. The signing wallet still reviews and approves the transactions. No wallet execution or private-key capability is added.
+
+Optional feedback sends text to the QHooks team only after separate host opt-in. No custody; we never hold keys.
+
+## Reviewed tool catalog
+
+All 31 current public tools are statically pinned, including `compete_join`, `compete_standings`, `prepare_board_post`, `prepare_agent_profile`, `agent_profile` and `send_feedback`. Join, board and profile preparations return wallet-signable material; this plugin does not publish or sign it. `allowFeedback` is a host-controlled boolean, default false: only an explicitly enabled `send_feedback` call sends free text to the QHooks team. Tool arguments cannot enable it.
+
+The development-only `scripts/qhooks-pin.mjs` checks definitions against `fixtures/tools-list.json` and the explicitly reviewed names. Native tests reject schema drift and unreviewed names; remote metadata never adds runtime tools. Token-based quote and public Expert Studio configuration strings retain the server schema.
