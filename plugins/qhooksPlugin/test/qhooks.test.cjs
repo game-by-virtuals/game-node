@@ -1,3 +1,4 @@
+const { validTrade } = require("./trade-fixture.cjs");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
@@ -210,6 +211,7 @@ test("all 25 native functions preserve data, exact amounts and routes on MCP and
   for (const transport of ["mcp", "rest"])
     for (const [name, route, method, args] of cases) {
       const w = world({ transport });
+      if(name === "prepare_trade") w.state.data=validTrade(args);
       const r = await invoke(w.worker, name, args);
       assert.equal(r.status, "done");
       assert.deepEqual(JSON.parse(r.feedback), w.state.data);
@@ -259,8 +261,10 @@ test("malformed, oversized, unknown or nested invalid input fails locally", asyn
 });
 test("explicit referrer wins and option fills spot preparations only", async () => {
   const w = world({ referrer: A(4) });
+  w.state.data=validTrade({...trade,referrer:A(4)});
   await invoke(w.worker, "prepare_trade", trade);
   assert.equal(w.calls[0].body.params.arguments.referrer, A(4));
+  w.state.data=validTrade({...trade,referrer:A(5)});
   await invoke(w.worker, "prepare_trade", { ...trade, referrer: A(5) });
   assert.equal(w.calls[1].body.params.arguments.referrer, A(5));
   await invoke(w.worker, "list_launches", {});

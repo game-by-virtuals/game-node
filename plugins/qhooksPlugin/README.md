@@ -78,3 +78,8 @@ HTTP 429/503, MCP errors, conflicting structured/text results and refreshing pay
 ## Contributing
 
 Follow the repository's [contribution guide](../../CONTRIBUTION_GUIDE.md) and plugin PR template. Add behavior tests for changed public seams, keep tool/schema changes explicit, preserve exact amounts and wallet-signing boundaries, and do not add credentials or automatic execution. Contributions use the MIT license.
+
+
+### Spot trade plan checks
+
+Before returning a `prepare_trade` plan, the client checks the requested chain and trader, each transaction chain, pinned router/manager, exact input approvals, canonical single-hop calldata, amount, quote-derived minimum output, fee/referrer, deadline and native value. It also checks the `qhooks.trade-plan.v1` SHA-256 digest. Unknown shapes and servers without this metadata fail closed. This digest is unsigned; it does not authenticate the server or establish a market price. The signing wallet still reviews and approves the transactions. No wallet execution or private-key capability is added.
