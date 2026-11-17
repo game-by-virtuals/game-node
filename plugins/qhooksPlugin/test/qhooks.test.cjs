@@ -1,4 +1,4 @@
-const { validTrade } = require("./trade-fixture.cjs");
+const { validTrade, independentRead } = require("./trade-fixture.cjs");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
@@ -40,7 +40,7 @@ const world = (options = {}) => {
     data: {
       partial: true,
       costUsd: null,
-      transactions: [{ to: A(3), data: "0x12345678", value: "9007199254740993001" }],
+      note: "Non-executable partial fixture",
     },
   };
   const worker = getQHooksWorker({
@@ -54,15 +54,18 @@ const world = (options = {}) => {
           status: state.status,
           headers: { "retry-after": "7" },
         });
+      const route=new URL(String(url)).pathname.split("/").at(-1), name=body?.params?.name??({token:"token_info",quote:"quote"}[route]??route);
+      if(name==="prepare_trade"||name==="prepare-trade") state.tradeInput=body?.params?.arguments??body;
+      const data=state.data.integrity&&["token_info","quote"].includes(name)?independentRead(state.tradeInput)(name,body?.params?.arguments??Object.fromEntries([...new URL(String(url)).searchParams].map(([k,v])=>[k,k==="zeroForOne"?v==="true":v]))):state.data;
       return Response.json(
         options.transport === "rest"
-          ? state.data
+          ? data
           : {
               jsonrpc: "2.0",
               id: body.id,
               result: {
-                structuredContent: state.data,
-                content: [{ type: "text", text: JSON.stringify(state.data) }],
+                structuredContent: data,
+                content: [{ type: "text", text: JSON.stringify(data) }],
               },
             },
       );
@@ -216,7 +219,7 @@ test("the original 25 functions preserve data, exact amounts and routes on MCP a
       const r = await invoke(w.worker, name, args);
       assert.equal(r.status, "done");
       assert.deepEqual(JSON.parse(r.feedback), w.state.data);
-      assert.equal(w.calls.length, 1);
+      assert.equal(w.calls.length, name === "prepare_trade" ? 3 : 1);
       const call = w.calls[0];
       if (transport === "mcp") {
         assert.equal(call.body.params.name, name);
@@ -267,12 +270,12 @@ test("explicit referrer wins and option fills spot preparations only", async () 
   assert.equal(w.calls[0].body.params.arguments.referrer, A(4));
   w.state.data=validTrade({...trade,referrer:A(5)});
   await invoke(w.worker, "prepare_trade", { ...trade, referrer: A(5) });
-  assert.equal(w.calls[1].body.params.arguments.referrer, A(5));
+  assert.equal(w.calls[3].body.params.arguments.referrer, A(5));
   await invoke(w.worker, "list_launches", {});
-  assert.equal(w.calls[2].body.params.arguments.referrer, undefined);
+  assert.equal(w.calls[6].body.params.arguments.referrer, undefined);
   const r = await invoke(w.worker, "prepare_trade", { ...trade, referrer: A(0) });
   assert.equal(r.status, "failed");
-  assert.equal(w.calls.length, 3);
+  assert.equal(w.calls.length, 7);
 });
 test("429/503 return bounded safe failure metadata, no retry, response body or logging", async () => {
   for (const status of [429, 503]) {

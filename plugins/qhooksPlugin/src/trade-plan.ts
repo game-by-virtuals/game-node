@@ -1,3 +1,4 @@
+import { QHOOKS_SECURITY } from "./plan-security";
 // SPDX-License-Identifier: MIT
 import { createHash } from "node:crypto";
 
@@ -76,7 +77,7 @@ export function tradePlanHash(value: unknown): string {
   })];
   return "0x" + createHash("sha256").update(JSON.stringify(tuple), "utf8").digest("hex");
 }
-export function validateTradePlan(value: unknown, originalRequest: unknown, { now = Date.now() }: { now?: number } = {}): void {
+export function validateTradePlan(value: unknown, originalRequest: unknown, { now = Date.now(), evidence }: { now?: number; evidence?: unknown } = {}): void {
   const input = row(originalRequest), plan = row(value);
   const chain = typeof input.chain === "string" ? input.chain : fail();
   const policy = POLICIES[chain]; if (!policy?.feeRouter) fail();
@@ -107,6 +108,8 @@ export function validateTradePlan(value: unknown, originalRequest: unknown, { no
   const currency0 = wordAddress(w[11]), currency1 = wordAddress(w[12]); wordAddress(w[15]);
   const [currencyIn, currencyOut] = q.zeroForOne ? [currency0, currency1] : [currency1, currency0];
   if (BigInt(currency0) >= BigInt(currency1) || currencyIn !== inputCurrency || (feeOnInput ? currencyOut !== token : currencyIn !== token) || valueOf(swap.value) !== (inputCurrency === ZERO ? amount : 0n)) fail();
+
+  QHOOKS_SECURITY.checkTrade(plan,input,{currency0,currency1,fee:Number(number(w[13])),tickSpacing:Number(signed24(w[14])),hooks:wordAddress(w[15])},evidence);
   // swap outputs to msg.sender; no encoded trader/recipient is fabricated.
   const integrity = row(plan.integrity);
   if (integrity.schema !== "qhooks.trade-plan.v1" || integrity.algorithm !== "sha256" || typeof integrity.hash !== "string" || !/^0x[0-9a-f]{64}$/.test(integrity.hash) || tradePlanHash(plan) !== integrity.hash) fail();
