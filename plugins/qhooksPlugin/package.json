@@ -1,0 +1,38 @@
+{
+  "name": "@virtuals-protocol/game-qhooks-plugin",
+  "version": "0.1.0",
+  "description": "Opt-in QHooks reads and unsigned plans for GAME",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "plugin_metadata.yml"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format cjs,esm --out-dir dist --clean",
+    "check": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.cjs",
+    "example": "node examples/read.cjs"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/game-by-virtuals/game-node",
+    "directory": "plugins/qhooksPlugin"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "0.1.14",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.3",
+    "tsup": "8.5.0",
+    "typescript": "5.7.3"
+  }
+}
