@@ -1,0 +1,22 @@
+# General Information
+plugin_name: "helmswap_plugin"
+author: "HelmSwap"
+logo_url: ""
+release_date: "2026-11"
+
+# Description
+short_description: "Swap quotes and wallet-signed token swaps on Base, BNB Chain, Ethereum and other EVM chains"
+detailed_description: "Adds a HelmSwap worker with two functions. helmswap_quote returns a read-only quote with expected and minimum output. helmswap_swap gets a quote, requests an unsigned transaction from the public HelmSwap API, and signs and sends it with the agent's own viem wallet, sending a token approval first when needed. HelmSwap never receives a private key and never signs or broadcasts."
+
+# Media & Assets
+plugin_logo_url: ""
+screenshots:
+  - ""
+demo_video_url: ""
+documentation_url: "https://helmswap.com/developers"
+changelog_url: ""
+
+# Contact & Support
+x_account_handle: "@HelmSwap"
+support_contact: "https://github.com/gambrelcolby63/helmswap-sdk/issues"
+community_url: ""

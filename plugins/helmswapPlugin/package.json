@@ -1,0 +1,33 @@
+{
+  "name": "@virtuals-protocol/game-helmswap-plugin",
+  "version": "0.1.0",
+  "description": "HelmSwap swap quotes and wallet-signed swaps for GAME agents on EVM chains",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "tsup": "tsup src/index.ts --dts --format cjs,esm --out-dir dist",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "author": "HelmSwap",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "dotenv": "^16.4.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@virtuals-protocol/game": "^0.1.14",
+    "tsup": "^8.3.5",
+    "viem": "^2.22.16"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/game-by-virtuals/game-node"
+  }
+}
